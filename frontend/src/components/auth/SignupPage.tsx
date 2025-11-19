@@ -92,9 +92,7 @@ export const SignupPage = () => {
             newErrors.password = 'Password does not meet all requirements';
         }
 
-        if (!formData.agreedToTerms) {
-            newErrors.agreedToTerms = 'You must agree to the terms and conditions';
-        }
+
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -168,8 +166,8 @@ export const SignupPage = () => {
                             value={formData.fullName}
                             onChange={handleChange}
                             className={`h-[50px] w-full pl-11 pr-4 bg-navy/50 border rounded-xl text-cream text-[15px] placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 transition-all duration-200 ${errors.fullName
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-white/15 focus:border-coral focus:ring-coral/20'
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                                : 'border-white/15 focus:border-coral focus:ring-coral/20'
                                 }`}
                             placeholder="John Doe"
                         />
@@ -198,8 +196,8 @@ export const SignupPage = () => {
                             value={formData.email}
                             onChange={handleChange}
                             className={`h-[50px] w-full pl-11 pr-4 bg-navy/50 border rounded-xl text-cream text-[15px] placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 transition-all duration-200 ${errors.email
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-white/15 focus:border-coral focus:ring-coral/20'
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                                : 'border-white/15 focus:border-coral focus:ring-coral/20'
                                 }`}
                             placeholder="you@example.com"
                         />
@@ -228,8 +226,8 @@ export const SignupPage = () => {
                             value={formData.password}
                             onChange={handleChange}
                             className={`h-[50px] w-full pl-11 pr-12 bg-navy/50 border rounded-xl text-cream text-[15px] placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 transition-all duration-200 ${errors.password
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : 'border-white/15 focus:border-coral focus:ring-coral/20'
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                                : 'border-white/15 focus:border-coral focus:ring-coral/20'
                                 }`}
                             placeholder="Create a strong password"
                         />
@@ -306,11 +304,11 @@ export const SignupPage = () => {
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             className={`h-[50px] w-full pl-11 pr-12 bg-navy/50 border rounded-xl text-cream text-[15px] placeholder:text-warm-gray/40 focus:outline-none focus:ring-2 transition-all duration-200 ${errors.confirmPassword
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                                    : formData.confirmPassword &&
-                                        formData.password === formData.confirmPassword
-                                        ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
-                                        : 'border-white/15 focus:border-coral focus:ring-coral/20'
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                                : formData.confirmPassword &&
+                                    formData.password === formData.confirmPassword
+                                    ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
+                                    : 'border-white/15 focus:border-coral focus:ring-coral/20'
                                 }`}
                             placeholder="Re-enter your password"
                         />
@@ -331,62 +329,10 @@ export const SignupPage = () => {
                     )}
                 </div>
 
-                {/* Terms & Marketing Checkboxes */}
-                <div className="space-y-3 mt-6 mb-6">
-                    {/* Terms Checkbox */}
-                    <div className="flex items-start gap-3">
-                        <input
-                            id="agreedToTerms"
-                            name="agreedToTerms"
-                            type="checkbox"
-                            checked={formData.agreedToTerms}
-                            onChange={handleChange}
-                            className="h-4 w-4 mt-0.5 rounded border-white/20 bg-navy/50 checked:bg-coral checked:border-coral focus:ring-2 focus:ring-coral/20 cursor-pointer"
-                        />
-                        <label
-                            htmlFor="agreedToTerms"
-                            className="text-[13px] text-warm-gray/90 leading-relaxed cursor-pointer"
-                        >
-                            I agree to the{' '}
-                            <Link to="/terms" className="text-coral hover:underline">
-                                Terms of Service
-                            </Link>{' '}
-                            and{' '}
-                            <Link to="/privacy" className="text-coral hover:underline">
-                                Privacy Policy
-                            </Link>
-                        </label>
-                    </div>
-                    {errors.agreedToTerms && (
-                        <p className="text-[13px] text-red-400 ml-7 flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                            {errors.agreedToTerms}
-                        </p>
-                    )}
-
-                    {/* Marketing Checkbox */}
-                    <div className="flex items-start gap-3">
-                        <input
-                            id="marketingOptIn"
-                            name="marketingOptIn"
-                            type="checkbox"
-                            checked={formData.marketingOptIn}
-                            onChange={handleChange}
-                            className="h-4 w-4 mt-0.5 rounded border-white/20 bg-navy/50 checked:bg-coral checked:border-coral focus:ring-2 focus:ring-coral/20 cursor-pointer"
-                        />
-                        <label
-                            htmlFor="marketingOptIn"
-                            className="text-[13px] text-warm-gray/90 leading-relaxed cursor-pointer"
-                        >
-                            Send me product updates and tips
-                        </label>
-                    </div>
-                </div>
-
                 {/* Submit Button */}
                 <Button
                     type="submit"
-                    disabled={isLoading || !formData.agreedToTerms}
+                    disabled={isLoading}
                     className="w-full h-[52px] bg-coral hover:bg-coral/90 text-navy text-[15px] font-semibold rounded-xl shadow-lg shadow-coral/20 hover:shadow-xl hover:shadow-coral/30 hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-coral focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 >
                     {isLoading ? (
