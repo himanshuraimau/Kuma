@@ -9,6 +9,7 @@ The Kuma backend is built with modern technologies to provide a robust authentic
 - **Supabase**: Authentication provider and PostgreSQL database
 - **Prisma**: Type-safe ORM
 - **TypeScript**: Type safety throughout
+- **Langchain**: LLM integration and agents and memory
 
 ## Architecture
 
@@ -144,8 +145,61 @@ model User {
 | `NODE_ENV` | Environment | `development` |
 | `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:5173` |
 
+## LangChain Integration
+
+### Overview
+
+The backend now includes LangChain integration for AI-powered conversations with specialized agents and tools.
+
+### Key Components
+
+#### Agents
+- **Router Agent**: Intelligently routes queries to specialized agents
+- **Stock Market Agent**: Research stocks, analyze trends, provide insights
+- **Financial Agent**: Personal finance management and advice
+
+#### Tools
+- **Stock Market Tools**: Get prices, company info, financial news (mock data)
+- **Future Tools**: Gmail, GitHub, Calendar, Slack integrations
+
+#### Memory
+- **PostgreSQL-based**: Conversation history persisted via LangGraph checkpointer
+- **Thread-based**: Each chat has unique thread_id for context isolation
+
+### API Endpoints
+
+#### Chat
+- `POST /api/chat` - Send message to agent
+- `GET /api/chats` - List user's chats
+- `GET /api/chats/:id` - Get specific chat
+- `DELETE /api/chats/:id` - Delete chat
+
+#### Agents
+- `GET /api/agents` - List available agents
+- `GET /api/agents/:name` - Get agent details
+
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API key for LLM | `sk-...` |
+| `GMAIL_CLIENT_ID` | Gmail OAuth client ID (optional) | `` |
+| `GITHUB_TOKEN` | GitHub API token (optional) | `` |
+| `ALPHA_VANTAGE_API_KEY` | Stock market API key (optional) | `` |
+
+### Database Schema
+
+New models for LangChain:
+- `Chat` - Conversation threads
+- `Message` - Individual messages
+- `Agent` - Agent configurations
+- `Tool` - Tool definitions
+- `UserTool` - User-connected services
+
 ## Next Steps
 
+- ~~Add LangChain integration~~ ✅ Completed
+- ~~Implement agents and tools~~ ✅ Completed
 - Add email verification
 - Implement password reset
 - Add refresh tokens
@@ -153,3 +207,5 @@ model User {
 - Add API documentation (Swagger/OpenAPI)
 - Implement role-based access control
 - Add logging and monitoring
+- Expand tool integrations (Gmail, GitHub, Calendar)
+- Add message trimming and summarization for long conversations

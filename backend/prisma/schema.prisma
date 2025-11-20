@@ -18,5 +18,82 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  chats     Chat[]
+  userTools UserTool[]
+
   @@map("users")
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String?
+  agentType String   @default("router") // router, financial, stock-market, etc.
+  threadId  String   @unique // LangGraph thread_id for memory
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId])
+  @@index([threadId])
+  @@map("chats")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  role      String   // user, assistant, tool, system
+  content   String   @db.Text
+  toolCalls Json?    // Store tool calls if any
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@map("messages")
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  name        String   @unique // financial, stock-market, productivity, etc.
+  displayName String
+  description String   @db.Text
+  systemPrompt String  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("agents")
+}
+
+model Tool {
+  id          String   @id @default(uuid())
+  name        String   @unique // read_emails, create_issue, get_stock_price, etc.
+  category    String   // gmail, github, stock-market, calendar, slack
+  displayName String
+  description String   @db.Text
+  requiresAuth Boolean @default(false) // Does this tool need OAuth/API key?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tools")
+}
+
+model UserTool {
+  id           String   @id @default(uuid())
+  userId       String
+  toolCategory String   // gmail, github, stock-market, etc.
+  credentials  Json     // Encrypted OAuth tokens or API keys
+  isConnected  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, toolCategory])
+  @@index([userId])
+  @@map("user_tools")
 }
