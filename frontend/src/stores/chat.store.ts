@@ -1,0 +1,200 @@
+import { create } from 'zustand';
+import type { Chat, Message } from '@/types/api.types';
+import * as chatApi from '@/api/chat.api';
+
+interface ChatState {
+    // State
+    currentChatId: string | null;
+    currentMessages: Message[];
+    chats: Chat[];
+    isLoading: boolean;
+    isSending: boolean;
+    error: string | null;
+
+    // Actions
+    sendMessage: (message: string, agentType?: string) => Promise<void>;
+    loadChats: () => Promise<void>;
+    loadChat: (chatId: string) => Promise<void>;
+    deleteChat: (chatId: string) => Promise<void>;
+    updateChatTitle: (chatId: string, title: string) => Promise<void>;
+    createNewChat: () => void;
+    setCurrentChat: (chatId: string | null) => void;
+    clearError: () => void;
+}
+
+export const useChatStore = create<ChatState>((set, get) => ({
+    // Initial state
+    currentChatId: null,
+    currentMessages: [],
+    chats: [],
+    isLoading: false,
+    isSending: false,
+    error: null,
+
+    // Send a message
+    sendMessage: async (message: string, agentType = 'router') => {
+        const { currentChatId } = get();
+
+        set({ isSending: true, error: null });
+
+        try {
+            // Optimistically add user message to UI
+            const tempUserMessage: Message = {
+                id: `temp-${Date.now()}`,
+                chatId: currentChatId || 'temp',
+                role: 'user',
+                content: message,
+                createdAt: new Date().toISOString(),
+            };
+
+            set((state) => ({
+                currentMessages: [...state.currentMessages, tempUserMessage],
+            }));
+
+            // Send message to API
+            const response = await chatApi.sendMessage({
+                message,
+                chatId: currentChatId || undefined,
+                agentType,
+            });
+
+            // Update current chat ID if this was a new chat
+            if (!currentChatId) {
+                set({ currentChatId: response.chatId });
+            }
+
+            // Add assistant response to messages
+            const assistantMessage: Message = {
+                id: `assistant-${Date.now()}`,
+                chatId: response.chatId,
+                role: 'assistant',
+                content: response.message,
+                createdAt: new Date().toISOString(),
+            };
+
+            set((state) => ({
+                currentMessages: [
+                    ...state.currentMessages.filter(m => m.id !== tempUserMessage.id),
+                    { ...tempUserMessage, id: `user-${Date.now()}`, chatId: response.chatId },
+                    assistantMessage,
+                ],
+                isSending: false,
+            }));
+
+            // Reload chats to update sidebar
+            await get().loadChats();
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.error || 'Failed to send message',
+                isSending: false,
+            });
+            // Remove optimistic message on error
+            set((state) => ({
+                currentMessages: state.currentMessages.filter(m => !m.id.startsWith('temp-')),
+            }));
+        }
+    },
+
+    // Load all chats
+    loadChats: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await chatApi.getChats();
+            set({ chats: response.chats, isLoading: false });
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.error || 'Failed to load chats',
+                isLoading: false,
+            });
+        }
+    },
+
+    // Load a specific chat with messages
+    loadChat: async (chatId: string) => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await chatApi.getChat(chatId);
+            set({
+                currentChatId: chatId,
+                currentMessages: response.chat.messages || [],
+                isLoading: false,
+            });
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.error || 'Failed to load chat',
+                isLoading: false,
+            });
+        }
+    },
+
+    // Delete a chat
+    deleteChat: async (chatId: string) => {
+        set({ isLoading: true, error: null });
+
+        try {
+            await chatApi.deleteChat(chatId);
+
+            // Remove from chats list
+            set((state) => ({
+                chats: state.chats.filter(c => c.id !== chatId),
+                isLoading: false,
+            }));
+
+            // If deleted chat was current, clear it
+            if (get().currentChatId === chatId) {
+                set({ currentChatId: null, currentMessages: [] });
+            }
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.error || 'Failed to delete chat',
+                isLoading: false,
+            });
+        }
+    },
+
+    // Update chat title
+    updateChatTitle: async (chatId: string, title: string) => {
+        try {
+            const response = await chatApi.updateChatTitle(chatId, { title });
+
+            // Update in chats list
+            set((state) => ({
+                chats: state.chats.map(c =>
+                    c.id === chatId ? response.chat : c
+                ),
+            }));
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.error || 'Failed to update chat title',
+            });
+        }
+    },
+
+    // Create a new chat
+    createNewChat: () => {
+        set({
+            currentChatId: null,
+            currentMessages: [],
+            error: null,
+        });
+    },
+
+    // Set current chat
+    setCurrentChat: (chatId: string | null) => {
+        if (chatId) {
+            get().loadChat(chatId);
+        } else {
+            set({
+                currentChatId: null,
+                currentMessages: [],
+            });
+        }
+    },
+
+    // Clear error
+    clearError: () => {
+        set({ error: null });
+    },
+}));

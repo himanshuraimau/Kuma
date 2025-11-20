@@ -17,8 +17,17 @@ export async function sendMessage(req: Request, res: Response) {
 
         const { message, chatId, agentType = 'router' } = req.body;
 
-        if (!message) {
-            return res.status(400).json({ error: 'Message is required' });
+        if (!message || typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
+        }
+
+        // Validate agent type
+        const validAgentTypes = ['router', 'financial', 'stock-market', 'productivity', 'developer', 'communication'];
+        if (!validAgentTypes.includes(agentType)) {
+            return res.status(400).json({
+                error: 'Invalid agent type',
+                validTypes: validAgentTypes
+            });
         }
 
         let chat;
@@ -208,5 +217,43 @@ export async function deleteChat(req: Request, res: Response) {
     } catch (error) {
         console.error('Error in deleteChat:', error);
         return res.status(500).json({ error: 'Failed to delete chat' });
+    }
+}
+
+/**
+ * Update chat title
+ * PATCH /api/chats/:id
+ */
+export async function updateChatTitle(req: Request, res: Response) {
+    try {
+        const userId = (req as any).user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { id } = req.params;
+        const { title } = req.body;
+
+        if (!title || typeof title !== 'string' || !title.trim()) {
+            return res.status(400).json({ error: 'Title is required and must be a non-empty string' });
+        }
+
+        const chat = await prisma.chat.findUnique({
+            where: { id, userId },
+        });
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found' });
+        }
+
+        const updatedChat = await prisma.chat.update({
+            where: { id },
+            data: { title: title.trim() },
+        });
+
+        return res.json({ chat: updatedChat });
+    } catch (error) {
+        console.error('Error in updateChatTitle:', error);
+        return res.status(500).json({ error: 'Failed to update chat title' });
     }
 }

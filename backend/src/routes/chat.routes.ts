@@ -19,4 +19,7 @@ router.get('/:id', chatController.getChat);
 // Delete chat
 router.delete('/:id', chatController.deleteChat);
 
+// Update chat title
+router.patch('/:id', chatController.updateChatTitle);
+
 export default router;

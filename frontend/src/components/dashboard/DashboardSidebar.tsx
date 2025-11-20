@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Sidebar,
     SidebarContent,
@@ -24,11 +24,10 @@ import {
     Search,
     Eye,
     ChevronDown,
-    Github,
-    Mail,
-    TrendingUp
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { useChatStore } from '@/stores/chat.store';
+import { ChatHistoryItem } from '@/components/chat/ChatHistoryItem';
 import { SearchDialog } from './SearchDialog';
 
 export const DashboardSidebar = () => {
@@ -37,6 +36,13 @@ export const DashboardSidebar = () => {
     const { state } = useSidebar();
     const [searchOpen, setSearchOpen] = useState(false);
 
+    const { chats, currentChatId, loadChats, createNewChat, setCurrentChat, deleteChat } = useChatStore();
+
+    // Load chats on mount
+    useEffect(() => {
+        loadChats();
+    }, [loadChats]);
+
     const menuItems = [
         { icon: LayoutGrid, label: 'Apps', path: '/apps' },
         { icon: ListChecks, label: 'Prompts', path: '/prompts' },
@@ -44,14 +50,9 @@ export const DashboardSidebar = () => {
         { icon: Brain, label: 'Memories', path: '/memories' },
     ];
 
-    // Mock chat history data
-    const chatHistory = [
-        { id: 1, icon: Github, title: 'GitHub repo count — upda...', active: false },
-        { id: 2, icon: Github, title: 'GitHub repo count', active: true, hasIndicator: true },
-        { id: 3, icon: Github, title: 'what is the github agent can ...', active: false },
-        { id: 4, icon: Mail, title: 'can you read my gmail and t...', active: false },
-        { id: 5, icon: TrendingUp, title: 'Search for three trending UX...', active: false, hasIndicator: true },
-    ];
+    const handleNewChat = () => {
+        createNewChat();
+    };
 
     return (
         <Sidebar className="border-r border-white/5" collapsible="icon">
@@ -70,15 +71,14 @@ export const DashboardSidebar = () => {
                     <SidebarTrigger className="text-warm-gray hover:text-cream" />
                 </div>
 
-                <Link to="/chat">
-                    <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2 hover:bg-charcoal/50 text-cream group-data-[collapsible=icon]:justify-center"
-                    >
-                        <PenSquare className="w-4 h-4 shrink-0" />
-                        <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
-                    </Button>
-                </Link>
+                <Button
+                    onClick={handleNewChat}
+                    variant="ghost"
+                    className="w-full justify-start gap-2 hover:bg-charcoal/50 text-cream group-data-[collapsible=icon]:justify-center"
+                >
+                    <PenSquare className="w-4 h-4 shrink-0" />
+                    <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
+                </Button>
             </SidebarHeader>
 
             <SidebarContent>
@@ -118,26 +118,25 @@ export const DashboardSidebar = () => {
                         </div>
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <div className="px-2 py-1 text-xs text-warm-gray/70">Older</div>
-                        <SidebarMenu>
-                            {chatHistory.map((chat) => (
-                                <SidebarMenuItem key={chat.id}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={chat.active}
-                                        className="text-warm-gray hover:text-cream hover:bg-charcoal/50 data-[active=true]:bg-coral/20 data-[active=true]:text-cream relative"
-                                    >
-                                        <Link to="/chat">
-                                            <chat.icon className="w-4 h-4" />
-                                            <span className="truncate">{chat.title}</span>
-                                            {chat.hasIndicator && (
-                                                <div className="absolute right-2 w-2 h-2 rounded-full bg-coral" />
-                                            )}
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
+                        {chats.length > 0 ? (
+                            <div className="space-y-1 px-2">
+                                {chats.map((chat) => (
+                                    <ChatHistoryItem
+                                        key={chat.id}
+                                        id={chat.id}
+                                        title={chat.title}
+                                        updatedAt={chat.updatedAt}
+                                        isActive={chat.id === currentChatId}
+                                        onClick={() => setCurrentChat(chat.id)}
+                                        onDelete={() => deleteChat(chat.id)}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="px-4 py-6 text-center text-sm text-warm-gray/60">
+                                No chats yet. Start a new conversation!
+                            </div>
+                        )}
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
