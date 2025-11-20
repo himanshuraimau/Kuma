@@ -1,5 +1,4 @@
 import { MessageSquare, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 
 interface ChatHistoryItemProps {
     id: string;
@@ -17,11 +16,11 @@ export const ChatHistoryItem = ({
     onClick,
     onDelete,
 }: ChatHistoryItemProps) => {
-    const [showDelete, setShowDelete] = useState(false);
-
+    
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this chat?')) {
+        // In a real app, consider a custom modal instead of window.confirm
+        if (window.confirm('Delete this chat permanently?')) {
             onDelete();
         }
     };
@@ -32,40 +31,59 @@ export const ChatHistoryItem = ({
     return (
         <div
             onClick={onClick}
-            onMouseEnter={() => setShowDelete(true)}
-            onMouseLeave={() => setShowDelete(false)}
-            className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${isActive
-                ? 'bg-coral/10 border border-coral/20'
-                : 'hover:bg-charcoal/50 border border-transparent'
-                }`}
+            className={`
+                group relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200
+                border border-transparent
+                ${isActive 
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-100' 
+                    : 'text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-200'
+                }
+            `}
         >
+            {/* Icon */}
             <MessageSquare
-                className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-coral' : 'text-warm-gray'
-                    }`}
+                className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                    isActive ? 'text-orange-500' : 'text-zinc-500 group-hover:text-zinc-400'
+                }`}
             />
-            <div className="flex-1 min-w-0">
-                <p
-                    className={`text-sm font-medium truncate ${isActive ? 'text-coral' : 'text-cream'
-                        }`}
-                >
+
+            {/* Text Content */}
+            <div className="flex-1 min-w-0 flex flex-col">
+                <span className={`text-sm font-medium truncate leading-tight ${
+                    isActive ? 'text-zinc-100' : 'text-zinc-400 group-hover:text-zinc-200'
+                }`}>
                     {displayTitle}
-                </p>
-                <p className="text-xs text-warm-gray/60">{timeAgo}</p>
+                </span>
             </div>
-            {showDelete && (
+
+            {/* Meta / Actions Area - Fixed Width for alignment */}
+            <div className="flex-shrink-0 min-w-[3rem] flex justify-end">
+                {/* Timestamp - Visible by default, hidden on hover */}
+                <span className={`text-[10px] font-medium text-zinc-600 transition-opacity duration-200 group-hover:opacity-0 group-hover:hidden ${
+                    isActive ? 'text-zinc-500' : ''
+                }`}>
+                    {timeAgo}
+                </span>
+
+                {/* Delete Button - Hidden by default, visible on hover */}
                 <button
                     onClick={handleDelete}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-warm-gray hover:text-red-500"
-                    aria-label="Delete chat"
+                    className="hidden group-hover:block p-1 -mr-1 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                    title="Delete chat"
                 >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                 </button>
+            </div>
+
+            {/* Active Indicator (Optional - subtle orange glow on left) */}
+            {isActive && (
+                <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-orange-500 rounded-full" />
             )}
         </div>
     );
 };
 
-// Helper function to get relative time
+// Helper: Compact time format
 function getTimeAgo(dateString: string): string {
     const date = new Date(dateString);
     const now = new Date();
@@ -74,10 +92,10 @@ function getTimeAgo(dateString: string): string {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    
+    return date.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
 }

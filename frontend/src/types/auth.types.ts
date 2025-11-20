@@ -39,7 +39,7 @@ export interface AuthLayoutProps {
             text: string;
         }>;
     };
-    navLink: {
+    navLink?: {
         text: string;
         linkText: string;
         href: string;

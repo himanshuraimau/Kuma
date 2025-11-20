@@ -2,132 +2,77 @@ import { Twitter, Github, Linkedin } from 'lucide-react';
 
 export const Footer = () => {
     const currentYear = new Date().getFullYear();
-
+    
+    // Links (kept same structure)
     const footerLinks = {
         product: [
             { label: 'Features', href: '#features' },
             { label: 'Technology', href: '#technology' },
             { label: 'Integrations', href: '#' },
             { label: 'Pricing', href: '#' },
-            { label: 'API Docs', href: '#' },
         ],
         company: [
             { label: 'About Us', href: '#' },
             { label: 'Blog', href: '#' },
             { label: 'Careers', href: '#' },
-            { label: 'Press Kit', href: '#' },
-            { label: 'Contact', href: '#' },
         ],
         resources: [
             { label: 'Help Center', href: '#' },
-            { label: 'Privacy Policy', href: '#' },
-            { label: 'Terms of Service', href: '#' },
-            { label: 'Status Page', href: '#' },
+            { label: 'Privacy', href: '#' },
+            { label: 'Terms', href: '#' },
         ],
     };
 
     const socialLinks = [
-        { icon: <Twitter size={16} />, href: '#', label: 'Twitter' },
-        { icon: <Github size={16} />, href: '#', label: 'GitHub' },
-        { icon: <Linkedin size={16} />, href: '#', label: 'LinkedIn' },
+        { icon: <Twitter size={18} />, href: '#' },
+        { icon: <Github size={18} />, href: '#' },
+        { icon: <Linkedin size={18} />, href: '#' },
     ];
 
     return (
-        <footer className="bg-navy border-t border-white/10 py-16">
-            <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
-                {/* Main Footer Content */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-                    {/* Brand Column */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <img
-                                src="/kuma Logo.png"
-                                alt="Kuma Logo"
-                                className="w-8 h-8 object-contain"
-                            />
-                            <span className="text-cream font-bold text-xl">Kuma</span>
+        <footer className="bg-zinc-950 border-t border-zinc-900 py-16">
+            <div className="max-w-7xl mx-auto px-6">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+                    {/* Brand */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                                <span className="text-white font-bold">K</span>
+                            </div>
+                            <span className="text-white font-bold text-xl">Kuma</span>
                         </div>
-                        <p className="text-warm-gray/80 text-sm">
-                            Your intelligent AI assistant
+                        <p className="text-zinc-500 text-sm max-w-xs">
+                            Your intelligent AI assistant designed to streamline your workflow and organize your life.
                         </p>
-
-                        {/* Social Icons */}
-                        <div className="flex items-center gap-3 pt-2">
+                        <div className="flex gap-4">
                             {socialLinks.map((social, index) => (
-                                <a
-                                    key={index}
-                                    href={social.href}
-                                    aria-label={social.label}
-                                    className="w-9 h-9 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-warm-gray/80 hover:text-coral transition-all duration-200"
-                                >
+                                <a key={index} href={social.href} className="text-zinc-500 hover:text-white transition-colors">
                                     {social.icon}
                                 </a>
                             ))}
                         </div>
                     </div>
 
-                    {/* Product Column */}
-                    <div>
-                        <h4 className="text-[14px] uppercase tracking-wider text-cream font-semibold mb-4">
-                            Product
-                        </h4>
-                        <ul className="space-y-3">
-                            {footerLinks.product.map((link, index) => (
-                                <li key={index}>
-                                    <a
-                                        href={link.href}
-                                        className="text-warm-gray/80 hover:text-coral transition-colors duration-200 text-sm"
-                                    >
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* Company Column */}
-                    <div>
-                        <h4 className="text-[14px] uppercase tracking-wider text-cream font-semibold mb-4">
-                            Company
-                        </h4>
-                        <ul className="space-y-3">
-                            {footerLinks.company.map((link, index) => (
-                                <li key={index}>
-                                    <a
-                                        href={link.href}
-                                        className="text-warm-gray/80 hover:text-coral transition-colors duration-200 text-sm"
-                                    >
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* Resources Column */}
-                    <div>
-                        <h4 className="text-[14px] uppercase tracking-wider text-cream font-semibold mb-4">
-                            Resources
-                        </h4>
-                        <ul className="space-y-3">
-                            {footerLinks.resources.map((link, index) => (
-                                <li key={index}>
-                                    <a
-                                        href={link.href}
-                                        className="text-warm-gray/80 hover:text-coral transition-colors duration-200 text-sm"
-                                    >
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {/* Links Columns */}
+                    {Object.entries(footerLinks).map(([category, links]) => (
+                        <div key={category}>
+                            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">{category}</h4>
+                            <ul className="space-y-3">
+                                {links.map((link, idx) => (
+                                    <li key={idx}>
+                                        <a href={link.href} className="text-sm text-zinc-500 hover:text-orange-400 transition-colors">
+                                            {link.label}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[13px] text-warm-gray/70">
+                <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600">
                     <p>© {currentYear} Kuma AI. All rights reserved.</p>
-                    <p>Designed with care for productivity enthusiasts worldwide</p>
+                    <p>Designed for productivity.</p>
                 </div>
             </div>
         </footer>

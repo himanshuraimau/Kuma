@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -15,8 +16,15 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-charcoal flex items-center justify-center">
-                <div className="text-cream text-lg">Loading...</div>
+            <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center gap-4">
+                <div className="relative">
+                    {/* Glowing background effect behind spinner */}
+                    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full"></div>
+                    <Loader2 className="w-10 h-10 text-orange-500 animate-spin relative z-10" />
+                </div>
+                <p className="text-zinc-500 text-sm font-medium animate-pulse">
+                    Authenticating...
+                </p>
             </div>
         );
     }

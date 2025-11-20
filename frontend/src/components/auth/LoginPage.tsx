@@ -86,11 +86,6 @@ export const LoginPage = () => {
                     },
                 ],
             }}
-            navLink={{
-                text: "Don't have an account?",
-                linkText: 'Sign up free',
-                href: '/signup',
-            }}
         >
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Global Error Message */}

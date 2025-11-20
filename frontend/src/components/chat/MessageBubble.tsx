@@ -1,4 +1,4 @@
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, User, Bot } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -20,65 +20,46 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
     const isUser = role === 'user';
 
     return (
-        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 group`}>
-            <div className={`max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
+        <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+            <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
+                
+                {/* Avatar + Name Row (Optional) */}
+                <div className={`flex items-center gap-2 mb-1.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shadow-sm ${isUser ? 'bg-zinc-800' : 'bg-orange-600'}`}>
+                         {isUser ? <User className="w-3.5 h-3.5 text-zinc-400" /> : <Bot className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <span className="text-xs font-medium text-zinc-500">
+                        {isUser ? 'You' : 'Kuma'}
+                    </span>
+                </div>
+
                 {/* Message Bubble */}
                 <div
-                    className={`rounded-2xl px-4 py-3 ${isUser
-                            ? 'bg-coral text-cream'
-                            : 'bg-charcoal border border-white/10 text-cream'
+                    className={`relative px-5 py-3.5 shadow-sm ${isUser
+                            ? 'bg-zinc-800 text-zinc-100 rounded-2xl rounded-tr-sm'
+                            : 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-2xl rounded-tl-sm'
                         }`}
                 >
                     {isUser ? (
-                        <p className="text-base whitespace-pre-wrap break-words">{content}</p>
+                        <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{content}</p>
                     ) : (
-                        <div className="prose prose-invert max-w-none">
-                            <ReactMarkdown
-                                components={{
-                                    p: ({ children }) => (
-                                        <p className="mb-2 last:mb-0 text-cream">{children}</p>
-                                    ),
-                                    code: ({ children, className }) => {
-                                        const isInline = !className;
-                                        return isInline ? (
-                                            <code className="bg-navy/50 px-1.5 py-0.5 rounded text-coral font-mono text-sm">
-                                                {children}
-                                            </code>
-                                        ) : (
-                                            <code className="block bg-navy/50 p-3 rounded-lg overflow-x-auto font-mono text-sm text-cream">
-                                                {children}
-                                            </code>
-                                        );
-                                    },
-                                    ul: ({ children }) => (
-                                        <ul className="list-disc list-inside mb-2 text-cream">
-                                            {children}
-                                        </ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                        <ol className="list-decimal list-inside mb-2 text-cream">
-                                            {children}
-                                        </ol>
-                                    ),
-                                    strong: ({ children }) => (
-                                        <strong className="font-semibold text-coral">
-                                            {children}
-                                        </strong>
-                                    ),
-                                }}
-                            >
-                                {content}
-                            </ReactMarkdown>
+                        <div className="prose prose-invert prose-sm max-w-none 
+                            prose-p:text-zinc-300 prose-p:leading-relaxed
+                            prose-headings:text-zinc-100 prose-headings:font-semibold
+                            prose-strong:text-orange-500 prose-strong:font-bold
+                            prose-code:text-orange-400 prose-code:bg-zinc-950/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+                            prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800
+                            prose-ul:text-zinc-300 prose-ol:text-zinc-300
+                            prose-a:text-blue-400 hover:prose-a:text-blue-300
+                        ">
+                            <ReactMarkdown>{content}</ReactMarkdown>
                         </div>
                     )}
                 </div>
 
-                {/* Timestamp and Actions */}
-                <div
-                    className={`flex items-center gap-2 mt-1 px-2 ${isUser ? 'justify-end' : 'justify-start'
-                        }`}
-                >
-                    <span className="text-xs text-warm-gray/60">
+                {/* Footer: Timestamp & Actions */}
+                <div className={`flex items-center gap-3 mt-1.5 px-1 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <span className="text-[10px] text-zinc-600 font-medium">
                         {new Date(timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -87,8 +68,8 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
                     {!isUser && (
                         <button
                             onClick={handleCopy}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-warm-gray hover:text-cream"
-                            aria-label="Copy message"
+                            className="p-1 -m-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-all opacity-0 group-hover:opacity-100"
+                            title="Copy to clipboard"
                         >
                             {copied ? (
                                 <Check className="w-3.5 h-3.5 text-green-500" />
