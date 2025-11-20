@@ -55,8 +55,8 @@ export const LoginPage = () => {
 
         try {
             await login(formData);
-            // Navigate to home/dashboard on success
-            navigate('/');
+            // Navigate to chat dashboard on success
+            navigate('/chat');
         } catch (error) {
             // Error is handled by the store
             console.error('Login error:', error);

@@ -105,8 +105,8 @@ export const SignupPage = () => {
                 email: formData.email,
                 password: formData.password,
             });
-            // Navigate to home/dashboard on success
-            navigate('/');
+            // Navigate to chat dashboard on success
+            navigate('/chat');
         } catch (error) {
             // Error is handled by the store
             console.error('Signup error:', error);

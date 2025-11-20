@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhindi Chat Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-sidebar: #0f0f0f;
+            --bg-main: #171717;
+            --bg-input: #212121;
+            --bg-hover: #2f2f2f;
+            --text-primary: #ececec;
+            --text-secondary: #9b9b9b;
+            --accent-green: #10a37f; /* Fallback */
+            --brand-green: #00d67c;
+            --border-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 8px;
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 24px;
+            color: var(--brand-green);
+        }
+
+        .sidebar-toggle {
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .new-chat-btn i {
+            border: 1px solid var(--text-secondary);
+            padding: 2px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .menu-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .menu-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .chats-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .chat-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* Custom Scrollbar for sidebar */
+        .chat-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-list::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 5px;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .chat-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .chat-item.active {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Green dot for active/recent items */
+        .dot {
+            height: 8px;
+            width: 8px;
+            background-color: var(--brand-green);
+            border-radius: 50%;
+            position: absolute;
+            right: 10px;
+        }
+
+        .user-profile {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background-color: var(--bg-hover);
+            border-radius: 8px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-image: url('https://i.pravatar.cc/150?img=68'); /* Placeholder image */
+            background-size: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .user-plan {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- Main Content Styles --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: var(--bg-main);
+        }
+
+        .bell-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .hero-section {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: -50px; /* Visual adjustment */
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+
+        .brand-text {
+            color: var(--brand-green);
+        }
+
+        /* Input Container Styling */
+        .input-wrapper {
+            width: 100%;
+            max-width: 700px;
+            background-color: var(--bg-input);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .upgrade-banner {
+            background: linear-gradient(90deg, rgba(16, 163, 127, 0.2) 0%, rgba(0, 214, 124, 0.1) 100%);
+            color: var(--brand-green);
+            font-size: 0.8rem;
+            padding: 8px 16px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .input-area {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .main-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+            resize: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .apps-badge {
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        
+        .apps-count {
+            background: #0f4d35;
+            color: var(--brand-green);
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .action-icon {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .action-icon:hover {
+            color: var(--text-primary);
+        }
+
+        .send-btn {
+            background-color: #2a3b32; 
+            color: var(--brand-green);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .footer-help {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 700px;
+            padding: 0 5px;
+        }
+        
+        .footer-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+        }
+        .footer-link:hover { text-decoration: underline; }
+
+        /* Bottom scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .scroll-indicator i {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-5px);}
+            60% {transform: translateY(-3px);}
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <!-- Logo Area -->
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fa-brands fa-uncharted"></i> <!-- Using Uncharted icon as closest free generic hexagon shape -->
+            </div>
+            <div class="sidebar-toggle">
+                <i class="fa-solid fa-table-columns"></i>
+            </div>
+        </div>
+
+        <!-- New Chat -->
+        <div class="new-chat-btn">
+            <i class="fa-regular fa-pen-to-square"></i>
+            <span>New Chat</span>
+        </div>
+
+        <!-- Menu Items -->
+        <div class="menu-section">
+            <div class="menu-item">
+                <i class="fa-solid fa-border-all"></i>
+                <span>Apps</span>
+            </div>
+            <div class="menu-item">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Prompts</span>
+            </div>
+            <div class="menu-item">
+                <i class="fa-solid fa-folder"></i>
+                <span>Drive</span>
+            </div>
+            <div class="menu-item">
+                <i class="fa-solid fa-brain"></i>
+                <span>Memories</span>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chats-header">
+            <span>Chats</span>
+            <div class="actions">
+                <i class="fa-solid fa-magnifying-glass" style="margin-right: 10px;"></i>
+                <i class="fa-regular fa-eye"></i>
+            </div>
+        </div>
+
+        <div class="chat-list">
+            <div class="chats-header" style="padding-left:0; margin-top:10px; font-weight:400;">Older</div>
+            
+            <div class="chat-item">
+                <i class="fa-brands fa-github"></i>
+                <span>GitHub repo count — upda...</span>
+            </div>
+            
+            <div class="chat-item active">
+                <i class="fa-brands fa-github"></i>
+                <span style="color: #ececec;">GitHub repo count</span>
+                <div class="dot"></div>
+            </div>
+            
+            <div class="chat-item">
+                <i class="fa-brands fa-github"></i>
+                <span>what is the github agent can ...</span>
+            </div>
+            
+            <div class="chat-item">
+                <i class="fa-brands fa-google"></i> <!-- Gmail icon approx -->
+                <span>can you read my gmail and t...</span>
+            </div>
+            
+            <div class="chat-item">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                <span>Search for three trending UX...</span>
+                <div class="dot" style="background-color: #00d67c;"></div>
+            </div>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <div class="user-info">
+                <div class="user-name">Himanshu Rai</div>
+                <div class="user-plan">Basic Plan</div>
+            </div>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: gray;"></i>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <div class="bell-icon">
+            <i class="fa-regular fa-bell"></i>
+        </div>
+
+        <div class="hero-section">
+            <h1 class="hero-title">Just talk to <span class="brand-text">Bhindi</span></h1>
+
+            <div class="input-wrapper">
+                <!-- Upgrade Banner -->
+                <div class="upgrade-banner">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Upgrade to PRO</span>
+                </div>
+
+                <div class="input-area">
+                    <input type="text" class="main-input" placeholder="Talk to Bhindi... Use / for prompts">
+                    
+                    <div class="toolbar">
+                        <div class="apps-badge">
+                            <i class="fa-solid fa-infinity"></i>
+                            <span>Apps</span>
+                            <span class="apps-count">0</span>
+                        </div>
+
+                        <div class="action-icons">
+                            <i class="fa-solid fa-paperclip action-icon"></i>
+                            <i class="fa-solid fa-microphone action-icon"></i>
+                            <div class="send-btn">
+                                <i class="fa-regular fa-paper-plane"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-help">
+                <span>Hold ( Ctrl ⇧ Space ) for voice</span>
+                <a href="#" class="footer-link">Global Instructions</a>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll down and look at how to use bhindi</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+
+    </main>
+
+    <script>
+        // Simple script to handle input focus visual cue
+        const inputField = document.querySelector('.main-input');
+        const sendBtn = document.querySelector('.send-btn');
+
+        inputField.addEventListener('input', (e) => {
+            if(e.target.value.length > 0) {
+                sendBtn.style.backgroundColor = '#00d67c'; // Bright green
+                sendBtn.style.color = '#000';
+            } else {
+                sendBtn.style.backgroundColor = '#2a3b32'; // Muted green
+                sendBtn.style.color = '#00d67c';
+            }
+        });
+    </script>
+</body>
+</html>
