@@ -14,10 +14,11 @@ export interface ApiError {
 }
 
 export interface AuthResponse {
-    token: string;
+    message: string;
     user: {
         id: string;
         email: string;
-        fullName: string;
+        name: string;
     };
+    token: string;
 }

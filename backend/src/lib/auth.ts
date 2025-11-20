@@ -1,4 +1,3 @@
-import { supabase } from './supabase';
 import { prisma } from '../db/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -22,27 +21,12 @@ export async function signUp(data: SignupRequest): Promise<AuthResponse> {
         throw new Error('User with this email already exists');
     }
 
-    // Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-    });
-
-    if (authError) {
-        throw new Error(`Supabase auth error: ${authError.message}`);
-    }
-
-    if (!authData.user) {
-        throw new Error('Failed to create user in Supabase');
-    }
-
-    // Hash password for our database
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user in our database
+    // Create user in database
     const user = await prisma.user.create({
         data: {
-            id: authData.user.id,
             email,
             name,
             password: hashedPassword,
@@ -85,16 +69,6 @@ export async function signIn(data: LoginRequest): Promise<AuthResponse> {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
         throw new Error('Invalid email or password');
-    }
-
-    // Sign in with Supabase
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    });
-
-    if (authError) {
-        throw new Error(`Authentication failed: ${authError.message}`);
     }
 
     // Generate JWT token
@@ -149,11 +123,10 @@ export async function getUser(userId: string) {
 }
 
 /**
- * Sign out user (invalidate Supabase session)
+ * Sign out user (JWT is stateless, so this is a no-op)
+ * Client should discard the token
  */
 export async function signOut(): Promise<void> {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        throw new Error(`Sign out failed: ${error.message}`);
-    }
+    // No-op for JWT-based auth
+    // Client should remove token from storage
 }

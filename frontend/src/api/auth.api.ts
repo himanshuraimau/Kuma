@@ -1,33 +1,43 @@
-// Authentication API calls (placeholder for future implementation)
-
+import { apiClient } from './client';
 import type { LoginFormData, SignupFormData } from '@/types/auth.types';
 import type { AuthResponse } from '@/types/api.types';
 
 /**
  * Login user
- * @placeholder This is a placeholder for future API integration
  */
 export const login = async (data: LoginFormData): Promise<AuthResponse> => {
-    // TODO: Implement actual API call
-    throw new Error('API not implemented yet');
+    const response = await apiClient.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+    });
+    return response.data;
 };
 
 /**
  * Register new user
- * @placeholder This is a placeholder for future API integration
  */
 export const register = async (
-    data: Omit<SignupFormData, 'confirmPassword' | 'agreedToTerms'>
+    data: Omit<SignupFormData, 'confirmPassword' | 'agreedToTerms' | 'marketingOptIn'>
 ): Promise<AuthResponse> => {
-    // TODO: Implement actual API call
-    throw new Error('API not implemented yet');
+    const response = await apiClient.post('/auth/signup', {
+        email: data.email,
+        password: data.password,
+        name: data.fullName, // Map fullName to name for backend
+    });
+    return response.data;
+};
+
+/**
+ * Get current authenticated user
+ */
+export const getCurrentUser = async (): Promise<{ user: AuthResponse['user'] }> => {
+    const response = await apiClient.get('/auth/me');
+    return response.data;
 };
 
 /**
  * Logout user
- * @placeholder This is a placeholder for future API integration
  */
 export const logout = async (): Promise<void> => {
-    // TODO: Implement actual API call
-    throw new Error('API not implemented yet');
+    await apiClient.post('/auth/logout');
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -77,15 +78,19 @@ export const Navigation = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3">
+          <Link to="/login">
           <Button
             variant="ghost"
             className="text-warm-gray hover:text-cream hover:bg-white/5"
           >
             Log in
           </Button>
+          </Link>
+          <Link to="/signup">
           <Button className="bg-coral hover:bg-coral/90 text-cream">
             Get Started
           </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}

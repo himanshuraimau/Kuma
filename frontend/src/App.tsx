@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Navigation } from '@/components/landing/Navigation';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
@@ -8,6 +9,7 @@ import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/landing/Footer';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { SignupPage } from '@/components/auth/SignupPage';
+import { useAuthStore } from '@/stores/auth.store';
 
 const LandingPage = () => {
   return (
@@ -28,6 +30,12 @@ const LandingPage = () => {
 };
 
 const App = () => {
+  const { checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <BrowserRouter>
       <Routes>
