@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Paperclip, Mic, Send, Infinity, ChevronDown, Zap, AlertCircle, Command } from 'lucide-react';
+import { Bell, Paperclip, Mic, Send, Infinity,Zap, AlertCircle, Command } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { MessageList } from '@/components/chat/MessageList';
 

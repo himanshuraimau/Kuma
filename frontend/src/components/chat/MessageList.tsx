@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
-import { Loader2, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import type { Message } from '@/types/api.types';
 
 interface MessageListProps {

@@ -1,15 +1,15 @@
 import { z } from 'zod';
 import type { BaseTool } from '../base.tool';
+import yahooFinance from 'yahoo-finance2';
 
 /**
- * Mock tool to get current stock price
- * In production, this would call Alpha Vantage or similar API
+ * Tool to get current stock price using Yahoo Finance
  */
 export const getStockPriceTool: BaseTool = {
     name: 'get_stock_price',
     description: 'Get the current stock price and basic info for a given ticker symbol',
     category: 'stock-market',
-    requiresAuth: false, // Will be true when using real API
+    requiresAuth: false,
     schema: z.object({
         symbol: z.string().describe('Stock ticker symbol (e.g., AAPL, TSLA, GOOGL)'),
     }),
@@ -17,21 +17,35 @@ export const getStockPriceTool: BaseTool = {
     async execute(input) {
         const { symbol } = input;
 
-        // Mock data - in production, call Alpha Vantage or similar
-        const mockPrices: Record<string, any> = {
-            AAPL: { price: 178.50, change: +2.30, changePercent: +1.31, volume: '52.3M' },
-            TSLA: { price: 242.80, change: -5.20, changePercent: -2.10, volume: '98.1M' },
-            GOOGL: { price: 142.65, change: +1.15, changePercent: +0.81, volume: '28.7M' },
-            MSFT: { price: 378.91, change: +3.42, changePercent: +0.91, volume: '31.2M' },
-            NVDA: { price: 495.22, change: +12.50, changePercent: +2.59, volume: '145.8M' },
-        };
+        try {
+            // @ts-ignore
+            const yf = new yahooFinance();
+            const quote = await yf.quote(symbol) as any;
 
-        const data = mockPrices[symbol.toUpperCase()];
+            if (!quote) {
+                return `Stock symbol ${symbol} not found.`;
+            }
 
-        if (!data) {
-            return `Stock symbol ${symbol} not found. Please use a valid ticker symbol like AAPL, TSLA, GOOGL, MSFT, or NVDA.`;
+            const price = quote.regularMarketPrice;
+            const change = quote.regularMarketChange;
+            const changePercent = quote.regularMarketChangePercent;
+            const volume = quote.regularMarketVolume;
+            const currency = quote.currency;
+            const marketState = quote.marketState;
+
+            const changeStr = change !== undefined ? change.toFixed(2) : 'N/A';
+            const changePercentStr = changePercent !== undefined ? changePercent.toFixed(2) : 'N/A';
+            const direction = (change || 0) >= 0 ? 'up' : 'down';
+            const sign = (change || 0) >= 0 ? '+' : '';
+
+            return `${symbol.toUpperCase()} is currently trading at ${price} ${currency}.
+Change: ${sign}${changeStr} (${sign}${changePercentStr}%)
+Volume: ${volume?.toLocaleString()}
+Market State: ${marketState}`;
+
+        } catch (error) {
+            console.error('Error fetching stock price:', error);
+            return `Error fetching data for ${symbol}. Please check the ticker symbol and try again.`;
         }
-
-        return `${symbol.toUpperCase()} is currently trading at $${data.price}, ${data.change >= 0 ? 'up' : 'down'} $${Math.abs(data.change)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent}%) with volume of ${data.volume}.`;
     },
 };

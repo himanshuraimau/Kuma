@@ -24,11 +24,20 @@ export async function createAgent(config: AgentConfig) {
     }
 
     // Create the agent with system prompt
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const systemPromptWithDate = `Current Date: ${currentDate}\n\n${config.systemPrompt}`;
+
     const agent = createReactAgent({
         llm: model,
         tools: agentTools,
         checkpointSaver: checkpointer,
-        messageModifier: config.systemPrompt,
+        messageModifier: systemPromptWithDate,
     });
 
     return agent;

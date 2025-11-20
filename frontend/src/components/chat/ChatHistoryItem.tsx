@@ -19,7 +19,6 @@ export const ChatHistoryItem = ({
     
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // In a real app, consider a custom modal instead of window.confirm
         if (window.confirm('Delete this chat permanently?')) {
             onDelete();
         }

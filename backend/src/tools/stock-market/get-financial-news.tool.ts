@@ -1,48 +1,42 @@
 import { z } from 'zod';
 import type { BaseTool } from '../base.tool';
+import yahooFinance from 'yahoo-finance2';
 
 /**
- * Mock tool to get financial news
+ * Tool to get financial news
  */
 export const getFinancialNewsTool: BaseTool = {
     name: 'get_financial_news',
-    description: 'Search for recent financial news about a company or stock',
+    description: 'Search for recent financial news about a company, stock, or general market trends',
     category: 'stock-market',
     requiresAuth: false,
     schema: z.object({
-        query: z.string().describe('Company name or stock symbol to search news for'),
+        query: z.string().describe('Company name, stock symbol, or topic to search news for'),
     }),
 
     async execute(input) {
         const { query } = input;
 
-        // Mock news data
-        const mockNews = [
-            {
-                title: `${query} Reports Strong Q4 Earnings`,
-                source: 'Financial Times',
-                date: '2 hours ago',
-                summary: 'Company beats analyst expectations with revenue growth of 15%',
-            },
-            {
-                title: `Analysts Upgrade ${query} to Buy`,
-                source: 'Bloomberg',
-                date: '1 day ago',
-                summary: 'Major investment firms raise price targets citing strong fundamentals',
-            },
-            {
-                title: `${query} Announces New Product Launch`,
-                source: 'Reuters',
-                date: '3 days ago',
-                summary: 'Company unveils innovative product line expected to drive growth',
-            },
-        ];
+        try {
+            // @ts-ignore
+            const yf = new yahooFinance();
+            const searchResult = await yf.search(query, { newsCount: 5 });
 
-        const newsText = mockNews.map((article, index) =>
-            `${index + 1}. "${article.title}" - ${article.source} (${article.date})
-   ${article.summary}`
-        ).join('\n\n');
+            if (!searchResult.news || searchResult.news.length === 0) {
+                return `No recent news found for "${query}".`;
+            }
 
-        return `Recent news for ${query}:\n\n${newsText}`;
+            const newsText = searchResult.news.map((article: any, index: number) => {
+                const date = article.providerPublishTime ? new Date(article.providerPublishTime).toLocaleString() : 'Unknown date';
+                return `${index + 1}. "${article.title}" - ${article.publisher} (${date})
+   Link: ${article.link}`;
+            }).join('\n\n');
+
+            return `Recent news for "${query}":\n\n${newsText}`;
+
+        } catch (error) {
+            console.error('Error fetching financial news:', error);
+            return `Error fetching news for "${query}".`;
+        }
     },
 };

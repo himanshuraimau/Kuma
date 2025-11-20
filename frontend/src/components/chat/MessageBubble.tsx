@@ -1,4 +1,4 @@
-import { Copy, Check, User, Bot } from 'lucide-react';
+import { Copy, Check, User } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -22,11 +22,11 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
     return (
         <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-in fade-in slide-in-from-bottom-2 duration-300`}>
             <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
-                
+
                 {/* Avatar + Name Row (Optional) */}
                 <div className={`flex items-center gap-2 mb-1.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shadow-sm ${isUser ? 'bg-zinc-800' : 'bg-orange-600'}`}>
-                         {isUser ? <User className="w-3.5 h-3.5 text-zinc-400" /> : <Bot className="w-3.5 h-3.5 text-white" />}
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shadow-sm ${isUser ? 'bg-zinc-800' : ''}`}>
+                        {isUser ? <User className="w-3.5 h-3.5 text-zinc-400" /> : <img src="/logo.png" alt="Kuma" className="w-5 h-5 object-contain" />}
                     </div>
                     <span className="text-xs font-medium text-zinc-500">
                         {isUser ? 'You' : 'Kuma'}
@@ -36,8 +36,8 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
                 {/* Message Bubble */}
                 <div
                     className={`relative px-5 py-3.5 shadow-sm ${isUser
-                            ? 'bg-zinc-800 text-zinc-100 rounded-2xl rounded-tr-sm'
-                            : 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-2xl rounded-tl-sm'
+                        ? 'bg-zinc-800 text-zinc-100 rounded-2xl rounded-tr-sm'
+                        : 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-2xl rounded-tl-sm'
                         }`}
                 >
                     {isUser ? (

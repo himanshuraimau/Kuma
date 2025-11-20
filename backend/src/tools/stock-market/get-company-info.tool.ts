@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { BaseTool } from '../base.tool';
+import yahooFinance from 'yahoo-finance2';
 
 /**
- * Mock tool to get company fundamentals
+ * Tool to get company fundamentals
  */
 export const getCompanyInfoTool: BaseTool = {
     name: 'get_company_info',
@@ -16,49 +17,43 @@ export const getCompanyInfoTool: BaseTool = {
     async execute(input) {
         const { symbol } = input;
 
-        // Mock company data
-        const mockData: Record<string, any> = {
-            AAPL: {
-                name: 'Apple Inc.',
-                sector: 'Technology',
-                marketCap: '2.8T',
-                peRatio: 29.5,
-                revenue: '383.3B',
-                profitMargin: '25.3%',
-                description: 'Designs and manufactures consumer electronics, software, and online services',
-            },
-            TSLA: {
-                name: 'Tesla Inc.',
-                sector: 'Automotive',
-                marketCap: '770B',
-                peRatio: 65.2,
-                revenue: '96.8B',
-                profitMargin: '15.5%',
-                description: 'Electric vehicle and clean energy company',
-            },
-            GOOGL: {
-                name: 'Alphabet Inc.',
-                sector: 'Technology',
-                marketCap: '1.8T',
-                peRatio: 26.8,
-                revenue: '307.4B',
-                profitMargin: '26.2%',
-                description: 'Technology company specializing in internet services and products',
-            },
-        };
+        try {
+            // @ts-ignore
+            const yf = new yahooFinance();
+            const summary = await yf.quoteSummary(symbol, {
+                modules: ['summaryProfile', 'financialData', 'defaultKeyStatistics', 'price']
+            });
 
-        const data = mockData[symbol.toUpperCase()];
+            if (!summary) {
+                return `Company information for ${symbol} not found.`;
+            }
 
-        if (!data) {
-            return `Company information for ${symbol} not found.`;
+            const profile = summary.summaryProfile;
+            const financials = summary.financialData;
+            const stats = summary.defaultKeyStatistics;
+            const price = summary.price;
+
+            const marketCap = price?.marketCap?.toLocaleString() || 'N/A';
+            const peRatio = summary.summaryDetail?.trailingPE?.toFixed(2) || 'N/A';
+            const revenue = financials?.totalRevenue?.toLocaleString() || 'N/A';
+            const profitMargin = financials?.profitMargins ? (financials.profitMargins * 100).toFixed(2) + '%' : 'N/A';
+            const sector = profile?.sector || 'N/A';
+            const industry = profile?.industry || 'N/A';
+            const description = profile?.longBusinessSummary || 'N/A';
+            const name = price?.longName || symbol;
+
+            return `${name} (${symbol.toUpperCase()}):
+- Sector: ${sector}
+- Industry: ${industry}
+- Market Cap: ${marketCap}
+- P/E Ratio: ${peRatio}
+- Revenue: ${revenue}
+- Profit Margin: ${profitMargin}
+- Description: ${description}`;
+
+        } catch (error) {
+            console.error('Error fetching company info:', error);
+            return `Error fetching company info for ${symbol}.`;
         }
-
-        return `${data.name} (${symbol.toUpperCase()}):
-- Sector: ${data.sector}
-- Market Cap: $${data.marketCap}
-- P/E Ratio: ${data.peRatio}
-- Revenue: $${data.revenue}
-- Profit Margin: ${data.profitMargin}
-- Description: ${data.description}`;
     },
 };
