@@ -33,5 +33,5 @@ Be supportive and non-judgmental. Focus on empowering users to make better finan
 
     tools: [], // Will add Gmail tools, calendar tools, etc. later
 
-    modelName: 'gemini-2.5-flash',
+    modelName: 'gemini-2.5-pro',
 };

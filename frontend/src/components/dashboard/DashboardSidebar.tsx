@@ -84,7 +84,7 @@ export const DashboardSidebar = () => {
                             <img
                                 src="/logo.png"
                                 alt="Kuma"
-                                className="w-8 h-8 absolute inset-0 transition-opacity duration-200 group-hover/trigger:opacity-0"
+                                className="w-8 absolute inset-0 transition-opacity duration-200 group-hover/trigger:opacity-0"
                             />
                             <PanelLeft className="w-5 h-5 text-zinc-400 absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover/trigger:opacity-100" />
                         </Button>
@@ -95,7 +95,7 @@ export const DashboardSidebar = () => {
                     onClick={handleNewChat}
                     className="w-full justify-start gap-2 bg-zinc-100 text-zinc-900 hover:bg-white shadow-sm group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:aspect-square"
                 >
-                    <Plus className="w-4 h-4 shrink-0" />
+                    <Plus className="w-3 h-3 shrink-0" />
                     <span className="group-data-[collapsible=icon]:hidden font-medium">New Chat</span>
                 </Button>
             </SidebarHeader>
@@ -107,15 +107,16 @@ export const DashboardSidebar = () => {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {menuItems.map((item) => (
-                                <SidebarMenuItem key={item.path}>
+                                <SidebarMenuItem key={item.path} className="group-data-[collapsible=icon]:justify-center">
                                     <SidebarMenuButton
                                         asChild
                                         isActive={location.pathname === item.path}
-                                        className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 data-[active=true]:bg-zinc-900 data-[active=true]:text-orange-500 transition-all duration-200"
+                                        className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 data-[active=true]:bg-zinc-900 data-[active=true]:text-orange-500 transition-all duration-200 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:justify-center"
                                     >
                                         <Link to={item.path} className="flex items-center gap-3">
                                             <item.icon className="w-4 h-4" />
-                                            <span className="font-medium">{item.label}</span>
+                                            {/* FIX: Hide the span when collapsed */}
+                                            <span className="font-medium group-data-[collapsible=icon]:hidden">{item.label}</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

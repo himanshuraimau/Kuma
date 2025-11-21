@@ -12,15 +12,17 @@ export const getFinancialNewsTool: BaseTool = {
     requiresAuth: false,
     schema: z.object({
         query: z.string().describe('Company name, stock symbol, or topic to search news for'),
+        count: z.number().optional().describe('Number of news items to fetch (default: 5, max: 15)'),
     }),
 
     async execute(input) {
-        const { query } = input;
+        const { query, count = 5 } = input;
+        const newsCount = Math.min(Math.max(count, 1), 15); // Clamp between 1 and 15
 
         try {
             // @ts-ignore
             const yf = new yahooFinance();
-            const searchResult = await yf.search(query, { newsCount: 5 });
+            const searchResult = await yf.search(query, { newsCount });
 
             if (!searchResult.news || searchResult.news.length === 0) {
                 return `No recent news found for "${query}".`;

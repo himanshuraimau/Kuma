@@ -5,7 +5,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
  */
 export const LANGCHAIN_CONFIG = {
     // Default model for agents
-    DEFAULT_MODEL: 'gemini-2.5-flash',
+    DEFAULT_MODEL: 'gemini-2.5-pro',
 
     // Model parameters
     MODEL_PARAMS: {

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Paperclip, Mic, Send, Infinity,Zap, AlertCircle, Command } from 'lucide-react';
+import { Bell, Paperclip, Mic, Send, Infinity, Zap, AlertCircle, Command } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { MessageList } from '@/components/chat/MessageList';
 
@@ -11,7 +11,6 @@ export const ChatInterface = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Mock data for display purposes if store is empty
     const {
         currentMessages,
         isSending,
@@ -22,11 +21,21 @@ export const ChatInterface = () => {
 
     const hasMessages = currentMessages.length > 0;
 
+    // NEW: useEffect to focus the input after a message is received.
+    // This hook runs whenever the `isSending` state changes.
+    useEffect(() => {
+        // We only want to focus the input when the AI has *finished* sending a response.
+        // So, we check if `isSending` is now false.
+        if (!isSending && textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, [isSending]); // The dependency array ensures this effect runs only when `isSending` changes.
+
+
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputValue(e.target.value);
     };
 
-    // Auto-resize textarea with a max height
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
@@ -38,13 +47,17 @@ export const ChatInterface = () => {
         if (inputValue.trim() && !isSending) {
             const message = inputValue.trim();
             setInputValue('');
-            // Reset height
-            if (textareaRef.current) textareaRef.current.style.height = 'auto';
+            if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto';
+                textareaRef.current.focus();
+            }
             
             try {
                 await sendMessage(message);
             } catch (err) {
                 console.error('Failed to send message:', err);
+                // In case of an error, it's good practice to re-focus the input
+                textareaRef.current?.focus();
             }
         }
     };

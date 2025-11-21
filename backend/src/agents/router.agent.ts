@@ -33,5 +33,5 @@ Your capabilities:
         'get_financial_news',
     ],
 
-    modelName: 'gemini-2.5-flash',
+    modelName: 'gemini-2.5-pro',
 };
