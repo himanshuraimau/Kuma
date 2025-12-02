@@ -4,7 +4,7 @@ prisma/.env
 
 # Dependencies
 node_modules
-
+.env
 # Build
 dist
 build
