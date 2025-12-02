@@ -108,33 +108,44 @@ Kuma/
 
 ### Agents
 
-- **Router Agent** - Intelligent routing to specialized agents
+- **Kuma Assistant** - Main intelligent assistant with access to all tools
+- **Research Agent** - Web research and information gathering
 - **Financial Agent** - Personal finance management
 - **Stock Market Agent** - Stock research and analysis
-- **Productivity Agent** - Task and project management (coming soon)
-- **Developer Agent** - Code assistance (coming soon)
-- **Communication Agent** - Email and messaging (coming soon)
 
 ### Tools
+
+- **Web Search (Exa)**
+  - Semantic web search
+  - Find similar pages
+  - Get page content
 
 - **Stock Market Tools**
   - Get stock prices
   - Company information
   - Financial news
 
-- **More tools coming soon:**
-  - Gmail integration
-  - GitHub integration
-  - Calendar management
+- **Vision Tools**
+  - Image analysis
+  - Text extraction (OCR)
+  - Scene description
+
+- **App Integrations**
+  - Gmail (send, read, search emails)
+  - Google Calendar (create, list, update events)
+  - Google Docs (create, read, update, list documents)
 
 ### Chat Features
 
 - ✅ Real-time chat with AI agents
+- ✅ Image upload and analysis
+- ✅ Web search capabilities
 - ✅ Chat history and persistence
 - ✅ Markdown support in responses
 - ✅ Multiple specialized agents
 - ✅ Tool calling capabilities
 - ✅ Memory across conversations
+- ✅ Connected apps management
 
 ## 🔑 Getting API Keys
 

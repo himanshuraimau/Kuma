@@ -35,6 +35,11 @@ async function initializeLangChain() {
         registerAllTools();
         registerAllAgents();
 
+        // Log registered tools for debugging
+        const { toolRegistry } = await import('./src/tools');
+        const allTools = toolRegistry.getAll();
+        console.log(`📦 Registered tools (${allTools.length}):`, allTools.map(t => t.name).join(', '));
+
         // Initialize checkpointer (sets up database tables)
         await getCheckpointer();
 

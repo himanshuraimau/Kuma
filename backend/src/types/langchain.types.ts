@@ -41,6 +41,7 @@ export interface AgentConfig {
     systemPrompt: string;
     tools: string[]; // Tool names
     modelName?: string;
+    temperature?: number;
 }
 
 /**

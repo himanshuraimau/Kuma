@@ -59,6 +59,9 @@ export async function createAgent(config: AgentConfig, userId?: string) {
         createTool(tool)
     );
 
+    console.log(`🔧 Agent "${config.name}" loaded ${allTools.length} tools:`,
+        [...defaultTools, ...userAppTools].map(t => t.name).join(', '));
+
     if (allTools.length === 0) {
         console.warn(`⚠️  Agent "${config.name}" has no tools configured`);
     }
