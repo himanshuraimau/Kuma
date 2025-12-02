@@ -20,6 +20,7 @@ model User {
 
   chats     Chat[]
   userTools UserTool[]
+  userApps  UserApp[]
 
   @@map("users")
 }
@@ -96,4 +97,42 @@ model UserTool {
   @@unique([userId, toolCategory])
   @@index([userId])
   @@map("user_tools")
+}
+
+model App {
+  id          String   @id @default(uuid())
+  name        String   @unique // gmail, calendar, github, etc.
+  category    String   // communication, productivity, development
+  displayName String
+  description String   @db.Text
+  icon        String?  // Emoji or icon identifier
+  authType    String   // oauth2, api_key, none
+  isActive    Boolean  @default(true)
+  config      Json     @default("{}") // OAuth config, scopes, etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userApps UserApp[]
+
+  @@map("apps")
+}
+
+model UserApp {
+  id          String    @id @default(uuid())
+  userId      String
+  appId       String
+  credentials Json      // Encrypted OAuth tokens/API keys
+  metadata    Json?     // Connected email, account info, etc.
+  isConnected Boolean   @default(true)
+  lastSyncAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app  App  @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, appId])
+  @@index([userId])
+  @@index([appId])
+  @@map("user_apps")
 }

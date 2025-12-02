@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Paperclip, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
+import { useAppsStore } from '@/stores/apps.store';
 import { MessageList } from '@/components/chat/MessageList';
 
 export const ChatInterface = () => {
@@ -25,7 +26,14 @@ export const ChatInterface = () => {
         createNewChat,
     } = useChatStore();
 
+    const { connectedApps, loadConnectedApps } = useAppsStore();
+
     const hasMessages = currentMessages.length > 0;
+
+    // Load connected apps on mount
+    useEffect(() => {
+        loadConnectedApps();
+    }, [loadConnectedApps]);
 
     // Load chat when URL parameter changes
     useEffect(() => {
@@ -80,7 +88,7 @@ export const ChatInterface = () => {
                 textareaRef.current.style.height = 'auto';
                 textareaRef.current.focus();
             }
-            
+
             try {
                 await sendMessage(message);
             } catch (err) {
@@ -100,7 +108,7 @@ export const ChatInterface = () => {
 
     return (
         <div className="relative flex flex-col h-screen bg-zinc-950 text-zinc-100 overflow-hidden">
-            
+
             {/* --- Header --- */}
             <header className="flex-shrink-0 h-16 flex items-center justify-end px-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-sm z-10">
                 <button
@@ -149,10 +157,10 @@ export const ChatInterface = () => {
             {/* --- Input Area (Footer) --- */}
             <div className="flex-shrink-0 px-4 pb-6 pt-2 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent">
                 <div className="w-full max-w-3xl mx-auto">
-                    
+
                     {/* The Chat Input Container */}
                     <div className="relative w-full bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden ring-offset-2 focus-within:ring-2 ring-orange-500/20 transition-all duration-300">
-                        
+
                         {/* Subtle Pro Banner - integrated nicely */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-transparent opacity-50" />
 
@@ -173,13 +181,13 @@ export const ChatInterface = () => {
                             <div className="flex items-center justify-between mt-4 pt-2">
                                 <div className="flex items-center gap-2">
                                     {/* Apps Badge */}
-                                    <Badge 
-                                        variant="outline" 
+                                    <Badge
+                                        variant="outline"
                                         className="bg-zinc-800/50 hover:bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors h-8 px-3 rounded-full gap-2 font-normal"
                                     >
                                         <InfinityIcon className="w-3.5 h-3.5" />
                                         <span>Apps</span>
-                                        <span className="bg-zinc-700 text-zinc-300 text-[10px] px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center">0</span>
+                                        <span className="bg-zinc-700 text-zinc-300 text-[10px] px-1.5 py-0.5 rounded-full">{connectedApps.length}</span>
                                     </Badge>
 
                                     {/* Pro Trigger */}
@@ -196,12 +204,12 @@ export const ChatInterface = () => {
                                         multiple
                                         className="hidden"
                                     />
-                                    
+
                                     <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-all">
                                         <Paperclip className="w-5 h-5" />
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => setIsRecording(!isRecording)}
                                         className={`p-2 rounded-full transition-all ${isRecording ? 'text-red-500 bg-red-500/10 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                                     >
@@ -212,11 +220,10 @@ export const ChatInterface = () => {
                                         onClick={handleSend}
                                         disabled={!inputValue.trim() || isSending}
                                         size="icon"
-                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${
-                                            inputValue.trim() 
-                                            ? 'bg-orange-500 hover:bg-orange-600 text-white translate-x-0 opacity-100' 
+                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${inputValue.trim()
+                                            ? 'bg-orange-500 hover:bg-orange-600 text-white translate-x-0 opacity-100'
                                             : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         <Send className="w-4 h-4 ml-0.5" />
                                     </Button>
@@ -228,7 +235,7 @@ export const ChatInterface = () => {
                     {/* Footer Helper Text */}
                     <div className="flex items-center justify-center mt-3 gap-4 text-xs text-zinc-500 font-medium">
                         <span className="flex items-center gap-1.5">
-                            <Command className="w-3 h-3" /> 
+                            <Command className="w-3 h-3" />
                             <span>Enter to send</span>
                         </span>
                         <span className="w-1 h-1 rounded-full bg-zinc-800" />

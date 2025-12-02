@@ -4,22 +4,62 @@ import { createTool } from '../tools/base.tool';
 import { getCheckpointer } from '../lib/langchain/checkpointer';
 import { initChatModel } from '../lib/langchain/config';
 import type { AgentConfig } from '../types/langchain.types';
+import { prisma } from '../db/prisma';
+import { appRegistry } from '../apps';
+
+/**
+ * Get user's app tools based on connected apps
+ */
+async function getUserAppTools(userId: string): Promise<BaseTool[]> {
+    const userApps = await prisma.userApp.findMany({
+        where: { userId, isConnected: true },
+        include: { app: true },
+    });
+
+    const tools: BaseTool[] = [];
+
+    for (const userApp of userApps) {
+        const app = appRegistry.get(userApp.app.name);
+        if (app) {
+            const appTools = app.getTools();
+            tools.push(...appTools);
+        }
+    }
+
+    return tools;
+}
 
 /**
  * Create a LangChain agent with the given configuration
  */
-export async function createAgent(config: AgentConfig) {
+export async function createAgent(config: AgentConfig, userId?: string) {
     const checkpointer = await getCheckpointer();
     const model = initChatModel(config.modelName);
 
-    // Get tools for this agent
+    // Get default tools for this agent
     const { toolRegistry } = await import('../tools');
-    const agentTools = config.tools
+    const defaultTools = config.tools
         .map((toolName) => toolRegistry.get(toolName))
-        .filter((tool): tool is BaseTool => tool !== undefined)
-        .map((tool) => createTool(tool));
+        .filter((tool): tool is BaseTool => tool !== undefined);
 
-    if (agentTools.length === 0) {
+    // Get user's app tools if userId provided
+    let userAppTools: BaseTool[] = [];
+    if (userId) {
+        userAppTools = await getUserAppTools(userId);
+        if (userAppTools.length > 0) {
+            console.log(
+                `📱 Loaded ${userAppTools.length} app tools for user:`,
+                userAppTools.map((t) => t.name).join(', ')
+            );
+        }
+    }
+
+    // Combine all tools
+    const allTools = [...defaultTools, ...userAppTools].map((tool) =>
+        createTool(tool)
+    );
+
+    if (allTools.length === 0) {
         console.warn(`⚠️  Agent "${config.name}" has no tools configured`);
     }
 
@@ -28,14 +68,14 @@ export async function createAgent(config: AgentConfig) {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
     });
 
     const systemPromptWithDate = `Current Date: ${currentDate}\n\n${config.systemPrompt}`;
 
     const agent = createReactAgent({
         llm: model,
-        tools: agentTools,
+        tools: allTools,
         checkpointSaver: checkpointer,
         messageModifier: systemPromptWithDate,
     });

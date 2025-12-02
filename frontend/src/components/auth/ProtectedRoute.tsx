@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { Loader2 } from 'lucide-react';
@@ -9,12 +9,17 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+    const [hasChecked, setHasChecked] = useState(false);
 
     useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
+        // Only check auth once on mount
+        if (!hasChecked) {
+            checkAuth().finally(() => setHasChecked(true));
+        }
+    }, [checkAuth, hasChecked]);
 
-    if (isLoading) {
+    // Show loading only during initial auth check
+    if (!hasChecked || isLoading) {
         return (
             <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center gap-4">
                 <div className="relative">

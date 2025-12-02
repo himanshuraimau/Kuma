@@ -72,8 +72,8 @@ export async function sendMessage(req: Request, res: Response) {
             return res.status(400).json({ error: `Agent type "${agentType}" not found` });
         }
 
-        // Create agent
-        const agent = await createAgent(agentConfig);
+        // Create agent with userId to load user's app tools
+        const agent = await createAgent(agentConfig, userId);
 
         // Invoke agent with message
         const result = await agent.invoke(

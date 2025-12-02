@@ -93,32 +93,61 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     checkAuth: async () => {
         const token = localStorage.getItem('auth_token');
+        const storedUser = localStorage.getItem('auth_user');
 
         if (!token) {
-            set({ isAuthenticated: false, user: null, token: null });
+            set({ isAuthenticated: false, user: null, token: null, isLoading: false });
             return;
+        }
+
+        // If we have both token and user in localStorage, set them immediately
+        // This prevents the "logged out" flash on page reload
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                set({
+                    user,
+                    token,
+                    isAuthenticated: true,
+                    isLoading: false,
+                });
+            } catch (e) {
+                console.error('Failed to parse stored user:', e);
+            }
         }
 
         try {
             set({ isLoading: true });
             const response = await getCurrentUser();
 
+            // Update with fresh user data from server
+            localStorage.setItem('auth_user', JSON.stringify(response.user));
             set({
                 user: response.user,
                 token,
                 isAuthenticated: true,
                 isLoading: false,
             });
-        } catch (error) {
-            // Token is invalid, clear it
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
-            set({
-                user: null,
-                token: null,
-                isAuthenticated: false,
-                isLoading: false,
-            });
+        } catch (error: any) {
+            console.error('Auth check failed:', error);
+
+            // Only clear auth if it's a 401 (unauthorized) error
+            // Don't log out on network errors or other issues
+            if (error.response?.status === 401) {
+                console.log('Token invalid, clearing auth');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_user');
+                set({
+                    user: null,
+                    token: null,
+                    isAuthenticated: false,
+                    isLoading: false,
+                });
+            } else {
+                // Network error or server issue - keep user logged in
+                console.log('Network error, keeping user logged in');
+                set({ isLoading: false });
+            }
         }
     },
 

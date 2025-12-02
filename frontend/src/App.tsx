@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Navigation } from '@/components/landing/Navigation';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
@@ -13,8 +12,9 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { ChatInterface } from '@/components/dashboard/ChatInterface';
 import { PlaceholderSection } from '@/components/dashboard/PlaceholderSection';
-import { useAuthStore } from '@/stores/auth.store';
-import { LayoutGrid, ListChecks, FolderOpen, Brain } from 'lucide-react';
+import { AppsPage } from '@/components/apps/AppsPage';
+import { ListChecks, FolderOpen, Brain } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 const LandingPage = () => {
   return (
@@ -35,12 +35,6 @@ const LandingPage = () => {
 };
 
 const App = () => {
-  const { checkAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   return (
     <BrowserRouter>
       <Routes>
@@ -52,12 +46,13 @@ const App = () => {
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/chat" element={<ChatInterface />} />
           <Route path="/chat/:id" element={<ChatInterface />} />
-          <Route path="/apps" element={<PlaceholderSection icon={LayoutGrid} title="Apps" description="Manage your connected applications and integrations." />} />
+          <Route path="/apps" element={<AppsPage />} />
           <Route path="/prompts" element={<PlaceholderSection icon={ListChecks} title="Prompts" description="Browse and manage your prompt library." />} />
           <Route path="/drive" element={<PlaceholderSection icon={FolderOpen} title="Drive" description="Access your files and documents." />} />
           <Route path="/memories" element={<PlaceholderSection icon={Brain} title="Memories" description="View and manage your conversation memories." />} />
         </Route>
       </Routes>
+      <Toaster position="top-right" richColors closeButton />
     </BrowserRouter>
   );
 };
