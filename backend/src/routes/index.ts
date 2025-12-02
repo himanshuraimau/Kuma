@@ -3,6 +3,7 @@ import authRoutes from './auth.routes';
 import chatRoutes from './chat.routes';
 import agentsRoutes from './agents.routes';
 import appsRoutes from './apps.routes';
+import uploadRoutes from './upload.routes';
 
 const router = Router();
 
@@ -11,6 +12,7 @@ router.use('/auth', authRoutes);
 router.use('/chat', chatRoutes);
 router.use('/agents', agentsRoutes);
 router.use('/apps', appsRoutes);
+router.use('/upload', uploadRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

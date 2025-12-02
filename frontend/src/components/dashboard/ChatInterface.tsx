@@ -2,16 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Paperclip, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command } from 'lucide-react';
+import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { useAppsStore } from '@/stores/apps.store';
 import { MessageList } from '@/components/chat/MessageList';
+import { ImageUpload } from '@/components/chat/ImageUpload';
 
 export const ChatInterface = () => {
     const { id: chatIdFromUrl } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState('');
     const [isRecording, setIsRecording] = useState(false);
+    const [showImageUpload, setShowImageUpload] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +86,7 @@ export const ChatInterface = () => {
         if (inputValue.trim() && !isSending) {
             const message = inputValue.trim();
             setInputValue('');
+            setShowImageUpload(false);
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
                 textareaRef.current.focus();
@@ -104,6 +107,11 @@ export const ChatInterface = () => {
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const handleImageAnalysisComplete = (result: string) => {
+        setInputValue(result);
+        setShowImageUpload(false);
     };
 
     return (
@@ -165,6 +173,13 @@ export const ChatInterface = () => {
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-transparent opacity-50" />
 
                         <div className="p-4">
+                            {/* Image Upload Panel */}
+                            {showImageUpload && (
+                                <div className="mb-4 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                                    <ImageUpload onAnalysisComplete={handleImageAnalysisComplete} />
+                                </div>
+                            )}
+
                             <textarea
                                 ref={textareaRef}
                                 value={inputValue}
@@ -205,8 +220,14 @@ export const ChatInterface = () => {
                                         className="hidden"
                                     />
 
-                                    <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-all">
-                                        <Paperclip className="w-5 h-5" />
+                                    <button
+                                        onClick={() => setShowImageUpload(!showImageUpload)}
+                                        className={`p-2 rounded-full transition-all ${showImageUpload
+                                            ? 'text-orange-500 bg-orange-500/10'
+                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                            }`}
+                                    >
+                                        <ImageIcon className="w-5 h-5" />
                                     </button>
 
                                     <button

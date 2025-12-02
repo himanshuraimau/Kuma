@@ -5,6 +5,9 @@ prisma/.env
 # Dependencies
 node_modules
 .env
+
+# Uploads
+uploads/
 # Build
 dist
 build
