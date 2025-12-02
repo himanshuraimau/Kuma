@@ -41,7 +41,7 @@ export const DashboardSidebar = () => {
     const { state, toggleSidebar } = useSidebar();
     const [searchOpen, setSearchOpen] = useState(false);
 
-    const { chats, currentChatId, loadChats, createNewChat, setCurrentChat, deleteChat } = useChatStore();
+    const { chats, currentChatId, loadChats, createNewChat, deleteChat } = useChatStore();
 
     useEffect(() => {
         loadChats();
@@ -56,7 +56,18 @@ export const DashboardSidebar = () => {
 
     const handleNewChat = () => {
         createNewChat();
-        if (location.pathname !== '/chat') {
+        navigate('/chat');
+    };
+
+    const handleChatClick = (chatId: string) => {
+        navigate(`/chat/${chatId}`);
+    };
+
+    const handleDeleteChat = async (chatId: string) => {
+        await deleteChat(chatId);
+        
+        // If we deleted the current chat, navigate to /chat
+        if (location.pathname === `/chat/${chatId}`) {
             navigate('/chat');
         }
     };
@@ -148,8 +159,8 @@ export const DashboardSidebar = () => {
                                         title={chat.title}
                                         updatedAt={chat.updatedAt}
                                         isActive={chat.id === currentChatId}
-                                        onClick={() => setCurrentChat(chat.id)}
-                                        onDelete={() => deleteChat(chat.id)}
+                                        onClick={() => handleChatClick(chat.id)}
+                                        onDelete={() => handleDeleteChat(chat.id)}
                                     />
                                 ))}
                             </div>

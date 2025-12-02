@@ -51,6 +51,7 @@ const App = () => {
         {/* Protected Dashboard Routes */}
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/chat" element={<ChatInterface />} />
+          <Route path="/chat/:id" element={<ChatInterface />} />
           <Route path="/apps" element={<PlaceholderSection icon={LayoutGrid} title="Apps" description="Manage your connected applications and integrations." />} />
           <Route path="/prompts" element={<PlaceholderSection icon={ListChecks} title="Prompts" description="Browse and manage your prompt library." />} />
           <Route path="/drive" element={<PlaceholderSection icon={FolderOpen} title="Drive" description="Access your files and documents." />} />

@@ -1,25 +1,54 @@
 import { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Paperclip, Mic, Send, Infinity, Zap, AlertCircle, Command } from 'lucide-react';
+import { Bell, Paperclip, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { MessageList } from '@/components/chat/MessageList';
 
 export const ChatInterface = () => {
+    const { id: chatIdFromUrl } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [inputValue, setInputValue] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const {
+        currentChatId,
         currentMessages,
         isSending,
         error,
         sendMessage,
         clearError,
+        loadChat,
+        createNewChat,
     } = useChatStore();
 
     const hasMessages = currentMessages.length > 0;
+
+    // Load chat when URL parameter changes
+    useEffect(() => {
+        if (chatIdFromUrl) {
+            // Only load if it's different from current
+            if (chatIdFromUrl !== currentChatId) {
+                loadChat(chatIdFromUrl);
+            }
+        } else {
+            // If no chat ID in URL, create a new chat
+            if (currentChatId !== null) {
+                createNewChat();
+            }
+        }
+    }, [chatIdFromUrl, currentChatId, loadChat, createNewChat]);
+
+    // Navigate to chat URL when a new chat is created
+    useEffect(() => {
+        // If we have a chat ID in the store but not in the URL, navigate to it
+        if (currentChatId && !chatIdFromUrl && !isSending) {
+            navigate(`/chat/${currentChatId}`, { replace: true });
+        }
+    }, [currentChatId, chatIdFromUrl, navigate, isSending]);
 
     // NEW: useEffect to focus the input after a message is received.
     // This hook runs whenever the `isSending` state changes.
@@ -104,7 +133,7 @@ export const ChatInterface = () => {
                         /* Hero Empty State */
                         <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-orange-500/20 shadow-xl mb-4">
-                                <Infinity className="w-8 h-8 text-white" />
+                                <InfinityIcon className="w-8 h-8 text-white" />
                             </div>
                             <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
                                 Just talk to <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">Kuma</span>
@@ -148,7 +177,7 @@ export const ChatInterface = () => {
                                         variant="outline" 
                                         className="bg-zinc-800/50 hover:bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors h-8 px-3 rounded-full gap-2 font-normal"
                                     >
-                                        <Infinity className="w-3.5 h-3.5" />
+                                        <InfinityIcon className="w-3.5 h-3.5" />
                                         <span>Apps</span>
                                         <span className="bg-zinc-700 text-zinc-300 text-[10px] px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center">0</span>
                                     </Badge>
