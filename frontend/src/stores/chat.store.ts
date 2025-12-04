@@ -9,10 +9,13 @@ interface ChatState {
     chats: Chat[];
     isLoading: boolean;
     isSending: boolean;
+    isStreaming: boolean;
+    streamingContent: string;
     error: string | null;
 
     // Actions
     sendMessage: (message: string, agentType?: string) => Promise<void>;
+    sendMessageStreaming: (message: string, agentType?: string) => Promise<void>;
     loadChats: () => Promise<void>;
     loadChat: (chatId: string) => Promise<void>;
     deleteChat: (chatId: string) => Promise<void>;
@@ -29,9 +32,124 @@ export const useChatStore = create<ChatState>((set, get) => ({
     chats: [],
     isLoading: false,
     isSending: false,
+    isStreaming: false,
+    streamingContent: '',
     error: null,
 
-    // Send a message
+    // Send a message with streaming
+    sendMessageStreaming: async (message: string, agentType = 'router') => {
+        const { currentChatId } = get();
+
+        set({ isSending: true, isStreaming: true, streamingContent: '', error: null });
+
+        // Optimistically add user message to UI
+        const tempUserMessageId = `temp-user-${Date.now()}`;
+        const tempAssistantMessageId = `temp-assistant-${Date.now()}`;
+        
+        const tempUserMessage: Message = {
+            id: tempUserMessageId,
+            chatId: currentChatId || 'temp',
+            role: 'user',
+            content: message,
+            createdAt: new Date().toISOString(),
+        };
+
+        // Add user message and placeholder for assistant
+        set((state) => ({
+            currentMessages: [
+                ...state.currentMessages,
+                tempUserMessage,
+                {
+                    id: tempAssistantMessageId,
+                    chatId: currentChatId || 'temp',
+                    role: 'assistant',
+                    content: '',
+                    createdAt: new Date().toISOString(),
+                },
+            ],
+        }));
+
+        let newChatId = currentChatId;
+        let fullResponse = '';
+
+        try {
+            await chatApi.streamMessage(
+                {
+                    message,
+                    chatId: currentChatId || undefined,
+                    agentType,
+                },
+                {
+                    onChatId: (chatId) => {
+                        newChatId = chatId;
+                        if (!currentChatId) {
+                            set({ currentChatId: chatId });
+                        }
+                    },
+                    onChunk: (content) => {
+                        fullResponse += content;
+                        set((state) => ({
+                            streamingContent: fullResponse,
+                            currentMessages: state.currentMessages.map((m) =>
+                                m.id === tempAssistantMessageId
+                                    ? { ...m, content: fullResponse, chatId: newChatId || m.chatId }
+                                    : m
+                            ),
+                        }));
+                    },
+                    onToolCall: (toolName) => {
+                        // Could add UI indicator for tool calls
+                        console.log('Tool called:', toolName);
+                    },
+                    onToolResult: (toolName, success) => {
+                        console.log('Tool result:', toolName, success);
+                    },
+                    onDone: (response) => {
+                        // Finalize the message
+                        set((state) => ({
+                            currentMessages: state.currentMessages.map((m) => {
+                                if (m.id === tempUserMessageId) {
+                                    return { ...m, id: `user-${Date.now()}`, chatId: newChatId || m.chatId };
+                                }
+                                if (m.id === tempAssistantMessageId) {
+                                    return { ...m, id: `assistant-${Date.now()}`, content: response, chatId: newChatId || m.chatId };
+                                }
+                                return m;
+                            }),
+                            isSending: false,
+                            isStreaming: false,
+                            streamingContent: '',
+                        }));
+                    },
+                    onError: (error) => {
+                        set({
+                            error,
+                            isSending: false,
+                            isStreaming: false,
+                        });
+                    },
+                }
+            );
+
+            // Reload chats to update sidebar
+            await get().loadChats();
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+            set({
+                error: errorMessage,
+                isSending: false,
+                isStreaming: false,
+            });
+            // Remove optimistic messages on error
+            set((state) => ({
+                currentMessages: state.currentMessages.filter(
+                    (m) => m.id !== tempUserMessageId && m.id !== tempAssistantMessageId
+                ),
+            }));
+        }
+    },
+
+    // Send a message (non-streaming fallback)
     sendMessage: async (message: string, agentType = 'router') => {
         const { currentChatId } = get();
 
@@ -83,9 +201,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
             // Reload chats to update sidebar
             await get().loadChats();
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
             set({
-                error: error.response?.data?.error || 'Failed to send message',
+                error: errorMessage,
                 isSending: false,
             });
             // Remove optimistic message on error

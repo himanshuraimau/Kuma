@@ -4,6 +4,7 @@ import chatRoutes from './chat.routes';
 import agentsRoutes from './agents.routes';
 import appsRoutes from './apps.routes';
 import uploadRoutes from './upload.routes';
+import memoryRoutes from './memory.routes';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.use('/chat', chatRoutes);
 router.use('/agents', agentsRoutes);
 router.use('/apps', appsRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/memories', memoryRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

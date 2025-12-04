@@ -1,14 +1,10 @@
 import { google } from 'googleapis';
 import type { BaseApp, OAuthConfig } from '../../types/apps.types';
-import {
-    createEventTool,
-    listEventsTool,
-    updateEventTool,
-} from './calendar.tools';
 import { GoogleOAuthProvider } from '../../lib/oauth/providers/google';
 
 /**
- * Google Calendar app integration
+ * Google Calendar app integration - metadata and OAuth configuration
+ * Tools are now defined in lib/ai/tools/app.tools.ts
  */
 export class CalendarApp implements BaseApp {
     name = 'calendar';
@@ -30,10 +26,6 @@ export class CalendarApp implements BaseApp {
             ],
             redirectUri: `${process.env.BACKEND_URL}/api/apps/calendar/callback`,
         };
-    }
-
-    getTools() {
-        return [createEventTool, listEventsTool, updateEventTool];
     }
 
     async initialize(credentials: any): Promise<void> {

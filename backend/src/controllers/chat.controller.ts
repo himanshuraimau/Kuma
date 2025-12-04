@@ -1,11 +1,108 @@
 import type { Request, Response } from 'express';
-import { HumanMessage } from '@langchain/core/messages';
-import { createAgent, agentRegistry } from '../agents/base.agent';
+import { streamAgent, generateAgent, agentConfigs } from '../lib/ai/agents';
+import type { AgentName } from '../lib/ai/agents';
 import { prisma } from '../db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Send a message to the chat agent
+ * Send a message to the chat agent (streaming)
+ * POST /api/chat/stream
+ */
+export async function streamMessage(req: Request, res: Response) {
+    try {
+        const userId = (req as any).user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { message, chatId, agentType = 'router' } = req.body;
+
+        if (!message || typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
+        }
+
+        // Validate agent type
+        const validAgentTypes = Object.keys(agentConfigs);
+        if (!validAgentTypes.includes(agentType)) {
+            return res.status(400).json({
+                error: 'Invalid agent type',
+                validTypes: validAgentTypes
+            });
+        }
+
+        let chat;
+
+        // Get or create chat
+        if (chatId) {
+            chat = await prisma.chat.findUnique({
+                where: { id: chatId, userId },
+            });
+
+            if (!chat) {
+                return res.status(404).json({ error: 'Chat not found' });
+            }
+        } else {
+            // Create new chat
+            const threadId = uuidv4();
+            chat = await prisma.chat.create({
+                data: {
+                    userId,
+                    agentType,
+                    threadId,
+                    title: message.substring(0, 50),
+                },
+            });
+        }
+
+        // Set up SSE headers for streaming
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+
+        // Send chat ID first (for new chats)
+        res.write(`data: ${JSON.stringify({ type: 'chat_id', chatId: chat.id })}\n\n`);
+
+        // Stream the response
+        await streamAgent({
+            agentName: agentType as AgentName,
+            userId,
+            chatId: chat.id,
+            message: message.trim(),
+            onChunk: (chunk) => {
+                res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
+            },
+            onToolCall: (toolName, args) => {
+                res.write(`data: ${JSON.stringify({ type: 'tool_call', toolName, args })}\n\n`);
+            },
+            onToolResult: (toolName, result) => {
+                // Don't send full result to client (can be large), just notify
+                res.write(`data: ${JSON.stringify({ type: 'tool_result', toolName, success: true })}\n\n`);
+            },
+            onFinish: (fullResponse) => {
+                res.write(`data: ${JSON.stringify({ type: 'done', fullResponse })}\n\n`);
+            },
+        });
+
+        res.end();
+    } catch (error) {
+        console.error('Error in streamMessage:', error);
+        
+        // If headers already sent, try to send error via SSE
+        if (res.headersSent) {
+            res.write(`data: ${JSON.stringify({ type: 'error', error: 'Stream error occurred' })}\n\n`);
+            res.end();
+        } else {
+            return res.status(500).json({
+                error: 'Failed to process message',
+                details: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+}
+
+/**
+ * Send a message to the chat agent (non-streaming)
  * POST /api/chat
  */
 export async function sendMessage(req: Request, res: Response) {
@@ -22,7 +119,7 @@ export async function sendMessage(req: Request, res: Response) {
         }
 
         // Validate agent type
-        const validAgentTypes = ['router', 'financial', 'stock-market', 'productivity', 'developer', 'communication'];
+        const validAgentTypes = Object.keys(agentConfigs);
         if (!validAgentTypes.includes(agentType)) {
             return res.status(400).json({
                 error: 'Invalid agent type',
@@ -31,7 +128,6 @@ export async function sendMessage(req: Request, res: Response) {
         }
 
         let chat;
-        let threadId: string;
 
         // Get or create chat
         if (chatId) {
@@ -42,80 +138,32 @@ export async function sendMessage(req: Request, res: Response) {
             if (!chat) {
                 return res.status(404).json({ error: 'Chat not found' });
             }
-
-            threadId = chat.threadId;
         } else {
             // Create new chat
-            threadId = uuidv4();
+            const threadId = uuidv4();
             chat = await prisma.chat.create({
                 data: {
                     userId,
                     agentType,
                     threadId,
-                    title: message.substring(0, 50), // Use first 50 chars as title
+                    title: message.substring(0, 50),
                 },
             });
         }
 
-        // Save user message
-        await prisma.message.create({
-            data: {
-                chatId: chat.id,
-                role: 'user',
-                content: message,
-            },
-        });
-
-        // Get agent configuration
-        const agentConfig = agentRegistry.get(agentType);
-        if (!agentConfig) {
-            return res.status(400).json({ error: `Agent type "${agentType}" not found` });
-        }
-
-        // Create agent with userId to load user's app tools
-        const agent = await createAgent(agentConfig, userId);
-
-        // Invoke agent with message
-        const result = await agent.invoke(
-            {
-                messages: [new HumanMessage(message)],
-            },
-            {
-                configurable: {
-                    thread_id: threadId,
-                    userId,
-                },
-            }
-        );
-
-        // Extract assistant response
-        const assistantMessage = result.messages[result.messages.length - 1];
-
-        if (!assistantMessage) {
-            return res.status(500).json({
-                error: 'No response from agent',
-                details: 'Agent did not return any messages'
-            });
-        }
-
-        const responseContent = typeof assistantMessage.content === 'string'
-            ? assistantMessage.content
-            : JSON.stringify(assistantMessage.content);
-
-        // Save assistant message
-        await prisma.message.create({
-            data: {
-                chatId: chat.id,
-                role: 'assistant',
-                content: responseContent,
-                toolCalls: (assistantMessage as any).tool_calls || null,
-            },
+        // Generate response (non-streaming)
+        const result = await generateAgent({
+            agentName: agentType as AgentName,
+            userId,
+            chatId: chat.id,
+            message: message.trim(),
         });
 
         return res.json({
             chatId: chat.id,
-            message: responseContent,
+            message: result.response,
             agentType: chat.agentType,
+            usage: result.usage,
         });
     } catch (error) {
         console.error('Error in sendMessage:', error);

@@ -7,8 +7,11 @@ const router = Router();
 // All routes require authentication
 router.use(authMiddleware);
 
-// Send message to agent
+// Send message to agent (non-streaming)
 router.post('/', chatController.sendMessage);
+
+// Send message to agent (streaming - SSE)
+router.post('/stream', chatController.streamMessage);
 
 // Get all chats
 router.get('/', chatController.getChats);

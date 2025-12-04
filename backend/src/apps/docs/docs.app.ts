@@ -1,11 +1,5 @@
 import { google } from 'googleapis';
 import type { BaseApp, OAuthConfig } from '../../types/apps.types';
-import {
-    createDocumentTool,
-    readDocumentTool,
-    updateDocumentTool,
-    listDocumentsTool,
-} from './docs.tools';
 import { GoogleOAuthProvider } from '../../lib/oauth/providers/google';
 
 /**
@@ -33,14 +27,7 @@ export class DocsApp implements BaseApp {
         };
     }
 
-    getTools() {
-        return [
-            createDocumentTool,
-            readDocumentTool,
-            updateDocumentTool,
-            listDocumentsTool,
-        ];
-    }
+    // Tools are now defined in lib/ai/tools/app.tools.ts and loaded per-user
 
     async initialize(credentials: any): Promise<void> {
         const oauth2Client = new google.auth.OAuth2(

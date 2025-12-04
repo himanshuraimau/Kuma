@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { appRegistry } from '../apps';
 import { oauthService } from '../lib/oauth/oauth.service';
+import { loadUserAppTools, createGmailTools, createCalendarTools, createDocsTools } from '../lib/ai/tools/app.tools';
 import { prisma } from '../db/prisma';
 
 /**
@@ -185,21 +186,37 @@ export async function getAvailableTools(req: Request, res: Response) {
             include: { app: true },
         });
 
-        // Get tools from connected apps
+        // Get tools from connected apps using new AI SDK tool loaders
         const tools: any[] = [];
 
         for (const userApp of userApps) {
-            const app = appRegistry.get(userApp.app.name);
-            if (app) {
-                const appTools = app.getTools();
-                tools.push(
-                    ...appTools.map((tool) => ({
-                        name: tool.name,
-                        description: tool.description,
-                        category: tool.category,
-                        appName: userApp.app.name,
-                    }))
-                );
+            const appName = userApp.app.name;
+            try {
+                let appTools: Record<string, any> = {};
+
+                // Call the specific loader so we can attribute tools to their app
+                if (appName === 'gmail') {
+                    appTools = createGmailTools(userId as string);
+                } else if (appName === 'calendar') {
+                    appTools = createCalendarTools(userId as string);
+                } else if (appName === 'docs') {
+                    appTools = createDocsTools(userId as string);
+                } else {
+                    // Fallback: attempt to load all and pick keys that match this appName
+                    const allTools = await loadUserAppTools(userId as string);
+                    appTools = Object.fromEntries(Object.entries(allTools).filter(([k]) => k.startsWith(`${appName}_`) || k.includes(appName)));
+                }
+
+                for (const [toolName, toolImpl] of Object.entries(appTools)) {
+                    tools.push({
+                        name: toolName,
+                        description: (toolImpl as any).description || '',
+                        category: appName,
+                        appName,
+                    });
+                }
+            } catch (err) {
+                console.warn(`Failed to load tools for app ${appName}:`, err);
             }
         }
 

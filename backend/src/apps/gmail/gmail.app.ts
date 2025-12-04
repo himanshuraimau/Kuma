@@ -1,10 +1,10 @@
 import { google } from 'googleapis';
 import type { BaseApp, OAuthConfig } from '../../types/apps.types';
-import { sendEmailTool, readEmailsTool, searchEmailsTool } from './gmail.tools';
 import { GoogleOAuthProvider } from '../../lib/oauth/providers/google';
 
 /**
- * Gmail app integration
+ * Gmail app integration - metadata and OAuth configuration
+ * Tools are now defined in lib/ai/tools/app.tools.ts
  */
 export class GmailApp implements BaseApp {
     name = 'gmail';
@@ -27,10 +27,6 @@ export class GmailApp implements BaseApp {
             ],
             redirectUri: `${process.env.BACKEND_URL}/api/apps/gmail/callback`,
         };
-    }
-
-    getTools() {
-        return [sendEmailTool, readEmailsTool, searchEmailsTool];
     }
 
     async initialize(credentials: any): Promise<void> {

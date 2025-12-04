@@ -13,7 +13,8 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { ChatInterface } from '@/components/dashboard/ChatInterface';
 import { PlaceholderSection } from '@/components/dashboard/PlaceholderSection';
 import { AppsPage } from '@/components/apps/AppsPage';
-import { ListChecks, FolderOpen, Brain } from 'lucide-react';
+import { MemoriesPage } from '@/components/memories/MemoriesPage';
+import { ListChecks, FolderOpen } from 'lucide-react';
 import { Toaster } from 'sonner';
 
 const LandingPage = () => {
@@ -49,7 +50,7 @@ const App = () => {
           <Route path="/apps" element={<AppsPage />} />
           <Route path="/prompts" element={<PlaceholderSection icon={ListChecks} title="Prompts" description="Browse and manage your prompt library." />} />
           <Route path="/drive" element={<PlaceholderSection icon={FolderOpen} title="Drive" description="Access your files and documents." />} />
-          <Route path="/memories" element={<PlaceholderSection icon={Brain} title="Memories" description="View and manage your conversation memories." />} />
+          <Route path="/memories" element={<MemoriesPage />} />
         </Route>
       </Routes>
       <Toaster position="top-right" richColors closeButton />

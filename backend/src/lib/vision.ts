@@ -36,7 +36,7 @@ export async function analyzeImage(
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
         const imagePart = await fileToGenerativePart(filepath, mimeType);
 
         const result = await model.generateContent([prompt, imagePart]);
@@ -46,7 +46,7 @@ export async function analyzeImage(
         return {
             description: text,
             metadata: {
-                model: 'gemini-1.5-flash',
+                model: 'gemini-2.5-pro',
                 timestamp: new Date().toISOString(),
             },
         };

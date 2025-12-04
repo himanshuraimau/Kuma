@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { agentRegistry } from '../agents/base.agent';
+import { listAgents, getAgentInfo } from '../lib/ai/agents/agent';
 
 /**
  * Get all available agents
@@ -7,13 +7,7 @@ import { agentRegistry } from '../agents/base.agent';
  */
 export async function getAgents(req: Request, res: Response) {
     try {
-        const agents = agentRegistry.getAll().map((agent) => ({
-            name: agent.name,
-            displayName: agent.displayName,
-            description: agent.description,
-            tools: agent.tools,
-        }));
-
+        const agents = listAgents();
         return res.json({ agents });
     } catch (error) {
         console.error('Error in getAgents:', error);
@@ -33,20 +27,12 @@ export async function getAgent(req: Request, res: Response) {
             return res.status(400).json({ error: 'Agent name is required' });
         }
 
-        const agent = agentRegistry.get(name);
-
-        if (!agent) {
+        const info = getAgentInfo(name as any);
+        if (!info) {
             return res.status(404).json({ error: 'Agent not found' });
         }
 
-        return res.json({
-            agent: {
-                name: agent.name,
-                displayName: agent.displayName,
-                description: agent.description,
-                tools: agent.tools,
-            },
-        });
+        return res.json({ agent: info });
     } catch (error) {
         console.error('Error in getAgent:', error);
         return res.status(500).json({ error: 'Failed to fetch agent' });

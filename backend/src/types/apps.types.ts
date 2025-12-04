@@ -1,5 +1,4 @@
 import type { z } from 'zod';
-import type { BaseTool } from '../tools/base.tool';
 
 /**
  * OAuth configuration for an app
@@ -14,6 +13,7 @@ export interface OAuthConfig {
 
 /**
  * Base app interface that all apps must implement
+ * Note: Tools are now defined in lib/ai/tools/app.tools.ts using AI SDK format
  */
 export interface BaseApp {
     name: string;
@@ -27,11 +27,6 @@ export interface BaseApp {
      * Get OAuth configuration for this app
      */
     getAuthConfig(): OAuthConfig;
-
-    /**
-     * Get tools this app provides
-     */
-    getTools(): BaseTool[];
 
     /**
      * Initialize app with user credentials
