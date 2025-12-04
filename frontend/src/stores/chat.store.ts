@@ -221,9 +221,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         try {
             const response = await chatApi.getChats();
             set({ chats: response.chats, isLoading: false });
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load chats';
             set({
-                error: error.response?.data?.error || 'Failed to load chats',
+                error: errorMessage,
                 isLoading: false,
             });
         }
@@ -240,9 +241,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 currentMessages: response.chat.messages || [],
                 isLoading: false,
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load chat';
             set({
-                error: error.response?.data?.error || 'Failed to load chat',
+                error: errorMessage,
                 isLoading: false,
             });
         }
@@ -265,9 +267,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
             if (get().currentChatId === chatId) {
                 set({ currentChatId: null, currentMessages: [] });
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to delete chat';
             set({
-                error: error.response?.data?.error || 'Failed to delete chat',
+                error: errorMessage,
                 isLoading: false,
             });
         }
@@ -284,9 +287,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     c.id === chatId ? response.chat : c
                 ),
             }));
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update chat title';
             set({
-                error: error.response?.data?.error || 'Failed to update chat title',
+                error: errorMessage,
             });
         }
     },

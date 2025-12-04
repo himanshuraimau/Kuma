@@ -21,8 +21,9 @@ export const ChatInterface = () => {
         currentChatId,
         currentMessages,
         isSending,
+        isStreaming,
         error,
-        sendMessage,
+        sendMessageStreaming,
         clearError,
         loadChat,
         createNewChat,
@@ -93,7 +94,7 @@ export const ChatInterface = () => {
             }
 
             try {
-                await sendMessage(message);
+                await sendMessageStreaming(message);
             } catch (err) {
                 console.error('Failed to send message:', err);
                 // In case of an error, it's good practice to re-focus the input
@@ -143,7 +144,7 @@ export const ChatInterface = () => {
                 <div className="w-full max-w-3xl mx-auto px-4 py-8">
                     {hasMessages ? (
                         <div className="space-y-6 pb-4">
-                            <MessageList messages={currentMessages} isLoading={isSending} />
+                            <MessageList messages={currentMessages} isLoading={isSending || isStreaming} />
                         </div>
                     ) : (
                         /* Hero Empty State */

@@ -3,14 +3,14 @@
 export interface Memory {
     id: string;
     content: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     createdAt?: string;
     updatedAt?: string;
 }
 
 export interface AddMemoryRequest {
     content: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export interface AddMemoryResponse {

@@ -30,7 +30,7 @@ export const streamMessage = async (
     data: SendMessageRequest,
     callbacks: StreamCallbacks
 ): Promise<void> => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     
     const response = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
