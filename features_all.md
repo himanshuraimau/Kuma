@@ -1,6 +1,9 @@
 # Kuma — Complete Tech Stack & Features
 
-**🎨 Latest Update**: Multimodal Chat with Vision - ChatGPT/Claude-style image integration!
+**🎨 Latest Updates**: 
+- Multimodal Chat with Vision - ChatGPT/Claude-style image integration!
+- Google Sheets & Slides Integration - Full spreadsheet and presentation management
+- GitHub Integration - Repository, issue, and PR management
 
 ## 📚 Table of Contents
 
@@ -62,7 +65,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - **cors** (`^2.8.5`) — Cross-origin resource sharing
 
 #### APIs & Integrations
-- **googleapis** (`^166.0.0`) — Google APIs (Gmail, Calendar, Drive, Docs)
+- **googleapis** (`^166.0.0`) — Google APIs (Gmail, Calendar, Drive, Docs, Sheets, Slides)
 - **exa-js** (`^2.0.11`) — Web search API
 - **yahoo-finance2** (`^3.10.2`) — Stock market data
 - **@supermemory/tools** (`^1.3.11`) — Memory and context management
@@ -295,11 +298,22 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 ### 7. **App Integration Management**
 
-- Connect/disconnect third-party apps
-- OAuth flow handling
-- Credential encryption
-- Connection status monitoring
-- Scope management
+- **Supported Integrations** (7 apps total):
+  - 📧 **Gmail** - Email management
+  - 📅 **Google Calendar** - Event scheduling
+  - 📄 **Google Docs** - Document creation/editing
+  - 💾 **Google Drive** - File storage and management
+  - 📊 **Google Sheets** - Spreadsheet operations
+  - 📽️ **Google Slides** - Presentation creation
+  - 🐙 **GitHub** - Repository and issue management
+
+- **Management Features**:
+  - Connect/disconnect third-party apps
+  - OAuth 2.0 flow handling
+  - Credential encryption (AES-256)
+  - Connection status monitoring
+  - Scope management
+  - App-specific callback handling
 
 ---
 
@@ -394,8 +408,11 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - `searchDriveFiles` — Search files by name or content
 - `createDriveFolder` — Create folders to organize files
 - `uploadToDrive` — Upload/create text documents
-- `shareDriveFile` — Share files with others
+- `downloadFromDrive` — Read file content
+- `getDriveFileInfo` — Get file details
 - `deleteDriveFile` — Remove files/folders
+- `moveDriveFile` — Move files between folders
+- `shareDriveFile` — Share files with others
 
 **Features**:
 - File type filtering (documents, spreadsheets, presentations, images, PDFs)
@@ -403,7 +420,79 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - File metadata (size, modified time, links)
 - OAuth 2.0 with Drive API
 
-### 5. **Web Search (Exa)**
+### 5. **Google Sheets Integration**
+
+**Tools Available**:
+
+- `createSpreadsheet` — Create new spreadsheets with custom sheets
+- `readSpreadsheet` — Read data from any range (A1 notation)
+- `updateSpreadsheet` — Update cells/ranges with new data
+- `appendToSpreadsheet` — Append rows to existing data
+- `createSheet` — Add new sheets (tabs) to spreadsheets
+- `listSpreadsheets` — Browse all user spreadsheets
+
+**Features**:
+- Full spreadsheet CRUD operations
+- A1 notation range support
+- Multi-sheet management
+- Data manipulation and analysis
+- OAuth 2.0 with Sheets API
+
+**Use Cases**:
+- Data tracking and logging
+- Expense management
+- Report generation
+- Collaborative data analysis
+
+### 6. **Google Slides Integration**
+
+**Tools Available**:
+
+- `createPresentation` — Create new presentations
+- `readPresentation` — Read slide content and structure
+- `addSlide` — Add slides with title and body text
+- `listPresentations` — Browse all user presentations
+
+**Features**:
+- Presentation creation and management
+- Slide content manipulation
+- Text formatting support
+- OAuth 2.0 with Slides API
+
+**Use Cases**:
+- Quick presentation generation
+- Content summarization into slides
+- Report presentations
+- Educational materials
+
+### 7. **GitHub Integration**
+
+**Tools Available**:
+
+- `listRepositories` — List user's repositories with sorting/filtering
+- `getRepository` — Get detailed repo info (stars, forks, issues)
+- `listIssues` — List issues with state filtering (open/closed/all)
+- `createIssue` — Create new issues with labels
+- `getIssue` — Get detailed issue information
+- `listPullRequests` — List pull requests with state filtering
+- `searchCode` — Search code across GitHub repositories
+- `getFileContent` — Read file content from repositories
+
+**Features**:
+- Full repository browsing and management
+- Issue and PR tracking
+- Code search capabilities
+- File content retrieval
+- OAuth 2.0 with GitHub API
+
+**Use Cases**:
+- Repository management
+- Issue tracking and creation
+- Code review assistance
+- Project status monitoring
+- Code search and reference
+
+### 8. **Web Search (Exa)**
 
 **Tools Available**:
 - `search_web` — Semantic web search
@@ -412,7 +501,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 **Authentication**: API key
 
-### 5. **Stock Market Tools**
+### 9. **Stock Market Tools**
 
 **Tools Available**:
 - `get_stock_price` — Real-time stock quotes
@@ -422,7 +511,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 **Data Source**: Yahoo Finance
 
-### 6. **Vision Tools**
+### 10. **Vision Tools**
 
 **Tools Available**:
 - `analyze_image` — Image analysis and description
@@ -431,7 +520,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 **Provider**: Google Gemini Vision
 
-### 7. **Memory Tools (Supermemory)**
+### 11. **Memory Tools (Supermemory)**
 
 **Tools Available**:
 - `store_memory` — Save information to memory
