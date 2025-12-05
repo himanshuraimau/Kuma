@@ -26,7 +26,7 @@
     "supermemory": "^3.10.0",
     "uuid": "^11.0.3",
     "yahoo-finance2": "^3.10.2",
-    "zod": "^3.22.4"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/bun": "latest",

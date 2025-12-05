@@ -38,6 +38,9 @@ export const ChatInterface = () => {
         loadConnectedApps();
     }, [loadConnectedApps]);
 
+    // Track the previous chatIdFromUrl to detect navigation to new chat
+    const prevChatIdFromUrlRef = useRef<string | undefined>(chatIdFromUrl);
+
     // Load chat when URL parameter changes
     useEffect(() => {
         if (chatIdFromUrl) {
@@ -46,20 +49,25 @@ export const ChatInterface = () => {
                 loadChat(chatIdFromUrl);
             }
         } else {
-            // If no chat ID in URL, create a new chat
-            if (currentChatId !== null) {
+            // If no chat ID in URL and we had one before, user is navigating to new chat
+            if (prevChatIdFromUrlRef.current || currentChatId !== null) {
                 createNewChat();
             }
         }
+        prevChatIdFromUrlRef.current = chatIdFromUrl;
     }, [chatIdFromUrl, currentChatId, loadChat, createNewChat]);
 
-    // Navigate to chat URL when a new chat is created
+    // Navigate to chat URL when a new chat is created (after sending first message)
     useEffect(() => {
-        // If we have a chat ID in the store but not in the URL, navigate to it
-        if (currentChatId && !chatIdFromUrl && !isSending) {
+        // Only navigate if:
+        // 1. We have a chat ID in the store
+        // 2. No chat ID in the URL
+        // 3. We're not currently sending
+        // 4. We have messages (meaning this is from a new chat that was created from sending a message)
+        if (currentChatId && !chatIdFromUrl && !isSending && currentMessages.length > 0) {
             navigate(`/chat/${currentChatId}`, { replace: true });
         }
-    }, [currentChatId, chatIdFromUrl, navigate, isSending]);
+    }, [currentChatId, chatIdFromUrl, navigate, isSending, currentMessages.length]);
 
     // NEW: useEffect to focus the input after a message is received.
     // This hook runs whenever the `isSending` state changes.

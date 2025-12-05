@@ -38,7 +38,7 @@ export function createGmailTools(userId: string) {
             inputSchema: z.object({
                 to: z.string().describe('Recipient email address'),
                 subject: z.string().describe('Email subject'),
-                body: z.string().describe('Email body content (can be plain text or HTML)'),
+                body: z.string().describe('Email body content (can be plain text or HTML). Use newlines for line breaks and proper formatting.'),
                 cc: z.array(z.string()).optional().describe('CC email addresses'),
                 bcc: z.array(z.string()).optional().describe('BCC email addresses'),
             }),
@@ -48,6 +48,15 @@ export function createGmailTools(userId: string) {
                     return 'Gmail is not connected. Please connect Gmail from the Apps page first to send emails.';
                 }
 
+                // Convert plain text newlines to HTML breaks for proper formatting
+                // Also handle markdown-style formatting
+                const htmlBody = body
+                    .replace(/\n/g, '<br>\n')  // Convert newlines to <br> tags
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold text
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')  // Italic text
+                    .replace(/^(\d+)\.\s/gm, '<br>$1. ')  // Numbered lists
+                    .replace(/^[-•]\s/gm, '<br>• ');  // Bullet points
+
                 const emailLines = [
                     `To: ${to}`,
                     `Subject: ${subject}`,
@@ -55,7 +64,7 @@ export function createGmailTools(userId: string) {
                     bcc ? `Bcc: ${bcc.join(', ')}` : '',
                     'Content-Type: text/html; charset=utf-8',
                     '',
-                    body,
+                    `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${htmlBody}</div>`,
                 ].filter(Boolean);
 
                 const email = emailLines.join('\r\n');
