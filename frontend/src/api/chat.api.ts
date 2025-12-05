@@ -23,22 +23,44 @@ export interface StreamCallbacks {
 }
 
 /**
- * Send a message with streaming response (SSE)
+ * Send a message with streaming response (SSE) - supports multimodal
  * POST /api/chat/stream
  */
 export const streamMessage = async (
-    data: SendMessageRequest,
+    data: SendMessageRequest & { images?: File[] },
     callbacks: StreamCallbacks
 ): Promise<void> => {
     const token = localStorage.getItem('auth_token');
     
+    // Use FormData if images are present, otherwise JSON
+    const hasImages = data.images && data.images.length > 0;
+    let body: FormData | string;
+    const headers: Record<string, string> = {
+        ...(token && { Authorization: `Bearer ${token}` }),
+    };
+
+    if (hasImages) {
+        const formData = new FormData();
+        formData.append('message', data.message);
+        if (data.chatId) formData.append('chatId', data.chatId);
+        if (data.agentType) formData.append('agentType', data.agentType);
+        
+        // Append all images
+        data.images!.forEach((image) => {
+            formData.append('images', image);
+        });
+        
+        body = formData;
+        // Don't set Content-Type for FormData - browser will set it with boundary
+    } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(data);
+    }
+    
     const response = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify(data),
+        headers,
+        body,
     });
 
     if (!response.ok) {

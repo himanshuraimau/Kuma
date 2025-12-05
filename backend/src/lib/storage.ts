@@ -2,14 +2,19 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'temp');
+const CHAT_IMAGES_DIR = path.join(process.cwd(), 'uploads', 'chats');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-// Ensure upload directory exists
+// Ensure upload directories exist
 if (!existsSync(UPLOAD_DIR)) {
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
+}
+if (!existsSync(CHAT_IMAGES_DIR)) {
+    await fs.mkdir(CHAT_IMAGES_DIR, { recursive: true });
 }
 
 // Configure multer storage
@@ -64,7 +69,74 @@ export function getUploadPath(filename: string): string {
 }
 
 /**
- * Clean up old files (older than 1 hour)
+ * Get chat images directory for a specific chat
+ */
+export function getChatImagesDir(chatId: string): string {
+    return path.join(CHAT_IMAGES_DIR, chatId);
+}
+
+/**
+ * Get full path for a chat image
+ */
+export function getChatImagePath(chatId: string, filename: string): string {
+    return path.join(getChatImagesDir(chatId), filename);
+}
+
+export interface ImageAttachment {
+    filename: string;
+    url: string;
+    mimetype: string;
+    size: number;
+}
+
+/**
+ * Save uploaded image to chat-specific directory
+ */
+export async function saveChatImage(
+    chatId: string,
+    file: Express.Multer.File
+): Promise<ImageAttachment> {
+    const chatDir = getChatImagesDir(chatId);
+    
+    // Ensure chat directory exists
+    if (!existsSync(chatDir)) {
+        await fs.mkdir(chatDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const ext = path.extname(file.originalname);
+    const filename = `image-${Date.now()}-${uuidv4()}${ext}`;
+    const filepath = path.join(chatDir, filename);
+
+    // Move file from temp to chat directory
+    await fs.copyFile(file.path, filepath);
+    await deleteFile(file.path); // Clean up temp file
+
+    const attachment: ImageAttachment = {
+        filename,
+        url: `/api/upload/chats/${chatId}/${filename}`,
+        mimetype: file.mimetype,
+        size: file.size,
+    };
+
+    console.log(`💾 Saved chat image: ${attachment.url}`);
+    return attachment;
+}
+
+/**
+ * Get image file as base64 for Gemini API
+ */
+export async function getChatImageBase64(chatId: string, filename: string): Promise<string> {
+    const filepath = getChatImagePath(chatId, filename);
+    if (!existsSync(filepath)) {
+        throw new Error(`Image not found: ${filepath}`);
+    }
+    const data = await fs.readFile(filepath);
+    return data.toString('base64');
+}
+
+/**
+ * Clean up old files (older than 1 hour) in temp directory
  */
 export async function cleanupOldFiles(): Promise<void> {
     try {

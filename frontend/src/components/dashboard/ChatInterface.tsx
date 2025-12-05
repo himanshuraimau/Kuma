@@ -2,18 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon } from 'lucide-react';
+import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon, X } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { useAppsStore } from '@/stores/apps.store';
 import { MessageList } from '@/components/chat/MessageList';
-import { ImageUpload } from '@/components/chat/ImageUpload';
 
 export const ChatInterface = () => {
     const { id: chatIdFromUrl } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState('');
     const [isRecording, setIsRecording] = useState(false);
-    const [showImageUpload, setShowImageUpload] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,17 +89,19 @@ export const ChatInterface = () => {
     }, [inputValue]);
 
     const handleSend = async () => {
-        if (inputValue.trim() && !isSending) {
+        if ((inputValue.trim() || selectedImages.length > 0) && !isSending) {
             const message = inputValue.trim();
+            const imagesToSend = [...selectedImages];
+            
             setInputValue('');
-            setShowImageUpload(false);
+            setSelectedImages([]);
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
                 textareaRef.current.focus();
             }
 
             try {
-                await sendMessageStreaming(message);
+                await sendMessageStreaming(message, undefined, imagesToSend);
             } catch (err) {
                 console.error('Failed to send message:', err);
                 // In case of an error, it's good practice to re-focus the input
@@ -116,9 +117,22 @@ export const ChatInterface = () => {
         }
     };
 
-    const handleImageAnalysisComplete = (result: string) => {
-        setInputValue(result);
-        setShowImageUpload(false);
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        
+        // Limit to 5 images
+        const newImages = [...selectedImages, ...imageFiles].slice(0, 5);
+        setSelectedImages(newImages);
+        
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setSelectedImages(images => images.filter((_, i) => i !== index));
     };
 
     return (
@@ -164,6 +178,25 @@ export const ChatInterface = () => {
                             <p className="text-zinc-400 text-lg max-w-md">
                                 Your AI assistant for stock analysis, financial planning, and daily tasks.
                             </p>
+                            
+                            {/* Connected Apps Indicator */}
+                            {connectedApps.length > 0 && (
+                                <div className="mt-6 flex flex-col items-center gap-3">
+                                    <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Connected Apps</p>
+                                    <div className="flex gap-2 flex-wrap justify-center">
+                                        {connectedApps.map((app) => (
+                                            <Badge 
+                                                key={app.id} 
+                                                variant="outline" 
+                                                className="bg-zinc-800/50 border-zinc-700 text-zinc-300 px-3 py-1"
+                                            >
+                                                <span className="mr-1.5">{app.icon}</span>
+                                                {app.displayName}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -180,10 +213,35 @@ export const ChatInterface = () => {
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-transparent opacity-50" />
 
                         <div className="p-4">
-                            {/* Image Upload Panel */}
-                            {showImageUpload && (
-                                <div className="mb-4 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
-                                    <ImageUpload onAnalysisComplete={handleImageAnalysisComplete} />
+                            {/* Inline Image Previews */}
+                            {selectedImages.length > 0 && (
+                                <div className="mb-3 flex flex-wrap gap-2">
+                                    {selectedImages.map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className="relative group w-20 h-20 rounded-lg overflow-hidden border border-zinc-700 bg-zinc-800"
+                                        >
+                                            <img
+                                                src={URL.createObjectURL(image)}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                onClick={() => removeImage(index)}
+                                                className="absolute top-1 right-1 p-1 bg-zinc-900/80 hover:bg-red-500 rounded-full text-zinc-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {selectedImages.length < 5 && (
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="w-20 h-20 rounded-lg border-2 border-dashed border-zinc-700 hover:border-orange-500 flex items-center justify-center text-zinc-500 hover:text-orange-500 transition-colors"
+                                        >
+                                            <ImageIcon className="w-5 h-5" />
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -223,13 +281,15 @@ export const ChatInterface = () => {
                                     <input
                                         ref={fileInputRef}
                                         type="file"
+                                        accept="image/*"
                                         multiple
+                                        onChange={handleImageSelect}
                                         className="hidden"
                                     />
 
                                     <button
-                                        onClick={() => setShowImageUpload(!showImageUpload)}
-                                        className={`p-2 rounded-full transition-all ${showImageUpload
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className={`p-2 rounded-full transition-all ${selectedImages.length > 0
                                             ? 'text-orange-500 bg-orange-500/10'
                                             : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                                             }`}
@@ -246,9 +306,9 @@ export const ChatInterface = () => {
 
                                     <Button
                                         onClick={handleSend}
-                                        disabled={!inputValue.trim() || isSending}
+                                        disabled={(!inputValue.trim() && selectedImages.length === 0) || isSending}
                                         size="icon"
-                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${inputValue.trim()
+                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${(inputValue.trim() || selectedImages.length > 0)
                                             ? 'bg-orange-500 hover:bg-orange-600 text-white translate-x-0 opacity-100'
                                             : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
                                             }`}

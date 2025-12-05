@@ -23,6 +23,14 @@ export interface AuthResponse {
     token: string;
 }
 
+// Image attachment type
+export interface ImageAttachment {
+    filename: string;
+    url: string;
+    mimetype: string;
+    size: number;
+}
+
 // Chat types
 export interface Message {
     id: string;
@@ -30,6 +38,7 @@ export interface Message {
     role: 'user' | 'assistant' | 'system' | 'tool';
     content: string;
     toolCalls?: any;
+    imageAttachments?: ImageAttachment[];
     createdAt: string;
 }
 

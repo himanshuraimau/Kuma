@@ -28,6 +28,7 @@ export const MessageList = ({ messages, isLoading = false }: MessageListProps) =
                         role={message.role}
                         content={message.content}
                         timestamp={message.createdAt}
+                        imageAttachments={message.imageAttachments}
                     />
                 ))}
 

@@ -51,6 +51,22 @@ async function seedApps() {
         },
     });
 
+    // Create Google Drive app
+    await prisma.app.upsert({
+        where: { name: 'drive' },
+        update: {},
+        create: {
+            name: 'drive',
+            category: 'storage',
+            displayName: 'Google Drive',
+            description: 'Store, organize, and access your documents and files',
+            icon: '💾',
+            authType: 'oauth2',
+            isActive: true,
+            config: {},
+        },
+    });
+
     console.log('✅ Apps seeded successfully!');
 }
 

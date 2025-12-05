@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { appRegistry } from '../apps';
 import { oauthService } from '../lib/oauth/oauth.service';
-import { loadUserAppTools, createGmailTools, createCalendarTools, createDocsTools } from '../lib/ai/tools/app.tools';
+import { loadUserAppTools, createGmailTools, createCalendarTools, createDocsTools, createDriveTools } from '../lib/ai/tools/app.tools';
 import { prisma } from '../db/prisma';
 
 /**
@@ -201,6 +201,8 @@ export async function getAvailableTools(req: Request, res: Response) {
                     appTools = createCalendarTools(userId as string);
                 } else if (appName === 'docs') {
                     appTools = createDocsTools(userId as string);
+                } else if (appName === 'drive') {
+                    appTools = createDriveTools(userId as string);
                 } else {
                     // Fallback: attempt to load all and pick keys that match this appName
                     const allTools = await loadUserAppTools(userId as string);

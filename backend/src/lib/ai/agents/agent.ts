@@ -3,6 +3,8 @@ import { getModel, models } from '../client';
 import { agentConfigs, type AgentName } from './configs';
 import type { AgentConfig } from './types';
 import { prisma } from '../../../db/prisma';
+import type { ImageAttachment } from '../../storage';
+import { streamMultimodalContent } from '../../vision';
 
 // Import all tools
 import {
@@ -216,7 +218,8 @@ async function saveMessage(
     chatId: string,
     role: 'user' | 'assistant',
     content: string,
-    toolCalls?: unknown[]
+    toolCalls?: unknown[],
+    imageAttachments?: ImageAttachment[]
 ): Promise<void> {
     await prisma.message.create({
         data: {
@@ -224,6 +227,7 @@ async function saveMessage(
             role,
             content,
             toolCalls: toolCalls ? JSON.parse(JSON.stringify(toolCalls)) : undefined,
+            imageAttachments: imageAttachments ? JSON.parse(JSON.stringify(imageAttachments)) : undefined,
         },
     });
 }
@@ -233,6 +237,7 @@ export interface StreamAgentOptions {
     userId: string;
     chatId: string;
     message: string;
+    imageAttachments?: ImageAttachment[];
     onChunk?: (chunk: string) => void;
     onToolCall?: (toolName: string, args: Record<string, unknown>) => void;
     onToolResult?: (toolName: string, result: unknown) => void;
@@ -248,6 +253,7 @@ export async function streamAgent(options: StreamAgentOptions) {
         userId,
         chatId,
         message,
+        imageAttachments,
         onChunk,
         onToolCall,
         onToolResult,
@@ -260,6 +266,42 @@ export async function streamAgent(options: StreamAgentOptions) {
         throw new Error(`Agent "${agentName}" not found`);
     }
 
+    // Check if this is a multimodal message (has images)
+    const isMultimodal = imageAttachments && imageAttachments.length > 0;
+
+    if (isMultimodal) {
+        console.log(`🖼️  Multimodal message with ${imageAttachments.length} image(s)`);
+        
+        // Save user message with images
+        await saveMessage(chatId, 'user', message, undefined, imageAttachments);
+
+        // Use Gemini API directly for multimodal streaming
+        let fullResponse = '';
+        
+        try {
+            fullResponse = await streamMultimodalContent({
+                prompt: message,
+                chatId,
+                imageAttachments,
+                model: config.modelType === 'pro' ? 'gemini-2.5-pro' : 'gemini-2.0-flash',
+                onChunk: (chunk) => {
+                    onChunk?.(chunk);
+                },
+            });
+
+            // Save assistant response
+            await saveMessage(chatId, 'assistant', fullResponse);
+            onFinish?.(fullResponse);
+            
+        } catch (error) {
+            console.error('Multimodal streaming error:', error);
+            throw error;
+        }
+        
+        return;
+    }
+
+    // Regular text-only flow continues below
     // Load tools for this agent
     const tools = await getAgentTools(config, userId);
     console.log(`🔧 Agent "${config.name}" loaded ${Object.keys(tools).length} tools:`,

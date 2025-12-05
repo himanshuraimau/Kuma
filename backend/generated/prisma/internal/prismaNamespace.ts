@@ -1075,6 +1075,7 @@ export const MessageScalarFieldEnum = {
   role: 'role',
   content: 'content',
   toolCalls: 'toolCalls',
+  imageAttachments: 'imageAttachments',
   createdAt: 'createdAt'
 } as const
 

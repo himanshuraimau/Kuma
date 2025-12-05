@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../lib/middleware';
 import * as chatController from '../controllers/chat.controller';
+import { upload } from '../lib/storage';
 
 const router = Router();
 
@@ -8,10 +9,10 @@ const router = Router();
 router.use(authMiddleware);
 
 // Send message to agent (non-streaming)
-router.post('/', chatController.sendMessage);
+router.post('/', upload.array('images', 5), chatController.sendMessage);
 
-// Send message to agent (streaming - SSE)
-router.post('/stream', chatController.streamMessage);
+// Send message to agent (streaming - SSE) - supports multimodal
+router.post('/stream', upload.array('images', 5), chatController.streamMessage);
 
 // Get all chats
 router.get('/', chatController.getChats);

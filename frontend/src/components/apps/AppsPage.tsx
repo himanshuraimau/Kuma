@@ -46,7 +46,7 @@ export const AppsPage = () => {
             toast.success('App disconnected', {
                 description: `Successfully disconnected from ${appName}`,
             });
-        } catch (error) {
+        } catch {
             toast.error('Failed to disconnect', {
                 description: 'Please try again later',
             });
@@ -134,9 +134,31 @@ export const AppsPage = () => {
                         </li>
                         <li className="flex gap-3">
                             <span className="text-orange-500 font-semibold">3.</span>
-                            <span>Use the app's features directly in chat (e.g., "send an email to john@example.com")</span>
+                            <span>Use the app's features directly in chat</span>
                         </li>
                     </ol>
+                    
+                    <div className="mt-6 pt-6 border-t border-zinc-800">
+                        <h4 className="text-sm font-semibold mb-3 text-zinc-300">Example commands</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-blue-400 font-medium">📧 Gmail:</span>
+                                <p className="text-zinc-400 mt-1">"Send an email to john@example.com"</p>
+                            </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-purple-400 font-medium">📅 Calendar:</span>
+                                <p className="text-zinc-400 mt-1">"Schedule a meeting tomorrow at 2pm"</p>
+                            </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-purple-400 font-medium">📄 Docs:</span>
+                                <p className="text-zinc-400 mt-1">"Create a document with meeting notes"</p>
+                            </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-orange-400 font-medium">💾 Drive:</span>
+                                <p className="text-zinc-400 mt-1">"List my Drive files" or "Upload this to Drive"</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

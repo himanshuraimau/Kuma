@@ -3,10 +3,12 @@ import { streamAgent, generateAgent, agentConfigs } from '../lib/ai/agents';
 import type { AgentName } from '../lib/ai/agents';
 import { prisma } from '../db/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import { saveChatImage, type ImageAttachment } from '../lib/storage';
 
 /**
  * Send a message to the chat agent (streaming)
  * POST /api/chat/stream
+ * Supports multimodal input: text + images
  */
 export async function streamMessage(req: Request, res: Response) {
     try {
@@ -16,6 +18,7 @@ export async function streamMessage(req: Request, res: Response) {
         }
 
         const { message, chatId, agentType = 'router' } = req.body;
+        const files = req.files as Express.Multer.File[] | undefined;
 
         if (!message || typeof message !== 'string' || !message.trim()) {
             return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
@@ -54,6 +57,15 @@ export async function streamMessage(req: Request, res: Response) {
             });
         }
 
+        // Process image attachments if present
+        let imageAttachments: ImageAttachment[] | undefined;
+        if (files && files.length > 0) {
+            console.log(`📸 Processing ${files.length} image(s) for chat ${chat.id}`);
+            imageAttachments = await Promise.all(
+                files.map(file => saveChatImage(chat.id, file))
+            );
+        }
+
         // Set up SSE headers for streaming
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
@@ -69,6 +81,7 @@ export async function streamMessage(req: Request, res: Response) {
             userId,
             chatId: chat.id,
             message: message.trim(),
+            imageAttachments,
             onChunk: (chunk) => {
                 res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
             },

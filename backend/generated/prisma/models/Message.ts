@@ -46,6 +46,7 @@ export type MessageCountAggregateOutputType = {
   role: number
   content: number
   toolCalls: number
+  imageAttachments: number
   createdAt: number
   _all: number
 }
@@ -73,6 +74,7 @@ export type MessageCountAggregateInputType = {
   role?: true
   content?: true
   toolCalls?: true
+  imageAttachments?: true
   createdAt?: true
   _all?: true
 }
@@ -155,6 +157,7 @@ export type MessageGroupByOutputType = {
   role: string
   content: string
   toolCalls: runtime.JsonValue | null
+  imageAttachments: runtime.JsonValue | null
   createdAt: Date
   _count: MessageCountAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
@@ -185,6 +188,7 @@ export type MessageWhereInput = {
   role?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   toolCalls?: Prisma.JsonNullableFilter<"Message">
+  imageAttachments?: Prisma.JsonNullableFilter<"Message">
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   chat?: Prisma.XOR<Prisma.ChatScalarRelationFilter, Prisma.ChatWhereInput>
 }
@@ -195,6 +199,7 @@ export type MessageOrderByWithRelationInput = {
   role?: Prisma.SortOrder
   content?: Prisma.SortOrder
   toolCalls?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageAttachments?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   chat?: Prisma.ChatOrderByWithRelationInput
 }
@@ -208,6 +213,7 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   toolCalls?: Prisma.JsonNullableFilter<"Message">
+  imageAttachments?: Prisma.JsonNullableFilter<"Message">
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   chat?: Prisma.XOR<Prisma.ChatScalarRelationFilter, Prisma.ChatWhereInput>
 }, "id">
@@ -218,6 +224,7 @@ export type MessageOrderByWithAggregationInput = {
   role?: Prisma.SortOrder
   content?: Prisma.SortOrder
   toolCalls?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageAttachments?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
@@ -233,6 +240,7 @@ export type MessageScalarWhereWithAggregatesInput = {
   role?: Prisma.StringWithAggregatesFilter<"Message"> | string
   content?: Prisma.StringWithAggregatesFilter<"Message"> | string
   toolCalls?: Prisma.JsonNullableWithAggregatesFilter<"Message">
+  imageAttachments?: Prisma.JsonNullableWithAggregatesFilter<"Message">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
 }
 
@@ -241,6 +249,7 @@ export type MessageCreateInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   chat: Prisma.ChatCreateNestedOneWithoutMessagesInput
 }
@@ -251,6 +260,7 @@ export type MessageUncheckedCreateInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -259,6 +269,7 @@ export type MessageUpdateInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chat?: Prisma.ChatUpdateOneRequiredWithoutMessagesNestedInput
 }
@@ -269,6 +280,7 @@ export type MessageUncheckedUpdateInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -278,6 +290,7 @@ export type MessageCreateManyInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -286,6 +299,7 @@ export type MessageUpdateManyMutationInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -295,6 +309,7 @@ export type MessageUncheckedUpdateManyInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -314,6 +329,7 @@ export type MessageCountOrderByAggregateInput = {
   role?: Prisma.SortOrder
   content?: Prisma.SortOrder
   toolCalls?: Prisma.SortOrder
+  imageAttachments?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -380,6 +396,7 @@ export type MessageCreateWithoutChatInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -388,6 +405,7 @@ export type MessageUncheckedCreateWithoutChatInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -426,6 +444,7 @@ export type MessageScalarWhereInput = {
   role?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   toolCalls?: Prisma.JsonNullableFilter<"Message">
+  imageAttachments?: Prisma.JsonNullableFilter<"Message">
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
 }
 
@@ -434,6 +453,7 @@ export type MessageCreateManyChatInput = {
   role: string
   content: string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -442,6 +462,7 @@ export type MessageUpdateWithoutChatInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -450,6 +471,7 @@ export type MessageUncheckedUpdateWithoutChatInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -458,6 +480,7 @@ export type MessageUncheckedUpdateManyWithoutChatInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   toolCalls?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  imageAttachments?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -469,6 +492,7 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   role?: boolean
   content?: boolean
   toolCalls?: boolean
+  imageAttachments?: boolean
   createdAt?: boolean
   chat?: boolean | Prisma.ChatDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -479,6 +503,7 @@ export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   role?: boolean
   content?: boolean
   toolCalls?: boolean
+  imageAttachments?: boolean
   createdAt?: boolean
   chat?: boolean | Prisma.ChatDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -489,6 +514,7 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   role?: boolean
   content?: boolean
   toolCalls?: boolean
+  imageAttachments?: boolean
   createdAt?: boolean
   chat?: boolean | Prisma.ChatDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -499,10 +525,11 @@ export type MessageSelectScalar = {
   role?: boolean
   content?: boolean
   toolCalls?: boolean
+  imageAttachments?: boolean
   createdAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chatId" | "role" | "content" | "toolCalls" | "createdAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chatId" | "role" | "content" | "toolCalls" | "imageAttachments" | "createdAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chat?: boolean | Prisma.ChatDefaultArgs<ExtArgs>
 }
@@ -524,6 +551,7 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     role: string
     content: string
     toolCalls: runtime.JsonValue | null
+    imageAttachments: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["message"]>
   composites: {}
@@ -954,6 +982,7 @@ export interface MessageFieldRefs {
   readonly role: Prisma.FieldRef<"Message", 'String'>
   readonly content: Prisma.FieldRef<"Message", 'String'>
   readonly toolCalls: Prisma.FieldRef<"Message", 'Json'>
+  readonly imageAttachments: Prisma.FieldRef<"Message", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Message", 'DateTime'>
 }
     

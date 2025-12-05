@@ -14,8 +14,8 @@ interface ChatState {
     error: string | null;
 
     // Actions
-    sendMessage: (message: string, agentType?: string) => Promise<void>;
-    sendMessageStreaming: (message: string, agentType?: string) => Promise<void>;
+    sendMessage: (message: string, agentType?: string, images?: File[]) => Promise<void>;
+    sendMessageStreaming: (message: string, agentType?: string, images?: File[]) => Promise<void>;
     loadChats: () => Promise<void>;
     loadChat: (chatId: string) => Promise<void>;
     deleteChat: (chatId: string) => Promise<void>;
@@ -37,7 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     error: null,
 
     // Send a message with streaming
-    sendMessageStreaming: async (message: string, agentType = 'router') => {
+    sendMessageStreaming: async (message: string, agentType = 'router', images?: File[]) => {
         const { currentChatId } = get();
 
         set({ isSending: true, isStreaming: true, streamingContent: '', error: null });
@@ -46,11 +46,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const tempUserMessageId = `temp-user-${Date.now()}`;
         const tempAssistantMessageId = `temp-assistant-${Date.now()}`;
         
+        // Create temporary image attachments for display
+        const tempImageAttachments = images?.map(file => ({
+            filename: file.name,
+            url: URL.createObjectURL(file),
+            mimetype: file.type,
+            size: file.size,
+        }));
+        
         const tempUserMessage: Message = {
             id: tempUserMessageId,
             chatId: currentChatId || 'temp',
             role: 'user',
             content: message,
+            imageAttachments: tempImageAttachments,
             createdAt: new Date().toISOString(),
         };
 
@@ -78,6 +87,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     message,
                     chatId: currentChatId || undefined,
                     agentType,
+                    images,
                 },
                 {
                     onChatId: (chatId) => {
