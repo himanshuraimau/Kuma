@@ -58,6 +58,7 @@ async function getAgentTools(
     // Add user-specific memory tools from Supermemory
     // createMemoryTools returns all memory tools (addMemory, searchMemories, etc.)
     const memoryTools = createMemoryTools(userId);
+    console.log('🧠 Memory tools loaded:', Object.keys(memoryTools));
     Object.assign(tools, memoryTools);
 
     // Load user's connected app tools

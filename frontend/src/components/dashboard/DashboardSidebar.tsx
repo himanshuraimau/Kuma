@@ -41,7 +41,7 @@ export const DashboardSidebar = () => {
     const { state, toggleSidebar } = useSidebar();
     const [searchOpen, setSearchOpen] = useState(false);
 
-    const { chats, currentChatId, loadChats, createNewChat, deleteChat } = useChatStore();
+    const { chats, currentChatId, loadChats, deleteChat } = useChatStore();
 
     useEffect(() => {
         loadChats();
@@ -55,7 +55,8 @@ export const DashboardSidebar = () => {
     ];
 
     const handleNewChat = () => {
-        createNewChat();
+        // Just navigate - the ChatInterface will handle clearing state
+        // when it sees the URL change to /chat (no ID)
         navigate('/chat');
     };
 

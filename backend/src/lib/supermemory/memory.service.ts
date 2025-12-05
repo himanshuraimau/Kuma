@@ -1,6 +1,48 @@
 import { supermemory } from './client';
 
 /**
+ * Normalized memory type for frontend
+ */
+interface NormalizedMemory {
+    id: string;
+    content: string;
+    createdAt?: string;
+    updatedAt?: string;
+    metadata?: Record<string, any>;
+}
+
+/**
+ * Normalize a memory from Supermemory format to our format
+ * Handles both search results and list results which have different structures:
+ * - Search: { documentId, chunks[].content, title, createdAt }
+ * - List: { id, memory, createdAt }
+ */
+function normalizeMemory(mem: any): NormalizedMemory {
+    // Extract content - search results have chunks, list results have memory field
+    let content = '';
+    if (mem.chunks && Array.isArray(mem.chunks) && mem.chunks.length > 0) {
+        // Search result format - content is in chunks
+        content = mem.chunks.map((c: any) => c.content).join('\n');
+    } else {
+        // List/get format - content is in memory field
+        content = mem.memory || mem.content || mem.text || '';
+    }
+
+    // Use title as fallback if content is empty
+    if (!content && mem.title) {
+        content = mem.title;
+    }
+
+    return {
+        id: mem.documentId || mem.id || mem.memoryId || '',
+        content,
+        createdAt: mem.createdAt || mem.created_at || mem.metadata?.createdAt || new Date().toISOString(),
+        updatedAt: mem.updatedAt || mem.updated_at,
+        metadata: mem.metadata,
+    };
+}
+
+/**
  * Memory Service
  * Handles all memory operations with Supermemory
  * Each user has their own container for isolated memories
@@ -23,7 +65,7 @@ export class MemoryService {
         userId: string,
         content: string,
         metadata?: Record<string, any>
-    ): Promise<{ id: string; status: string }> {
+    ): Promise<NormalizedMemory> {
         try {
             const result = await supermemory.memories.add({
                 content,
@@ -36,7 +78,12 @@ export class MemoryService {
             });
 
             console.log(`📝 Memory added for user ${userId}:`, result.id);
-            return { id: result.id || '', status: 'success' };
+            return {
+                id: result.id || '',
+                content,
+                createdAt: new Date().toISOString(),
+                metadata,
+            };
         } catch (error: any) {
             console.error('Failed to add memory:', error);
             throw new Error(`Failed to add memory: ${error.message}`);
@@ -53,7 +100,7 @@ export class MemoryService {
         userId: string,
         query: string,
         limit: number = 10
-    ): Promise<any[]> {
+    ): Promise<NormalizedMemory[]> {
         try {
             const result = await supermemory.search.memories({
                 q: query,
@@ -61,7 +108,7 @@ export class MemoryService {
                 limit,
             });
 
-            const memories = result.results || [];
+            const memories = (result.results || []).map(normalizeMemory);
             console.log(`🔍 Found ${memories.length} memories for query: "${query}"`);
             return memories;
         } catch (error: any) {
@@ -80,7 +127,7 @@ export class MemoryService {
         userId: string,
         page: number = 1,
         limit: number = 20
-    ): Promise<{ memories: any[]; total: number }> {
+    ): Promise<{ memories: NormalizedMemory[]; total: number }> {
         try {
             const result = await supermemory.memories.list({
                 containerTags: [this.getContainerTag(userId)],
@@ -88,8 +135,11 @@ export class MemoryService {
                 page,
             });
 
+            const memories = (result.memories || []).map(normalizeMemory);
+            console.log(`📋 Listed ${memories.length} memories for user ${userId}`);
+            
             return {
-                memories: result.memories || [],
+                memories,
                 total: result.memories?.length || 0,
             };
         } catch (error: any) {
@@ -102,10 +152,10 @@ export class MemoryService {
      * Get a specific memory by ID
      * @param memoryId - The memory ID
      */
-    async getMemory(memoryId: string): Promise<any> {
+    async getMemory(memoryId: string): Promise<NormalizedMemory> {
         try {
             const result = await supermemory.memories.get(memoryId);
-            return result;
+            return normalizeMemory(result);
         } catch (error: any) {
             console.error('Failed to get memory:', error);
             throw new Error(`Failed to get memory: ${error.message}`);
@@ -131,13 +181,13 @@ export class MemoryService {
      * @param memoryId - The memory ID
      * @param content - New content
      */
-    async updateMemory(memoryId: string, content: string): Promise<any> {
+    async updateMemory(memoryId: string, content: string): Promise<NormalizedMemory> {
         try {
             const result = await supermemory.memories.update(memoryId, {
                 content,
             });
             console.log(`📝 Memory updated: ${memoryId}`);
-            return result;
+            return normalizeMemory(result);
         } catch (error: any) {
             console.error('Failed to update memory:', error);
             throw new Error(`Failed to update memory: ${error.message}`);
@@ -163,9 +213,9 @@ export class MemoryService {
                 return '';
             }
 
-            // The search.memories response has 'memory' field, not 'content'
+            // Normalized memories have 'content' field
             const contextParts = memories.map((memory, index) => {
-                return `[Memory ${index + 1}]: ${memory.memory}`;
+                return `[Memory ${index + 1}]: ${memory.content}`;
             });
 
             return `\n--- Relevant memories from past conversations ---\n${contextParts.join('\n')}\n--- End of memories ---\n`;
