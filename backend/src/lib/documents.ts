@@ -25,6 +25,18 @@ export interface DocumentQueryResult {
 }
 
 /**
+ * Document attachment interface for chat messages
+ * Lighter weight than full Document model
+ */
+export interface DocumentAttachment {
+  id: string;
+  displayName: string;
+  geminiFileUri: string;
+  pageCount: number | null;
+  fileSize: number;
+}
+
+/**
  * Upload a PDF document to Gemini File API and save metadata to database
  */
 export async function uploadDocument(
@@ -336,4 +348,63 @@ export async function cleanupExpiredDocuments(): Promise<number> {
   });
 
   return result.count;
+}
+
+/**
+ * Convert Document to DocumentAttachment for chat messages
+ */
+export function toDocumentAttachment(document: any): DocumentAttachment {
+  return {
+    id: document.id,
+    displayName: document.displayName,
+    geminiFileUri: document.geminiFileUri,
+    pageCount: document.pageCount,
+    fileSize: document.fileSize,
+  };
+}
+
+/**
+ * Get documents by IDs and convert to attachments
+ */
+export async function getDocumentAttachments(
+  documentIds: string[],
+  userId: string
+): Promise<DocumentAttachment[]> {
+  const documents = await prisma.document.findMany({
+    where: {
+      id: { in: documentIds },
+      userId,
+      status: 'ready', // Only ready documents
+    },
+  });
+
+  return documents.map(toDocumentAttachment);
+}
+
+/**
+ * Build multimodal parts for Gemini API with documents
+ * Combines text and document file references
+ */
+export function buildDocumentParts(
+  text: string,
+  documentAttachments: DocumentAttachment[]
+): any[] {
+  const parts: any[] = [];
+  
+  // Add document parts first (as file URIs)
+  for (const doc of documentAttachments) {
+    parts.push({
+      fileData: {
+        mimeType: 'application/pdf',
+        fileUri: doc.geminiFileUri,
+      },
+    });
+  }
+  
+  // Add text part last
+  if (text && text.trim()) {
+    parts.push({ text: text.trim() });
+  }
+  
+  return parts;
 }

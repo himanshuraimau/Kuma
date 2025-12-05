@@ -3,6 +3,8 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import type { ImageAttachment } from './storage';
 import { getChatImageBase64 } from './storage';
+import type { DocumentAttachment } from './documents';
+import { buildDocumentParts } from './documents';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
@@ -163,21 +165,35 @@ export async function generateMultimodalContent(options: {
 }
 
 /**
- * Stream multimodal content (text + images)
+ * Stream multimodal content (text + images + documents)
  * Uses Gemini API streaming for real-time responses
  */
 export async function streamMultimodalContent(options: {
     prompt: string;
     chatId: string;
-    imageAttachments: ImageAttachment[];
+    imageAttachments?: ImageAttachment[];
+    documentAttachments?: DocumentAttachment[];
     model?: string;
     onChunk: (chunk: string) => void;
 }): Promise<string> {
-    const { prompt, chatId, imageAttachments, model = 'gemini-2.5-pro', onChunk } = options;
+    const { prompt, chatId, imageAttachments, documentAttachments, model = 'gemini-2.5-pro', onChunk } = options;
     
     try {
         const genModel = genAI.getGenerativeModel({ model });
-        const parts = await buildMultimodalParts(prompt, chatId, imageAttachments);
+        let parts: any[];
+        
+        // Handle documents (use file URIs)
+        if (documentAttachments && documentAttachments.length > 0) {
+            parts = buildDocumentParts(prompt, documentAttachments);
+        }
+        // Handle images (use base64)
+        else if (imageAttachments && imageAttachments.length > 0) {
+            parts = await buildMultimodalParts(prompt, chatId, imageAttachments);
+        }
+        // Text only (shouldn't happen but handle gracefully)
+        else {
+            parts = [{ text: prompt }];
+        }
         
         const result = await genModel.generateContentStream(parts);
         let fullText = '';

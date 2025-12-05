@@ -23,32 +23,40 @@ export interface StreamCallbacks {
 }
 
 /**
- * Send a message with streaming response (SSE) - supports multimodal
+ * Send a message with streaming response (SSE) - supports multimodal (images + documents)
  * POST /api/chat/stream
  */
 export const streamMessage = async (
-    data: SendMessageRequest & { images?: File[] },
+    data: SendMessageRequest & { images?: File[]; documentIds?: string[] },
     callbacks: StreamCallbacks
 ): Promise<void> => {
     const token = localStorage.getItem('auth_token');
     
     // Use FormData if images are present, otherwise JSON
     const hasImages = data.images && data.images.length > 0;
+    const hasDocuments = data.documentIds && data.documentIds.length > 0;
     let body: FormData | string;
     const headers: Record<string, string> = {
         ...(token && { Authorization: `Bearer ${token}` }),
     };
 
-    if (hasImages) {
+    if (hasImages || hasDocuments) {
         const formData = new FormData();
         formData.append('message', data.message);
         if (data.chatId) formData.append('chatId', data.chatId);
         if (data.agentType) formData.append('agentType', data.agentType);
         
         // Append all images
-        data.images!.forEach((image) => {
-            formData.append('images', image);
-        });
+        if (hasImages) {
+            data.images!.forEach((image) => {
+                formData.append('images', image);
+            });
+        }
+        
+        // Append document IDs as JSON array
+        if (hasDocuments) {
+            formData.append('documentIds', JSON.stringify(data.documentIds));
+        }
         
         body = formData;
         // Don't set Content-Type for FormData - browser will set it with boundary

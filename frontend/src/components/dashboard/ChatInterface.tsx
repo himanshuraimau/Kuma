@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon, X } from 'lucide-react';
+import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon, X, FileText } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { useAppsStore } from '@/stores/apps.store';
+import { useDocumentsStore } from '@/stores/documents.store';
 import { MessageList } from '@/components/chat/MessageList';
 
 export const ChatInterface = () => {
@@ -13,6 +14,8 @@ export const ChatInterface = () => {
     const [inputValue, setInputValue] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [selectedDocuments, setSelectedDocuments] = useState<Array<{ id: string; displayName: string }>>([]);
+    const [showDocumentPicker, setShowDocumentPicker] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,13 +32,15 @@ export const ChatInterface = () => {
     } = useChatStore();
 
     const { connectedApps, loadConnectedApps } = useAppsStore();
+    const { documents, fetchDocuments } = useDocumentsStore();
 
     const hasMessages = currentMessages.length > 0;
 
-    // Load connected apps on mount
+    // Load connected apps and documents on mount
     useEffect(() => {
         loadConnectedApps();
-    }, [loadConnectedApps]);
+        fetchDocuments();
+    }, [loadConnectedApps, fetchDocuments]);
 
     // Handle URL changes - sync chat state with URL
     useEffect(() => {
@@ -89,19 +94,21 @@ export const ChatInterface = () => {
     }, [inputValue]);
 
     const handleSend = async () => {
-        if ((inputValue.trim() || selectedImages.length > 0) && !isSending) {
+        if ((inputValue.trim() || selectedImages.length > 0 || selectedDocuments.length > 0) && !isSending) {
             const message = inputValue.trim();
             const imagesToSend = [...selectedImages];
+            const documentIdsToSend = selectedDocuments.map(d => d.id);
             
             setInputValue('');
             setSelectedImages([]);
+            setSelectedDocuments([]);
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
                 textareaRef.current.focus();
             }
 
             try {
-                await sendMessageStreaming(message, undefined, imagesToSend);
+                await sendMessageStreaming(message, undefined, imagesToSend, documentIdsToSend);
             } catch (err) {
                 console.error('Failed to send message:', err);
                 // In case of an error, it's good practice to re-focus the input
@@ -213,12 +220,13 @@ export const ChatInterface = () => {
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-transparent opacity-50" />
 
                         <div className="p-4">
-                            {/* Inline Image Previews */}
-                            {selectedImages.length > 0 && (
+                            {/* Inline Image and Document Previews */}
+                            {(selectedImages.length > 0 || selectedDocuments.length > 0) && (
                                 <div className="mb-3 flex flex-wrap gap-2">
+                                    {/* Image Previews */}
                                     {selectedImages.map((image, index) => (
                                         <div
-                                            key={index}
+                                            key={`img-${index}`}
                                             className="relative group w-20 h-20 rounded-lg overflow-hidden border border-zinc-700 bg-zinc-800"
                                         >
                                             <img
@@ -234,6 +242,25 @@ export const ChatInterface = () => {
                                             </button>
                                         </div>
                                     ))}
+                                    
+                                    {/* Document Attachments */}
+                                    {selectedDocuments.map((doc, index) => (
+                                        <div
+                                            key={`doc-${doc.id}`}
+                                            className="relative group w-32 h-20 rounded-lg border border-zinc-700 bg-zinc-800/50 p-2 flex flex-col justify-center"
+                                        >
+                                            <FileText className="w-4 h-4 text-orange-500 mb-1" />
+                                            <span className="text-xs text-zinc-300 truncate">{doc.displayName}</span>
+                                            <button
+                                                onClick={() => setSelectedDocuments(docs => docs.filter((_, i) => i !== index))}
+                                                className="absolute top-1 right-1 p-1 bg-zinc-900/80 hover:bg-red-500 rounded-full text-zinc-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Add buttons */}
                                     {selectedImages.length < 5 && (
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
@@ -242,6 +269,52 @@ export const ChatInterface = () => {
                                             <ImageIcon className="w-5 h-5" />
                                         </button>
                                     )}
+                                    {documents.length > 0 && (
+                                        <button
+                                            onClick={() => setShowDocumentPicker(!showDocumentPicker)}
+                                            className="w-20 h-20 rounded-lg border-2 border-dashed border-zinc-700 hover:border-blue-500 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors"
+                                        >
+                                            <FileText className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {/* Document Picker Dropdown */}
+                            {showDocumentPicker && documents.length > 0 && (
+                                <div className="mb-3 p-3 bg-zinc-800 rounded-lg border border-zinc-700 max-h-48 overflow-y-auto">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-zinc-400">Select documents to attach</span>
+                                        <button onClick={() => setShowDocumentPicker(false)} className="text-zinc-500 hover:text-white">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {documents.filter(d => d.status === 'ready').map((doc) => {
+                                            const isSelected = selectedDocuments.some(sd => sd.id === doc.id);
+                                            return (
+                                                <button
+                                                    key={doc.id}
+                                                    onClick={() => {
+                                                        if (isSelected) {
+                                                            setSelectedDocuments(docs => docs.filter(d => d.id !== doc.id));
+                                                        } else {
+                                                            setSelectedDocuments(docs => [...docs, { id: doc.id, displayName: doc.displayName }]);
+                                                        }
+                                                    }}
+                                                    className={`w-full p-2 rounded flex items-center gap-2 transition-colors ${
+                                                        isSelected 
+                                                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500' 
+                                                            : 'bg-zinc-900 hover:bg-zinc-700 text-zinc-300'
+                                                    }`}
+                                                >
+                                                    <FileText className="w-4 h-4" />
+                                                    <span className="text-sm truncate flex-1 text-left">{doc.displayName}</span>
+                                                    {isSelected && <span className="text-xs">✓</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
 
@@ -306,9 +379,9 @@ export const ChatInterface = () => {
 
                                     <Button
                                         onClick={handleSend}
-                                        disabled={(!inputValue.trim() && selectedImages.length === 0) || isSending}
+                                        disabled={(!inputValue.trim() && selectedImages.length === 0 && selectedDocuments.length === 0) || isSending}
                                         size="icon"
-                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${(inputValue.trim() || selectedImages.length > 0)
+                                        className={`h-9 w-9 rounded-full transition-all duration-300 shadow-lg ${(inputValue.trim() || selectedImages.length > 0 || selectedDocuments.length > 0)
                                             ? 'bg-orange-500 hover:bg-orange-600 text-white translate-x-0 opacity-100'
                                             : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
                                             }`}

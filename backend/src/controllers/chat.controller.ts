@@ -4,11 +4,12 @@ import type { AgentName } from '../lib/ai/agents';
 import { prisma } from '../db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { saveChatImage, type ImageAttachment } from '../lib/storage';
+import { getDocumentAttachments, type DocumentAttachment } from '../lib/documents';
 
 /**
  * Send a message to the chat agent (streaming)
  * POST /api/chat/stream
- * Supports multimodal input: text + images
+ * Supports multimodal input: text + images + documents
  */
 export async function streamMessage(req: Request, res: Response) {
     try {
@@ -19,6 +20,18 @@ export async function streamMessage(req: Request, res: Response) {
 
         const { message, chatId, agentType = 'router' } = req.body;
         const files = req.files as Express.Multer.File[] | undefined;
+        
+        // Parse documentIds from req.body (could be JSON string from FormData)
+        let documentIds: string[] | undefined;
+        if (req.body.documentIds) {
+            try {
+                documentIds = typeof req.body.documentIds === 'string' 
+                    ? JSON.parse(req.body.documentIds) 
+                    : req.body.documentIds;
+            } catch (error) {
+                return res.status(400).json({ error: 'Invalid documentIds format' });
+            }
+        }
 
         if (!message || typeof message !== 'string' || !message.trim()) {
             return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
@@ -66,6 +79,22 @@ export async function streamMessage(req: Request, res: Response) {
             );
         }
 
+        // Process document attachments if present
+        let documentAttachments: DocumentAttachment[] | undefined;
+        if (documentIds && Array.isArray(documentIds) && documentIds.length > 0) {
+            console.log(`📄 Attaching ${documentIds.length} document(s) to chat ${chat.id}`);
+            documentAttachments = await getDocumentAttachments(documentIds, userId);
+            
+            // Verify all requested documents were found
+            if (documentAttachments.length !== documentIds.length) {
+                return res.status(404).json({ 
+                    error: 'Some documents not found or not ready',
+                    found: documentAttachments.length,
+                    requested: documentIds.length
+                });
+            }
+        }
+
         // Set up SSE headers for streaming
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
@@ -82,6 +111,7 @@ export async function streamMessage(req: Request, res: Response) {
             chatId: chat.id,
             message: message.trim(),
             imageAttachments,
+            documentAttachments,
             onChunk: (chunk) => {
                 res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
             },

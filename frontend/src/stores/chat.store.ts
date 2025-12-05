@@ -14,8 +14,8 @@ interface ChatState {
     error: string | null;
 
     // Actions
-    sendMessage: (message: string, agentType?: string, images?: File[]) => Promise<void>;
-    sendMessageStreaming: (message: string, agentType?: string, images?: File[]) => Promise<void>;
+    sendMessage: (message: string, agentType?: string, images?: File[], documentIds?: string[]) => Promise<void>;
+    sendMessageStreaming: (message: string, agentType?: string, images?: File[], documentIds?: string[]) => Promise<void>;
     loadChats: () => Promise<void>;
     loadChat: (chatId: string) => Promise<void>;
     deleteChat: (chatId: string) => Promise<void>;
@@ -37,7 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     error: null,
 
     // Send a message with streaming
-    sendMessageStreaming: async (message: string, agentType = 'router', images?: File[]) => {
+    sendMessageStreaming: async (message: string, agentType = 'router', images?: File[], documentIds?: string[]) => {
         const { currentChatId } = get();
 
         set({ isSending: true, isStreaming: true, streamingContent: '', error: null });
@@ -88,6 +88,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     chatId: currentChatId || undefined,
                     agentType,
                     images,
+                    documentIds,
                 },
                 {
                     onChatId: (chatId) => {

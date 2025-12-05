@@ -4,6 +4,7 @@ import { agentConfigs, type AgentName } from './configs';
 import type { AgentConfig } from './types';
 import { prisma } from '../../../db/prisma';
 import type { ImageAttachment } from '../../storage';
+import type { DocumentAttachment } from '../../documents';
 import { streamMultimodalContent } from '../../vision';
 
 // Import all tools
@@ -219,7 +220,8 @@ async function saveMessage(
     role: 'user' | 'assistant',
     content: string,
     toolCalls?: unknown[],
-    imageAttachments?: ImageAttachment[]
+    imageAttachments?: ImageAttachment[],
+    documentAttachments?: DocumentAttachment[]
 ): Promise<void> {
     await prisma.message.create({
         data: {
@@ -228,6 +230,7 @@ async function saveMessage(
             content,
             toolCalls: toolCalls ? JSON.parse(JSON.stringify(toolCalls)) : undefined,
             imageAttachments: imageAttachments ? JSON.parse(JSON.stringify(imageAttachments)) : undefined,
+            documentAttachments: documentAttachments ? JSON.parse(JSON.stringify(documentAttachments)) : undefined,
         },
     });
 }
@@ -238,6 +241,7 @@ export interface StreamAgentOptions {
     chatId: string;
     message: string;
     imageAttachments?: ImageAttachment[];
+    documentAttachments?: DocumentAttachment[];
     onChunk?: (chunk: string) => void;
     onToolCall?: (toolName: string, args: Record<string, unknown>) => void;
     onToolResult?: (toolName: string, result: unknown) => void;
@@ -254,6 +258,7 @@ export async function streamAgent(options: StreamAgentOptions) {
         chatId,
         message,
         imageAttachments,
+        documentAttachments,
         onChunk,
         onToolCall,
         onToolResult,
@@ -266,14 +271,21 @@ export async function streamAgent(options: StreamAgentOptions) {
         throw new Error(`Agent "${agentName}" not found`);
     }
 
-    // Check if this is a multimodal message (has images)
-    const isMultimodal = imageAttachments && imageAttachments.length > 0;
+    // Check if this is a multimodal message (has images or documents)
+    const hasImages = imageAttachments && imageAttachments.length > 0;
+    const hasDocuments = documentAttachments && documentAttachments.length > 0;
+    const isMultimodal = hasImages || hasDocuments;
 
     if (isMultimodal) {
-        console.log(`🖼️  Multimodal message with ${imageAttachments.length} image(s)`);
+        if (hasImages) {
+            console.log(`🖼️  Multimodal message with ${imageAttachments.length} image(s)`);
+        }
+        if (hasDocuments) {
+            console.log(`📄 Multimodal message with ${documentAttachments.length} document(s)`);
+        }
         
-        // Save user message with images
-        await saveMessage(chatId, 'user', message, undefined, imageAttachments);
+        // Save user message with attachments
+        await saveMessage(chatId, 'user', message, undefined, imageAttachments, documentAttachments);
 
         // Use Gemini API directly for multimodal streaming
         let fullResponse = '';
@@ -283,6 +295,7 @@ export async function streamAgent(options: StreamAgentOptions) {
                 prompt: message,
                 chatId,
                 imageAttachments,
+                documentAttachments,
                 model: config.modelType === 'pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash',
                 onChunk: (chunk) => {
                     onChunk?.(chunk);
