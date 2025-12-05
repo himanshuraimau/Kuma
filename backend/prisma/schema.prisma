@@ -21,6 +21,7 @@ model User {
   chats     Chat[]
   userTools UserTool[]
   userApps  UserApp[]
+  documents Document[]
 
   @@map("users")
 }
@@ -38,6 +39,7 @@ model Chat {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages Message[]
+  documents Document[]
 
   @@index([userId])
   @@index([threadId])
@@ -138,4 +140,31 @@ model UserApp {
   @@index([userId])
   @@index([appId])
   @@map("user_apps")
+}
+
+model Document {
+  id              String    @id @default(uuid())
+  userId          String
+  chatId          String?   // Optional: link to specific chat
+  filename        String
+  displayName     String
+  mimeType        String    @default("application/pdf")
+  fileSize        Int       // Size in bytes
+  pageCount       Int?      // Number of pages
+  geminiFileUri   String    @unique // Gemini File API URI
+  geminiFileName  String    // Gemini File API name (for getting/deleting)
+  status          String    @default("processing") // processing, ready, failed
+  summary         String?   @db.Text // Auto-generated summary
+  metadata        Json?     // Additional metadata
+  expiresAt       DateTime? // Gemini files expire after 48 hours
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat? @relation(fields: [chatId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([chatId])
+  @@index([status])
+  @@map("documents")
 }

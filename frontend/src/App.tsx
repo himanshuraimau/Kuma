@@ -14,6 +14,7 @@ import { ChatInterface } from '@/components/dashboard/ChatInterface';
 import { PlaceholderSection } from '@/components/dashboard/PlaceholderSection';
 import { AppsPage } from '@/components/apps/AppsPage';
 import { MemoriesPage } from '@/components/memories/MemoriesPage';
+import DocumentsPage from '@/components/documents/DocumentsPage';
 import { ListChecks, FolderOpen } from 'lucide-react';
 import { Toaster } from 'sonner';
 
@@ -48,6 +49,7 @@ const App = () => {
           <Route path="/chat" element={<ChatInterface />} />
           <Route path="/chat/:id" element={<ChatInterface />} />
           <Route path="/apps" element={<AppsPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/prompts" element={<PlaceholderSection icon={ListChecks} title="Prompts" description="Browse and manage your prompt library." />} />
           <Route path="/drive" element={<PlaceholderSection icon={FolderOpen} title="Drive" description="Access your files and documents." />} />
           <Route path="/memories" element={<MemoriesPage />} />

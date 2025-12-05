@@ -1,6 +1,8 @@
 # Kuma — Complete Tech Stack & Features
 
-**🎨 Latest Updates**: 
+**🎨 Latest Updates**:
+
+- RAG & Document Processing - PDF upload, query, summarize, compare with Gemini!
 - Multimodal Chat with Vision - ChatGPT/Claude-style image integration!
 - Google Sheets & Slides Integration - Full spreadsheet and presentation management
 - GitHub Integration - Repository, issue, and PR management
@@ -66,6 +68,8 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 #### APIs & Integrations
 - **googleapis** (`^166.0.0`) — Google APIs (Gmail, Calendar, Drive, Docs, Sheets, Slides)
+- **@google/generative-ai** (`^0.24.1`) — Gemini content generation
+- **@google/genai** (`^1.31.0`) — Gemini File API for PDF processing and document RAG
 - **exa-js** (`^2.0.11`) — Web search API
 - **yahoo-finance2** (`^3.10.2`) — Stock market data
 - **@supermemory/tools** (`^1.3.11`) — Memory and context management
@@ -279,7 +283,37 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
   - 10MB per image limit
   - Automatic image cleanup for temp files
 
-### 5. **Memory & Context**
+### 5. **RAG & Document Processing**
+
+- **PDF Document Management**
+  - Upload PDF documents (up to 50MB)
+  - Gemini File API integration for processing
+  - Document status tracking (processing/ready/failed)
+  - 48-hour document retention (Gemini File API limit)
+  - Automatic document cleanup on expiry
+
+- **Document Analysis** (powered by Gemini 2.0 Flash)
+  - **Query Documents** - Ask specific questions about PDF content
+  - **Summarize Documents** - Generate comprehensive summaries
+  - **Extract Text** - Extract full text with formatting preservation
+  - **Compare Documents** - Analyze differences between multiple PDFs
+  - Multi-document context understanding
+
+- **Document Storage & Organization**
+  - Per-user document library
+  - Optional chat-specific document linking
+  - Document metadata tracking (filename, size, page count)
+  - Auto-generated summaries saved to database
+  - Status monitoring (processing/ready/failed)
+
+- **RAG Features**
+  - Native PDF understanding (not just text extraction)
+  - Visual element processing (charts, tables, diagrams)
+  - Long document support (up to 1000 pages)
+  - Multi-turn document conversations
+  - Context preservation across queries
+
+### 6. **Memory & Context**
 
 - Conversation memory across sessions
 - Thread-based context management
@@ -287,7 +321,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - Semantic search in chat history
 - Long-term memory with Supermemory
 
-### 6. **Responsive UI**
+### 7. **Responsive UI**
 
 - Mobile-friendly design
 - Dark/light mode support (likely via Tailwind)
@@ -492,7 +526,37 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - Project status monitoring
 - Code search and reference
 
-### 8. **Web Search (Exa)**
+### 8. **Document Processing Tools (RAG)**
+
+**Tools Available**:
+- `queryDocument` — Ask questions about uploaded PDFs
+- `listDocuments` — View all uploaded documents
+- `summarizeDocument` — Generate comprehensive summaries
+- `compareDocuments` — Compare multiple PDFs for similarities/differences
+- `extractDocumentText` — Extract full text with formatting
+
+**Features**:
+- Native PDF understanding (visual elements + text)
+- Multi-document comparison
+- Up to 50MB per PDF
+- Support for documents up to 1000 pages
+- Automatic text extraction with formatting preservation
+- Chart, table, and diagram understanding
+- 48-hour file retention (Gemini File API)
+
+**Provider**: Google Gemini File API + Gemini 2.0 Flash
+
+**Use Cases**:
+- Research paper analysis
+- Document comparison and review
+- Contract analysis
+- Report summarization
+- Technical documentation queries
+- Multi-document research synthesis
+
+**No OAuth Required** — Available to all authenticated users
+
+### 9. **Web Search (Exa)**
 
 **Tools Available**:
 - `search_web` — Semantic web search

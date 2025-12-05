@@ -58,7 +58,8 @@ export const ModelName = {
   Tool: 'Tool',
   UserTool: 'UserTool',
   App: 'App',
-  UserApp: 'UserApp'
+  UserApp: 'UserApp',
+  Document: 'Document'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -189,6 +190,28 @@ export const UserAppScalarFieldEnum = {
 } as const
 
 export type UserAppScalarFieldEnum = (typeof UserAppScalarFieldEnum)[keyof typeof UserAppScalarFieldEnum]
+
+
+export const DocumentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  chatId: 'chatId',
+  filename: 'filename',
+  displayName: 'displayName',
+  mimeType: 'mimeType',
+  fileSize: 'fileSize',
+  pageCount: 'pageCount',
+  geminiFileUri: 'geminiFileUri',
+  geminiFileName: 'geminiFileName',
+  status: 'status',
+  summary: 'summary',
+  metadata: 'metadata',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
 
 
 export const SortOrder = {

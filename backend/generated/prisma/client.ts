@@ -79,3 +79,8 @@ export type App = Prisma.AppModel
  * 
  */
 export type UserApp = Prisma.UserAppModel
+/**
+ * Model Document
+ * 
+ */
+export type Document = Prisma.DocumentModel

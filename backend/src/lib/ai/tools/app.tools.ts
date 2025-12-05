@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { google } from 'googleapis';
 import { prisma } from '../../../db/prisma';
 import { decryptCredentials } from '../../encryption';
+import { createDocumentTools } from './document.tools';
 
 /**
  * Create Gmail tools for a specific user
@@ -1683,6 +1684,10 @@ export async function loadUserAppTools(userId: string) {
         const githubTools = createGitHubTools(userId);
         Object.assign(tools, githubTools);
     }
+
+    // Add Document tools (always available, no app connection needed)
+    const documentTools = createDocumentTools(userId);
+    Object.assign(tools, documentTools);
 
     return tools;
 }

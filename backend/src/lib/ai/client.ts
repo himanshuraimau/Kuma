@@ -13,7 +13,7 @@ export const google = createGoogleGenerativeAI({
  * - pro: For deep tasks, research, complex reasoning
  */
 export const models = {
-    fast: google('gemini-2.0-flash'),
+    fast: google('gemini-2.5-flash'),
     pro: google('gemini-2.5-pro'),
 };
 
