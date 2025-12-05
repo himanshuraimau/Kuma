@@ -157,6 +157,18 @@ export const AppsPage = () => {
                                 <span className="text-orange-400 font-medium">💾 Drive:</span>
                                 <p className="text-zinc-400 mt-1">"List my Drive files" or "Upload this to Drive"</p>
                             </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-green-400 font-medium">📊 Sheets:</span>
+                                <p className="text-zinc-400 mt-1">"Create a spreadsheet" or "Read data from sheet"</p>
+                            </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-pink-400 font-medium">📽️ Slides:</span>
+                                <p className="text-zinc-400 mt-1">"Create a presentation about AI"</p>
+                            </div>
+                            <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700/50">
+                                <span className="text-cyan-400 font-medium">🐙 GitHub:</span>
+                                <p className="text-zinc-400 mt-1">"List my repositories" or "Create an issue"</p>
+                            </div>
                         </div>
                     </div>
                 </div>

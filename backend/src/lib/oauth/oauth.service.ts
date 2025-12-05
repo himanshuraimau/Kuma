@@ -3,6 +3,7 @@ import { prisma } from '../../db/prisma';
 import { encryptCredentials } from '../encryption';
 import { appRegistry } from '../../apps/base.app';
 import { GoogleOAuthProvider } from './providers/google';
+import { GitHubOAuthProvider } from './providers/github';
 import type { OAuthUserInfo } from '../../types/apps.types';
 
 /**
@@ -55,6 +56,11 @@ class OAuthService {
             return provider.getAuthorizationUrl(state);
         }
 
+        if (config.provider === 'github') {
+            const provider = new GitHubOAuthProvider(config);
+            return provider.getAuthorizationUrl(state);
+        }
+
         throw new Error(`Unsupported OAuth provider: ${config.provider}`);
     }
 
@@ -89,53 +95,60 @@ class OAuthService {
         const config = app.getAuthConfig();
 
         // Exchange code for tokens
+        let tokens: any;
+        let userInfo: OAuthUserInfo;
+
         if (config.provider === 'google') {
             const provider = new GoogleOAuthProvider(config);
-            const tokens = await provider.exchangeCodeForTokens(code);
-            const userInfo = await provider.getUserInfo(tokens);
-
-            // Encrypt and store credentials
-            const encryptedCredentials = encryptCredentials(tokens);
-
-            // Get app from database
-            const appRecord = await prisma.app.findUnique({
-                where: { name: appName },
-            });
-
-            if (!appRecord) {
-                throw new Error(`App "${appName}" not found in database`);
-            }
-
-            // Save to database
-            await prisma.userApp.upsert({
-                where: {
-                    userId_appId: {
-                        userId: stateData.userId,
-                        appId: appRecord.id,
-                    },
-                },
-                create: {
-                    userId: stateData.userId,
-                    appId: appRecord.id,
-                    credentials: encryptedCredentials,
-                    metadata: userInfo,
-                    isConnected: true,
-                },
-                update: {
-                    credentials: encryptedCredentials,
-                    metadata: userInfo,
-                    isConnected: true,
-                    updatedAt: new Date(),
-                },
-            });
-
-            return {
-                userId: stateData.userId,
-                userInfo,
-            };
+            tokens = await provider.exchangeCodeForTokens(code);
+            userInfo = await provider.getUserInfo(tokens);
+        } else if (config.provider === 'github') {
+            const provider = new GitHubOAuthProvider(config);
+            tokens = await provider.exchangeCodeForTokens(code);
+            userInfo = await provider.getUserInfo(tokens);
+        } else {
+            throw new Error(`Unsupported OAuth provider: ${config.provider}`);
         }
 
-        throw new Error(`Unsupported OAuth provider: ${config.provider}`);
+        // Encrypt and store credentials
+        const encryptedCredentials = encryptCredentials(tokens);
+
+        // Get app from database
+        const appRecord = await prisma.app.findUnique({
+            where: { name: appName },
+        });
+
+        if (!appRecord) {
+            throw new Error(`App "${appName}" not found in database`);
+        }
+
+        // Save to database
+        await prisma.userApp.upsert({
+            where: {
+                userId_appId: {
+                    userId: stateData.userId,
+                    appId: appRecord.id,
+                },
+            },
+            create: {
+                userId: stateData.userId,
+                appId: appRecord.id,
+                credentials: encryptedCredentials,
+                metadata: userInfo,
+                isConnected: true,
+            },
+            update: {
+                credentials: encryptedCredentials,
+                metadata: userInfo,
+                isConnected: true,
+                updatedAt: new Date(),
+            },
+        });
+
+        return {
+            userId: stateData.userId,
+            userInfo,
+        };
     }
 
     /**

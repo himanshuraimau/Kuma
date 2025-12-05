@@ -815,6 +815,820 @@ export function createDriveTools(userId: string) {
 }
 
 /**
+ * Create Google Sheets tools for a specific user
+ */
+export function createSheetsTools(userId: string) {
+    const getSheetsClient = async () => {
+        const userApp = await prisma.userApp.findFirst({
+            where: {
+                userId,
+                app: { name: 'sheets' },
+                isConnected: true,
+            },
+        });
+
+        if (!userApp) {
+            return null;
+        }
+
+        const credentials = decryptCredentials(userApp.credentials as string);
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(credentials);
+
+        return {
+            sheets: google.sheets({ version: 'v4', auth: oauth2Client }),
+            drive: google.drive({ version: 'v3', auth: oauth2Client }),
+        };
+    };
+
+    return {
+        createSpreadsheet: tool({
+            description: 'Create a new Google Sheets spreadsheet. Use this when user wants to create a spreadsheet, track data, or organize information in a table format.',
+            inputSchema: z.object({
+                title: z.string().describe('Spreadsheet title'),
+                sheetNames: z.array(z.string()).optional().describe('Names of sheets (tabs) to create (default: ["Sheet1"])'),
+            }),
+            execute: async ({ title, sheetNames }: { title: string; sheetNames?: string[] }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    const sheets = sheetNames || ['Sheet1'];
+                    const response = await client.sheets.spreadsheets.create({
+                        requestBody: {
+                            properties: { title },
+                            sheets: sheets.map(name => ({
+                                properties: { title: name },
+                            })),
+                        },
+                    });
+
+                    return `✅ Spreadsheet "${title}" created successfully!\nSpreadsheet ID: ${response.data.spreadsheetId}\nURL: ${response.data.spreadsheetUrl}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to create spreadsheet: ${error.message}`);
+                }
+            },
+        }),
+
+        readSpreadsheet: tool({
+            description: 'Read data from a Google Sheets spreadsheet. Use to retrieve data, check values, or analyze spreadsheet content.',
+            inputSchema: z.object({
+                spreadsheetId: z.string().describe('Spreadsheet ID (from URL: docs.google.com/spreadsheets/d/{spreadsheetId})'),
+                range: z.string().describe('Range to read in A1 notation (e.g., "Sheet1!A1:D10", "Data!A:C")'),
+            }),
+            execute: async ({ spreadsheetId, range }: { spreadsheetId: string; range: string }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    const response = await client.sheets.spreadsheets.values.get({
+                        spreadsheetId,
+                        range,
+                    });
+
+                    const values = response.data.values || [];
+                    if (values.length === 0) {
+                        return `No data found in range ${range}.`;
+                    }
+
+                    // Format as table
+                    const table = values.map(row => row.join(' | ')).join('\n');
+                    return `Data from ${range}:\n\n${table}\n\n(${values.length} rows)`;
+                } catch (error: any) {
+                    throw new Error(`Failed to read spreadsheet: ${error.message}`);
+                }
+            },
+        }),
+
+        updateSpreadsheet: tool({
+            description: 'Update cells in a Google Sheets spreadsheet. Use to modify data, enter values, or update existing information.',
+            inputSchema: z.object({
+                spreadsheetId: z.string().describe('Spreadsheet ID'),
+                range: z.string().describe('Range to update in A1 notation (e.g., "Sheet1!A1:B2")'),
+                values: z.array(z.array(z.string())).describe('2D array of values to write [[row1col1, row1col2], [row2col1, row2col2]]'),
+            }),
+            execute: async ({ spreadsheetId, range, values }: { spreadsheetId: string; range: string; values: string[][] }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    await client.sheets.spreadsheets.values.update({
+                        spreadsheetId,
+                        range,
+                        valueInputOption: 'USER_ENTERED',
+                        requestBody: { values },
+                    });
+
+                    return `✅ Updated ${values.length} row(s) in range ${range}.`;
+                } catch (error: any) {
+                    throw new Error(`Failed to update spreadsheet: ${error.message}`);
+                }
+            },
+        }),
+
+        appendToSpreadsheet: tool({
+            description: 'Append rows to the end of a Google Sheets spreadsheet. Use to add new data, log entries, or extend existing data.',
+            inputSchema: z.object({
+                spreadsheetId: z.string().describe('Spreadsheet ID'),
+                range: z.string().describe('Range to append to (e.g., "Sheet1!A:C")'),
+                values: z.array(z.array(z.string())).describe('2D array of values to append'),
+            }),
+            execute: async ({ spreadsheetId, range, values }: { spreadsheetId: string; range: string; values: string[][] }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    await client.sheets.spreadsheets.values.append({
+                        spreadsheetId,
+                        range,
+                        valueInputOption: 'USER_ENTERED',
+                        requestBody: { values },
+                    });
+
+                    return `✅ Appended ${values.length} row(s) to ${range}.`;
+                } catch (error: any) {
+                    throw new Error(`Failed to append to spreadsheet: ${error.message}`);
+                }
+            },
+        }),
+
+        createSheet: tool({
+            description: 'Create a new sheet (tab) in an existing spreadsheet. Use to organize data in separate sheets.',
+            inputSchema: z.object({
+                spreadsheetId: z.string().describe('Spreadsheet ID'),
+                sheetName: z.string().describe('Name for the new sheet'),
+            }),
+            execute: async ({ spreadsheetId, sheetName }: { spreadsheetId: string; sheetName: string }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    await client.sheets.spreadsheets.batchUpdate({
+                        spreadsheetId,
+                        requestBody: {
+                            requests: [{
+                                addSheet: {
+                                    properties: { title: sheetName },
+                                },
+                            }],
+                        },
+                    });
+
+                    return `✅ Sheet "${sheetName}" created successfully.`;
+                } catch (error: any) {
+                    throw new Error(`Failed to create sheet: ${error.message}`);
+                }
+            },
+        }),
+
+        listSpreadsheets: tool({
+            description: 'List Google Sheets spreadsheets from Drive. Use to find spreadsheets, check available sheets, or browse data files.',
+            inputSchema: z.object({
+                maxResults: z.number().default(20).describe('Maximum number of spreadsheets to return'),
+            }),
+            execute: async ({ maxResults = 20 }: { maxResults?: number }) => {
+                const client = await getSheetsClient();
+                if (!client) {
+                    return 'Google Sheets is not connected. Please connect Google Sheets from the Apps page first.';
+                }
+
+                try {
+                    const response = await client.drive.files.list({
+                        q: "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
+                        pageSize: maxResults,
+                        fields: 'files(id, name, modifiedTime, webViewLink)',
+                        orderBy: 'modifiedTime desc',
+                    });
+
+                    const files = response.data.files || [];
+                    if (files.length === 0) {
+                        return 'No spreadsheets found.';
+                    }
+
+                    const list = files.map((file, i) => 
+                        `${i + 1}. ${file.name}\n   ID: ${file.id}\n   Modified: ${file.modifiedTime}\n   URL: ${file.webViewLink}`
+                    ).join('\n\n');
+
+                    return `Found ${files.length} spreadsheet(s):\n\n${list}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to list spreadsheets: ${error.message}`);
+                }
+            },
+        }),
+    };
+}
+
+/**
+ * Create Google Slides tools for a specific user
+ */
+export function createSlidesTools(userId: string) {
+    const getSlidesClient = async () => {
+        const userApp = await prisma.userApp.findFirst({
+            where: {
+                userId,
+                app: { name: 'slides' },
+                isConnected: true,
+            },
+        });
+
+        if (!userApp) {
+            return null;
+        }
+
+        const credentials = decryptCredentials(userApp.credentials as string);
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(credentials);
+
+        return {
+            slides: google.slides({ version: 'v1', auth: oauth2Client }),
+            drive: google.drive({ version: 'v3', auth: oauth2Client }),
+        };
+    };
+
+    return {
+        createPresentation: tool({
+            description: 'Create a new Google Slides presentation. Use when user wants to create a presentation, slideshow, or visual content.',
+            inputSchema: z.object({
+                title: z.string().describe('Presentation title'),
+            }),
+            execute: async ({ title }: { title: string }) => {
+                const client = await getSlidesClient();
+                if (!client) {
+                    return 'Google Slides is not connected. Please connect Google Slides from the Apps page first.';
+                }
+
+                try {
+                    const response = await client.slides.presentations.create({
+                        requestBody: { title },
+                    });
+
+                    return `✅ Presentation "${title}" created successfully!\nPresentation ID: ${response.data.presentationId}\nURL: https://docs.google.com/presentation/d/${response.data.presentationId}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to create presentation: ${error.message}`);
+                }
+            },
+        }),
+
+        readPresentation: tool({
+            description: 'Read content from a Google Slides presentation. Use to retrieve slide text and structure.',
+            inputSchema: z.object({
+                presentationId: z.string().describe('Presentation ID (from URL: docs.google.com/presentation/d/{presentationId})'),
+            }),
+            execute: async ({ presentationId }: { presentationId: string }) => {
+                const client = await getSlidesClient();
+                if (!client) {
+                    return 'Google Slides is not connected. Please connect Google Slides from the Apps page first.';
+                }
+
+                try {
+                    const response = await client.slides.presentations.get({ presentationId });
+                    const presentation = response.data;
+                    const title = presentation.title || 'Untitled';
+                    const slides = presentation.slides || [];
+
+                    let content = `**${title}**\n\nSlides: ${slides.length}\n\n`;
+
+                    slides.forEach((slide, i) => {
+                        content += `--- Slide ${i + 1} ---\n`;
+                        slide.pageElements?.forEach(element => {
+                            if (element.shape?.text?.textElements) {
+                                element.shape.text.textElements.forEach(textElement => {
+                                    if (textElement.textRun?.content) {
+                                        content += textElement.textRun.content;
+                                    }
+                                });
+                            }
+                        });
+                        content += '\n\n';
+                    });
+
+                    return content;
+                } catch (error: any) {
+                    throw new Error(`Failed to read presentation: ${error.message}`);
+                }
+            },
+        }),
+
+        addSlide: tool({
+            description: 'Add a new slide with text to a Google Slides presentation. Use to add content to existing presentations.',
+            inputSchema: z.object({
+                presentationId: z.string().describe('Presentation ID'),
+                title: z.string().describe('Slide title'),
+                body: z.string().describe('Slide body text'),
+            }),
+            execute: async ({ presentationId, title, body }: { presentationId: string; title: string; body: string }) => {
+                const client = await getSlidesClient();
+                if (!client) {
+                    return 'Google Slides is not connected. Please connect Google Slides from the Apps page first.';
+                }
+
+                try {
+                    // Create slide
+                    const slideResponse = await client.slides.presentations.batchUpdate({
+                        presentationId,
+                        requestBody: {
+                            requests: [
+                                {
+                                    createSlide: {
+                                        slideLayoutReference: {
+                                            predefinedLayout: 'TITLE_AND_BODY',
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    });
+
+                    const slideId = slideResponse.data.replies?.[0]?.createSlide?.objectId;
+
+                    // Add title and body text
+                    if (slideId) {
+                        const presentation = await client.slides.presentations.get({ presentationId });
+                        const slide = presentation.data.slides?.find(s => s.objectId === slideId);
+
+                        if (slide) {
+                            const titleElement = slide.pageElements?.find(el => 
+                                el.shape?.placeholder?.type === 'CENTERED_TITLE' || 
+                                el.shape?.placeholder?.type === 'TITLE'
+                            );
+                            const bodyElement = slide.pageElements?.find(el => 
+                                el.shape?.placeholder?.type === 'BODY'
+                            );
+
+                            const requests = [];
+                            if (titleElement?.objectId) {
+                                requests.push({
+                                    insertText: {
+                                        objectId: titleElement.objectId,
+                                        text: title,
+                                    },
+                                });
+                            }
+                            if (bodyElement?.objectId) {
+                                requests.push({
+                                    insertText: {
+                                        objectId: bodyElement.objectId,
+                                        text: body,
+                                    },
+                                });
+                            }
+
+                            if (requests.length > 0) {
+                                await client.slides.presentations.batchUpdate({
+                                    presentationId,
+                                    requestBody: { requests },
+                                });
+                            }
+                        }
+                    }
+
+                    return `✅ Slide added successfully with title "${title}".`;
+                } catch (error: any) {
+                    throw new Error(`Failed to add slide: ${error.message}`);
+                }
+            },
+        }),
+
+        listPresentations: tool({
+            description: 'List Google Slides presentations from Drive. Use to find presentations or browse available slides.',
+            inputSchema: z.object({
+                maxResults: z.number().default(20).describe('Maximum number of presentations to return'),
+            }),
+            execute: async ({ maxResults = 20 }: { maxResults?: number }) => {
+                const client = await getSlidesClient();
+                if (!client) {
+                    return 'Google Slides is not connected. Please connect Google Slides from the Apps page first.';
+                }
+
+                try {
+                    const response = await client.drive.files.list({
+                        q: "mimeType='application/vnd.google-apps.presentation' and trashed=false",
+                        pageSize: maxResults,
+                        fields: 'files(id, name, modifiedTime, webViewLink)',
+                        orderBy: 'modifiedTime desc',
+                    });
+
+                    const files = response.data.files || [];
+                    if (files.length === 0) {
+                        return 'No presentations found.';
+                    }
+
+                    const list = files.map((file, i) => 
+                        `${i + 1}. ${file.name}\n   ID: ${file.id}\n   Modified: ${file.modifiedTime}\n   URL: ${file.webViewLink}`
+                    ).join('\n\n');
+
+                    return `Found ${files.length} presentation(s):\n\n${list}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to list presentations: ${error.message}`);
+                }
+            },
+        }),
+    };
+}
+
+/**
+ * Create GitHub tools for a specific user
+ */
+export function createGitHubTools(userId: string) {
+    const getGitHubClient = async () => {
+        const userApp = await prisma.userApp.findFirst({
+            where: {
+                userId,
+                app: { name: 'github' },
+                isConnected: true,
+            },
+        });
+
+        if (!userApp) {
+            return null;
+        }
+
+        const credentials = decryptCredentials(userApp.credentials as string);
+        return {
+            token: credentials.access_token,
+            headers: {
+                'Authorization': `Bearer ${credentials.access_token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Kuma-AI-Assistant',
+            },
+        };
+    };
+
+    return {
+        listRepositories: tool({
+            description: 'List GitHub repositories for the authenticated user. Use to browse repos, find projects, or see what repositories exist.',
+            inputSchema: z.object({
+                type: z.enum(['all', 'owner', 'member']).default('owner').describe('Filter by repository type'),
+                sort: z.enum(['created', 'updated', 'pushed', 'full_name']).default('updated').describe('Sort order'),
+                maxResults: z.number().default(20).describe('Maximum repositories to return'),
+            }),
+            execute: async ({ type = 'owner', sort = 'updated', maxResults = 20 }: { type?: string; sort?: string; maxResults?: number }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/user/repos?type=${type}&sort=${sort}&per_page=${maxResults}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const repos = await response.json() as any[];
+
+                    if (repos.length === 0) {
+                        return 'No repositories found.';
+                    }
+
+                    const repoList = repos.map((repo, i) => 
+                        `${i + 1}. **${repo.full_name}**\n` +
+                        `   ${repo.description || 'No description'}\n` +
+                        `   ⭐ ${repo.stargazers_count} stars | 🍴 ${repo.forks_count} forks\n` +
+                        `   Language: ${repo.language || 'N/A'}\n` +
+                        `   URL: ${repo.html_url}`
+                    ).join('\n\n');
+
+                    return `Found ${repos.length} repositor${repos.length === 1 ? 'y' : 'ies'}:\n\n${repoList}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to list repositories: ${error.message}`);
+                }
+            },
+        }),
+
+        getRepository: tool({
+            description: 'Get detailed information about a specific GitHub repository.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner (username or organization)'),
+                repo: z.string().describe('Repository name'),
+            }),
+            execute: async ({ owner, repo }: { owner: string; repo: string }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${owner}/${repo}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            return `Repository ${owner}/${repo} not found.`;
+                        }
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const repository = await response.json() as any;
+
+                    return `**${repository.full_name}**\n\n` +
+                        `${repository.description || 'No description'}\n\n` +
+                        `⭐ Stars: ${repository.stargazers_count}\n` +
+                        `🍴 Forks: ${repository.forks_count}\n` +
+                        `👀 Watchers: ${repository.watchers_count}\n` +
+                        `📝 Open Issues: ${repository.open_issues_count}\n` +
+                        `🔤 Language: ${repository.language || 'N/A'}\n` +
+                        `📅 Created: ${new Date(repository.created_at).toLocaleDateString()}\n` +
+                        `📅 Updated: ${new Date(repository.updated_at).toLocaleDateString()}\n` +
+                        `🌐 URL: ${repository.html_url}\n` +
+                        `${repository.homepage ? `🏠 Homepage: ${repository.homepage}\n` : ''}` +
+                        `License: ${repository.license?.name || 'None'}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to get repository: ${error.message}`);
+                }
+            },
+        }),
+
+        listIssues: tool({
+            description: 'List issues in a GitHub repository. Use to see open issues, bugs, or feature requests.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner'),
+                repo: z.string().describe('Repository name'),
+                state: z.enum(['open', 'closed', 'all']).default('open').describe('Issue state'),
+                maxResults: z.number().default(10).describe('Maximum issues to return'),
+            }),
+            execute: async ({ owner, repo, state = 'open', maxResults = 10 }: { owner: string; repo: string; state?: string; maxResults?: number }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${owner}/${repo}/issues?state=${state}&per_page=${maxResults}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const issues = await response.json() as any[];
+
+                    // Filter out pull requests (they appear in issues endpoint)
+                    const actualIssues = issues.filter(issue => !issue.pull_request);
+
+                    if (actualIssues.length === 0) {
+                        return `No ${state} issues found in ${owner}/${repo}.`;
+                    }
+
+                    const issueList = actualIssues.map((issue, i) => 
+                        `${i + 1}. #${issue.number}: ${issue.title}\n` +
+                        `   State: ${issue.state} | Comments: ${issue.comments}\n` +
+                        `   Created: ${new Date(issue.created_at).toLocaleDateString()}\n` +
+                        `   URL: ${issue.html_url}`
+                    ).join('\n\n');
+
+                    return `Found ${actualIssues.length} ${state} issue(s) in ${owner}/${repo}:\n\n${issueList}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to list issues: ${error.message}`);
+                }
+            },
+        }),
+
+        createIssue: tool({
+            description: 'Create a new issue in a GitHub repository. Use when user wants to report a bug, request a feature, or create a task.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner'),
+                repo: z.string().describe('Repository name'),
+                title: z.string().describe('Issue title'),
+                body: z.string().describe('Issue description/body'),
+                labels: z.array(z.string()).optional().describe('Labels to add (e.g., ["bug", "enhancement"])'),
+            }),
+            execute: async ({ owner, repo, title, body, labels }: { owner: string; repo: string; title: string; body: string; labels?: string[] }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${owner}/${repo}/issues`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                ...client.headers,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ title, body, labels }),
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const issue = await response.json() as any;
+
+                    return `✅ Issue created successfully!\n\n` +
+                        `#${issue.number}: ${issue.title}\n` +
+                        `URL: ${issue.html_url}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to create issue: ${error.message}`);
+                }
+            },
+        }),
+
+        getIssue: tool({
+            description: 'Get detailed information about a specific GitHub issue.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner'),
+                repo: z.string().describe('Repository name'),
+                issueNumber: z.number().describe('Issue number'),
+            }),
+            execute: async ({ owner, repo, issueNumber }: { owner: string; repo: string; issueNumber: number }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            return `Issue #${issueNumber} not found in ${owner}/${repo}.`;
+                        }
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const issue = await response.json() as any;
+
+                    return `**#${issue.number}: ${issue.title}**\n\n` +
+                        `State: ${issue.state}\n` +
+                        `Created by: ${issue.user.login}\n` +
+                        `Created: ${new Date(issue.created_at).toLocaleDateString()}\n` +
+                        `Comments: ${issue.comments}\n` +
+                        `${issue.labels.length > 0 ? `Labels: ${issue.labels.map((l: any) => l.name).join(', ')}\n` : ''}` +
+                        `\n**Description:**\n${issue.body || 'No description'}\n\n` +
+                        `URL: ${issue.html_url}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to get issue: ${error.message}`);
+                }
+            },
+        }),
+
+        listPullRequests: tool({
+            description: 'List pull requests in a GitHub repository.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner'),
+                repo: z.string().describe('Repository name'),
+                state: z.enum(['open', 'closed', 'all']).default('open').describe('PR state'),
+                maxResults: z.number().default(10).describe('Maximum PRs to return'),
+            }),
+            execute: async ({ owner, repo, state = 'open', maxResults = 10 }: { owner: string; repo: string; state?: string; maxResults?: number }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${owner}/${repo}/pulls?state=${state}&per_page=${maxResults}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const prs = await response.json() as any[];
+
+                    if (prs.length === 0) {
+                        return `No ${state} pull requests found in ${owner}/${repo}.`;
+                    }
+
+                    const prList = prs.map((pr, i) => 
+                        `${i + 1}. #${pr.number}: ${pr.title}\n` +
+                        `   By: ${pr.user.login} | State: ${pr.state}\n` +
+                        `   Created: ${new Date(pr.created_at).toLocaleDateString()}\n` +
+                        `   URL: ${pr.html_url}`
+                    ).join('\n\n');
+
+                    return `Found ${prs.length} ${state} pull request(s) in ${owner}/${repo}:\n\n${prList}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to list pull requests: ${error.message}`);
+                }
+            },
+        }),
+
+        searchCode: tool({
+            description: 'Search for code across GitHub repositories. Use to find code examples, implementations, or specific patterns.',
+            inputSchema: z.object({
+                query: z.string().describe('Search query (e.g., "language:python flask", "repo:owner/repo function")'),
+                maxResults: z.number().default(5).describe('Maximum results to return'),
+            }),
+            execute: async ({ query, maxResults = 5 }: { query: string; maxResults?: number }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const encodedQuery = encodeURIComponent(query);
+                    const response = await fetch(
+                        `https://api.github.com/search/code?q=${encodedQuery}&per_page=${maxResults}`,
+                        { headers: client.headers }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const result = await response.json() as any;
+                    const items = result.items || [];
+
+                    if (items.length === 0) {
+                        return `No code found matching "${query}".`;
+                    }
+
+                    const codeList = items.map((item: any, i: number) => 
+                        `${i + 1}. **${item.name}** in ${item.repository.full_name}\n` +
+                        `   Path: ${item.path}\n` +
+                        `   URL: ${item.html_url}`
+                    ).join('\n\n');
+
+                    return `Found ${result.total_count} result(s) for "${query}" (showing ${items.length}):\n\n${codeList}`;
+                } catch (error: any) {
+                    throw new Error(`Failed to search code: ${error.message}`);
+                }
+            },
+        }),
+
+        getFileContent: tool({
+            description: 'Get the content of a file from a GitHub repository.',
+            inputSchema: z.object({
+                owner: z.string().describe('Repository owner'),
+                repo: z.string().describe('Repository name'),
+                path: z.string().describe('File path in the repository'),
+                ref: z.string().optional().describe('Branch, tag, or commit SHA (default: default branch)'),
+            }),
+            execute: async ({ owner, repo, path, ref }: { owner: string; repo: string; path: string; ref?: string }) => {
+                const client = await getGitHubClient();
+                if (!client) {
+                    return 'GitHub is not connected. Please connect GitHub from the Apps page first.';
+                }
+
+                try {
+                    const url = ref 
+                        ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}`
+                        : `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+                    const response = await fetch(url, { headers: client.headers });
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            return `File ${path} not found in ${owner}/${repo}.`;
+                        }
+                        throw new Error(`GitHub API error: ${response.statusText}`);
+                    }
+
+                    const file = await response.json() as any;
+
+                    if (file.type !== 'file') {
+                        return `${path} is not a file.`;
+                    }
+
+                    // Decode base64 content
+                    const content = Buffer.from(file.content, 'base64').toString('utf-8');
+
+                    return `**${file.name}** (${owner}/${repo})\n` +
+                        `Size: ${file.size} bytes\n` +
+                        `URL: ${file.html_url}\n\n` +
+                        `\`\`\`\n${content}\n\`\`\``;
+                } catch (error: any) {
+                    throw new Error(`Failed to get file content: ${error.message}`);
+                }
+            },
+        }),
+    };
+}
+
+/**
  * Load all connected app tools for a user
  */
 export async function loadUserAppTools(userId: string) {
@@ -850,6 +1664,24 @@ export async function loadUserAppTools(userId: string) {
     if (connectedAppNames.includes('drive')) {
         const driveTools = createDriveTools(userId);
         Object.assign(tools, driveTools);
+    }
+
+    // Add Sheets tools if connected
+    if (connectedAppNames.includes('sheets')) {
+        const sheetsTools = createSheetsTools(userId);
+        Object.assign(tools, sheetsTools);
+    }
+
+    // Add Slides tools if connected
+    if (connectedAppNames.includes('slides')) {
+        const slidesTools = createSlidesTools(userId);
+        Object.assign(tools, slidesTools);
+    }
+
+    // Add GitHub tools if connected
+    if (connectedAppNames.includes('github')) {
+        const githubTools = createGitHubTools(userId);
+        Object.assign(tools, githubTools);
     }
 
     return tools;

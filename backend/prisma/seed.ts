@@ -67,6 +67,54 @@ async function seedApps() {
         },
     });
 
+    // Create Google Sheets app
+    await prisma.app.upsert({
+        where: { name: 'sheets' },
+        update: {},
+        create: {
+            name: 'sheets',
+            category: 'productivity',
+            displayName: 'Google Sheets',
+            description: 'Create, read, and manage Google Sheets spreadsheets',
+            icon: '📊',
+            authType: 'oauth2',
+            isActive: true,
+            config: {},
+        },
+    });
+
+    // Create Google Slides app
+    await prisma.app.upsert({
+        where: { name: 'slides' },
+        update: {},
+        create: {
+            name: 'slides',
+            category: 'productivity',
+            displayName: 'Google Slides',
+            description: 'Create, read, and manage Google Slides presentations',
+            icon: '📽️',
+            authType: 'oauth2',
+            isActive: true,
+            config: {},
+        },
+    });
+
+    // Create GitHub app
+    await prisma.app.upsert({
+        where: { name: 'github' },
+        update: {},
+        create: {
+            name: 'github',
+            category: 'development',
+            displayName: 'GitHub',
+            description: 'Manage repositories, issues, pull requests, and more',
+            icon: '🐙',
+            authType: 'oauth2',
+            isActive: true,
+            config: {},
+        },
+    });
+
     console.log('✅ Apps seeded successfully!');
 }
 

@@ -1,5 +1,7 @@
 # Kuma — Complete Tech Stack & Features
 
+**🎨 Latest Update**: Multimodal Chat with Vision - ChatGPT/Claude-style image integration!
+
 ## 📚 Table of Contents
 
 - [Tech Stack Overview](#tech-stack-overview)
@@ -25,7 +27,8 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - **Monorepo Structure**: Backend and Frontend in a single repository
 - **Runtime**: Bun (JavaScript/TypeScript runtime)
 - **Database**: PostgreSQL with Prisma ORM
-- **AI Framework**: LangChain + Google Gemini
+- **AI Framework**: Vercel AI SDK + Google Gemini (with direct Gemini API for multimodal)
+- **Vision AI**: Gemini 2.5 Pro with native multimodal support
 - **State Management**: Zustand
 - **UI Framework**: React with Vite
 
@@ -248,13 +251,30 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 - Agent-specific threads
 - Message summarization for long conversations
 
-### 4. **File Upload & Processing**
+### 4. **Multimodal Chat with Vision**
 
-- Image upload support
-- File storage management
-- Vision-based image analysis
-- Multiple file format support
-- Secure file handling
+- **Image Upload & Analysis**
+  - Attach images directly in chat messages
+  - Multiple images per message (up to 5)
+  - Persistent image storage in chat history
+  - Inline image preview in messages
+  - Image lightbox/viewer for full-size viewing
+
+- **Vision Capabilities** (powered by Gemini 2.5 Pro)
+  - Natural image understanding
+  - Visual question answering
+  - OCR (text extraction from images)
+  - Scene description
+  - Object detection
+  - Follow-up questions about uploaded images
+  - Multimodal conversation context
+
+- **Image Storage**
+  - Chat-specific image organization
+  - Secure image serving with authentication
+  - Support for JPEG, PNG, GIF, WebP formats
+  - 10MB per image limit
+  - Automatic image cleanup for temp files
 
 ### 5. **Memory & Context**
 
@@ -357,6 +377,7 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 ### 3. **Google Docs Integration**
 
 **Tools Available**:
+
 - `create_document` — Create new Google Docs
 - `read_document` — Read document content
 - `update_document` — Edit existing documents
@@ -365,7 +386,24 @@ Kuma is a modern full-stack AI assistant application built with cutting-edge tec
 
 **Authentication**: OAuth 2.0 with Docs API
 
-### 4. **Web Search (Exa)**
+### 4. **Google Drive Integration**
+
+**Tools Available**:
+
+- `listDriveFiles` — Browse files and folders
+- `searchDriveFiles` — Search files by name or content
+- `createDriveFolder` — Create folders to organize files
+- `uploadToDrive` — Upload/create text documents
+- `shareDriveFile` — Share files with others
+- `deleteDriveFile` — Remove files/folders
+
+**Features**:
+- File type filtering (documents, spreadsheets, presentations, images, PDFs)
+- Folder navigation and organization
+- File metadata (size, modified time, links)
+- OAuth 2.0 with Drive API
+
+### 5. **Web Search (Exa)**
 
 **Tools Available**:
 - `search_web` — Semantic web search
@@ -621,13 +659,15 @@ Based on the architecture, potential expansions include:
 - Additional AI models (Claude, GPT-4, etc.)
 - More app integrations (Slack, GitHub, Notion)
 - Voice input/output
-- Document processing (PDF, Word)
+- Advanced document processing (PDF, Word, Excel)
 - Browser extension
-- Mobile app
+- Mobile app (React Native)
 - Team collaboration features
 - Plugin marketplace
-- Custom agent creation
-- Workflow automation
+- Custom agent creation UI
+- Workflow automation builder
+- Multi-language support
+- Screen sharing and co-browsing
 
 ---
 
@@ -637,22 +677,41 @@ Based on the architecture, potential expansions include:
 
 1. **Bun** — 3x faster than Node.js, built-in TypeScript support
 2. **Prisma** — Type-safe database access, easy migrations
-3. **Google Gemini** — Advanced AI capabilities, multimodal support
-4. **React 19** — Latest features, better performance
-5. **Vite** — Instant dev server startup, optimized builds
-6. **Zustand** — Simple, performant state management
-7. **Tailwind CSS** — Rapid UI development, consistent design
-8. **LangChain** — Proven agent framework, extensive tooling
+3. **Gemini 2.5 Pro** — Advanced AI with native multimodal support, vision capabilities
+4. **Direct Gemini API** — Full control over multimodal streaming for image analysis
+5. **React 19** — Latest features, better performance
+6. **Vite** — Instant dev server startup, optimized builds
+7. **Zustand** — Simple, performant state management
+8. **Tailwind CSS** — Rapid UI development, consistent design
+9. **Vercel AI SDK** — Streamlined AI tool calling and agent orchestration
 
 ---
+
+## 📊 Project Stats
 
 **Total Technologies Used**: 50+ libraries and frameworks
-**Lines of Code**: ~10,000+ (estimated)
+**Lines of Code**: ~15,000+ (estimated)
 **Database Models**: 8 core models
-**API Endpoints**: 25+ routes
-**Integrations**: 6 major platforms
+**API Endpoints**: 30+ routes
+**Integrations**: 7 major platforms (Gmail, Calendar, Docs, Drive, Web Search, Stock Market, Memory)
 **AI Agents**: 4+ specialized agents
+**Vision Features**: Full multimodal chat with persistent image storage
+**Supported Image Formats**: JPEG, PNG, GIF, WebP
+**Max Images Per Message**: 5
+**Image Storage**: Chat-organized persistent storage
 
 ---
 
-*Last Updated: December 5, 2025*
+## 🎯 Key Differentiators
+
+1. **True Multimodal Chat** — ChatGPT/Claude-style image integration with persistent history
+2. **Direct Gemini API Integration** — Native multimodal streaming for optimal performance
+3. **Comprehensive Google Workspace** — Full suite of Gmail, Calendar, Docs, and Drive tools
+4. **Hybrid Memory System** — Smart summarization + recent context for efficient long conversations
+5. **Flexible Agent System** — Specialized agents with tool access control
+6. **Type-Safe Full Stack** — End-to-end TypeScript with Prisma and Zod validation
+7. **Modern Performance** — Bun runtime, Vite build, optimized React 19
+
+---
+
+Last Updated: December 5, 2025
