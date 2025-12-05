@@ -39,6 +39,14 @@ export const ChatInterface = () => {
 
     const hasMessages = currentMessages.length > 0;
 
+    console.log('[ChatInterface Render]', {
+        hasMessages,
+        isSending,
+        isStreaming,
+        messagesCount: currentMessages.length,
+        chatId: currentChatId,
+    });
+
     // Load connected apps and documents on mount
     useEffect(() => {
         loadConnectedApps();
@@ -50,12 +58,14 @@ export const ChatInterface = () => {
         if (chatIdFromUrl) {
             // URL has a chat ID - load that chat if different from current
             if (chatIdFromUrl !== currentChatId) {
+                console.log('[ChatInterface] Loading chat from URL:', chatIdFromUrl);
                 loadChat(chatIdFromUrl);
             }
         } else {
             // URL is /chat (no ID) - ensure we're in new chat mode
             // Only call createNewChat if we actually have state to clear
             if (currentChatId !== null || currentMessages.length > 0) {
+                console.log('[ChatInterface] Creating new chat');
                 createNewChat();
             }
         }
@@ -205,12 +215,12 @@ export const ChatInterface = () => {
             {/* --- Main Scrollable Area --- */}
             <div className="flex-1 overflow-y-auto scroll-smooth no-scrollbar">
                 <div className="w-full max-w-3xl mx-auto px-4 py-8">
-                    {hasMessages ? (
+                    {hasMessages || isSending || isStreaming ? (
                         <div className="space-y-6 pb-4">
                             <MessageList messages={currentMessages} isLoading={isSending || isStreaming} />
                         </div>
                     ) : (
-                        /* Hero Empty State */
+                        /* Hero Empty State - only show when truly empty and not sending */
                         <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-orange-500/20 shadow-xl mb-4">
                                 <InfinityIcon className="w-8 h-8 text-white" />

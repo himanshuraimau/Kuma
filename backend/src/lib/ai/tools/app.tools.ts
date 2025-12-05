@@ -58,15 +58,35 @@ export function createGmailTools(userId: string) {
                     .replace(/^(\d+)\.\s/gm, '<br>$1. ')  // Numbered lists
                     .replace(/^[-•]\s/gm, '<br>• ');  // Bullet points
 
+                // Create plain text version (strip HTML)
+                const plainBody = body
+                    .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold markdown
+                    .replace(/\*(.*?)\*/g, '$1');     // Remove italic markdown
+
+                // Create proper MIME message
+                const boundary = '----=_Part_' + Date.now();
                 const emailLines = [
                     `To: ${to}`,
                     `Subject: ${subject}`,
-                    cc ? `Cc: ${cc.join(', ')}` : '',
-                    bcc ? `Bcc: ${bcc.join(', ')}` : '',
+                    cc && cc.length > 0 ? `Cc: ${cc.join(', ')}` : '',
+                    bcc && bcc.length > 0 ? `Bcc: ${bcc.join(', ')}` : '',
+                    'MIME-Version: 1.0',
+                    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+                    '',
+                    `--${boundary}`,
+                    'Content-Type: text/plain; charset=utf-8',
+                    'Content-Transfer-Encoding: 7bit',
+                    '',
+                    plainBody,
+                    '',
+                    `--${boundary}`,
                     'Content-Type: text/html; charset=utf-8',
+                    'Content-Transfer-Encoding: 7bit',
                     '',
                     `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${htmlBody}</div>`,
-                ].filter(Boolean);
+                    '',
+                    `--${boundary}--`,
+                ].filter(line => line !== '');
 
                 const email = emailLines.join('\r\n');
                 const encodedEmail = Buffer.from(email).toString('base64url');

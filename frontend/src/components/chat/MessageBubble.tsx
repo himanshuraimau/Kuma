@@ -69,17 +69,28 @@ export const MessageBubble = ({ role, content, timestamp, imageAttachments }: Me
                         {isUser ? (
                             <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{content}</p>
                         ) : (
-                            <div className="prose prose-invert prose-sm max-w-none 
-                                prose-p:text-zinc-300 prose-p:leading-relaxed
-                                prose-headings:text-zinc-100 prose-headings:font-semibold
-                                prose-strong:text-orange-500 prose-strong:font-bold
-                                prose-code:text-orange-400 prose-code:bg-zinc-950/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
-                                prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800
-                                prose-ul:text-zinc-300 prose-ol:text-zinc-300
-                                prose-a:text-blue-400 hover:prose-a:text-blue-300
-                            ">
-                                <ReactMarkdown>{content}</ReactMarkdown>
-                            </div>
+                            <>
+                                {content ? (
+                                    <div className="prose prose-invert prose-sm max-w-none 
+                                        prose-p:text-zinc-300 prose-p:leading-relaxed
+                                        prose-headings:text-zinc-100 prose-headings:font-semibold
+                                        prose-strong:text-orange-500 prose-strong:font-bold
+                                        prose-code:text-orange-400 prose-code:bg-zinc-950/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+                                        prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800
+                                        prose-ul:text-zinc-300 prose-ol:text-zinc-300
+                                        prose-a:text-blue-400 hover:prose-a:text-blue-300
+                                    ">
+                                        <ReactMarkdown>{content}</ReactMarkdown>
+                                    </div>
+                                ) : (
+                                    /* Typing indicator inside the bubble when content is empty */
+                                    <div className="flex items-center gap-1.5 py-1">
+                                        <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                        <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                        <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce"></div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
 
