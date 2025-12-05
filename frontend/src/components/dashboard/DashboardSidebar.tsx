@@ -26,7 +26,8 @@ import {
     Settings,
     LogOut,
     ChevronsUpDown,
-    PanelLeft
+    PanelLeft,
+    FileText
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChatStore } from '@/stores/chat.store';
@@ -50,7 +51,8 @@ export const DashboardSidebar = () => {
     const menuItems = [
         { icon: LayoutGrid, label: 'Apps', path: '/apps' },
         { icon: ListChecks, label: 'Prompts', path: '/prompts' },
-        { icon: FolderOpen, label: 'Drive', path: '/drive' },
+        { icon: FileText, label: 'Documents', path: '/documents' },
+        // { icon: FolderOpen, label: 'Drive', path: '/drive' },
         { icon: Brain, label: 'Memories', path: '/memories' },
     ];
 

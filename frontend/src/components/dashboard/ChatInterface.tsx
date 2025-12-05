@@ -6,6 +6,7 @@ import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, I
 import { useChatStore } from '@/stores/chat.store';
 import { useAppsStore } from '@/stores/apps.store';
 import { useDocumentsStore } from '@/stores/documents.store';
+import { uploadDocument } from '@/api/documents.api';
 import { MessageList } from '@/components/chat/MessageList';
 
 export const ChatInterface = () => {
@@ -16,8 +17,10 @@ export const ChatInterface = () => {
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [selectedDocuments, setSelectedDocuments] = useState<Array<{ id: string; displayName: string }>>([]);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
+    const [uploadingDoc, setUploadingDoc] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const pdfInputRef = useRef<HTMLInputElement>(null);
 
     const {
         currentChatId,
@@ -140,6 +143,39 @@ export const ChatInterface = () => {
 
     const removeImage = (index: number) => {
         setSelectedImages(images => images.filter((_, i) => i !== index));
+    };
+
+    const handlePdfSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const pdfFiles = files.filter(file => file.type === 'application/pdf');
+        
+        if (pdfFiles.length === 0) return;
+        
+        setUploadingDoc(true);
+        try {
+            // Upload each PDF
+            for (const pdfFile of pdfFiles) {
+                const result = await uploadDocument(pdfFile, currentChatId || undefined);
+                
+                // Add to selected documents once uploaded
+                setSelectedDocuments(docs => [...docs, { 
+                    id: result.documentId, 
+                    displayName: result.displayName 
+                }]);
+            }
+            
+            // Refresh documents list
+            await fetchDocuments();
+        } catch (err) {
+            console.error('Failed to upload PDF:', err);
+            // Show error to user (you could add a toast notification here)
+        } finally {
+            setUploadingDoc(false);
+            // Reset file input
+            if (pdfInputRef.current) {
+                pdfInputRef.current.value = '';
+            }
+        }
     };
 
     return (
@@ -359,6 +395,15 @@ export const ChatInterface = () => {
                                         onChange={handleImageSelect}
                                         className="hidden"
                                     />
+                                    
+                                    <input
+                                        ref={pdfInputRef}
+                                        type="file"
+                                        accept="application/pdf"
+                                        multiple
+                                        onChange={handlePdfSelect}
+                                        className="hidden"
+                                    />
 
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
@@ -366,8 +411,39 @@ export const ChatInterface = () => {
                                             ? 'text-orange-500 bg-orange-500/10'
                                             : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                                             }`}
+                                        title="Attach images"
                                     >
                                         <ImageIcon className="w-5 h-5" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => setShowDocumentPicker(!showDocumentPicker)}
+                                        className={`p-2 rounded-full transition-all ${selectedDocuments.length > 0
+                                            ? 'text-blue-500 bg-blue-500/10'
+                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                            } ${documents.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        disabled={documents.length === 0}
+                                        title={documents.length === 0 ? 'No documents available' : 'Attach existing documents'}
+                                    >
+                                        <FileText className="w-5 h-5" />
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => pdfInputRef.current?.click()}
+                                        disabled={uploadingDoc}
+                                        className={`p-2 rounded-full transition-all ${uploadingDoc
+                                            ? 'text-blue-500 bg-blue-500/10 cursor-wait'
+                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                            }`}
+                                        title="Upload new PDF document"
+                                    >
+                                        {uploadingDoc ? (
+                                            <div className="w-5 h-5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                                        ) : (
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                        )}
                                     </button>
 
                                     <button
