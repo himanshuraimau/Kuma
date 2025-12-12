@@ -1,0 +1,778 @@
+% Mini Project Report - Kuma: AI-Powered Personal Assistant
+% Main Report File
+
+\documentclass[12pt,a4paper,twoside]{report}
+
+% Package imports
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{color}
+\usepackage{amssymb}
+\usepackage{chngcntr}
+\usepackage{cite}
+\usepackage{fancyhdr}
+\usepackage[export]{adjustbox}
+\usepackage[compact]{titlesec}
+\usepackage{tabularx}
+\usepackage{layout}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage[toc,page]{appendix}
+\usepackage[normalem]{ulem}
+\usepackage{booktabs}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage[english]{babel}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\MakeOuterQuote{"}
+
+% Page layout settings
+\setlength{\voffset}{-0.75in}
+\setlength{\headsep}{10pt}
+\setlength{\parindent}{0cm}
+
+% Title formatting
+\titlespacing{\section}{0pt}{0pt}{0pt}
+\counterwithin{figure}{chapter}
+\numberwithin{equation}{chapter}
+\renewcommand{\baselinestretch}{1.2}
+\renewcommand{\thetable}{\arabic{chapter}.\arabic{table}} 
+\renewcommand{\footrulewidth}{0.4pt}
+\textheight 245mm \textwidth 160mm \topmargin 15mm
+\setlength{\oddsidemargin}{.1in}
+\evensidemargin .1in 
+
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{0pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{0pt}
+
+% Header and footer settings
+\pagestyle{fancy}
+\cfoot{}
+\lhead{{\footnotesize Kuma: AI-Powered Personal Assistant}}
+\lfoot{Dept.of CSE, S.I.T.,Tumakuru-03}
+\rfoot{\thepage}
+\rhead{2025-26}
+\linespread{1.5}
+\numberwithin{equation}{chapter}
+\let\cleardoublepage\clearpage
+\bibliographystyle{unsrt}
+
+% Code listing settings
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    captionpos=b
+}
+
+\begin{document}
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+
+% ==================== COVER PAGE ====================
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+{\textbf{SIDDAGANGA INSTITUTE OF TECHNOLOGY, TUMAKURU-572103}} \\
+\textbf{{\small (An Autonomous Institute under Visvesvaraya Technological University, Belagavi)}}
+$$\includegraphics[scale=1.0]{Logo}$$
+\begin{center}
+{\Large \textbf{Project Report on}}\\[0.5cm]
+
+{\color{black}{{\textbf{\Large\color{red}"Kuma: AI-Powered Personal Assistant"}}}} \\[0.5cm]
+{{\large submitted in partial fulfillment of the requirement for the completion of V semester of}} \\
+{\textbf{\large BACHELOR OF ENGINEERING\\ in\\ ARTIFICIAL INTELLIGENCE AND DATA SCIENCE\\}} 
+{\textbf{\large Submitted by}}\\[0.7cm]
+\end{center}
+
+\begin{center}
+\begin{tabular}{ll}
+\color{blue} Suraj Kumar & \color{blue} (1SI23AD057)  \\
+\color{blue} Himanshu Rai & \color{blue} (1SI23AD016)  \\
+\color{blue} Aditya Raj & \color{blue} (1SI23CS008)  \\
+\end{tabular}\\[1.0cm]
+\end{center}
+
+\begin{center}
+under the guidance of
+
+\textbf{\color{green} Dr Sheela S}\\
+Assistant Professor\\
+Department of Computer Science and Engineering\\
+SIT, Tumakuru-03\\[1.0cm]
+\end{center}
+
+{\textbf{{{\small DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING \\2025-26}}}}
+\end{titlepage}
+
+% ==================== CERTIFICATE ====================
+\begin{titlepage}
+\begin{center}
+{\textbf{SIDDAGANGA INSTITUTE OF TECHNOLOGY, TUMAKURU-572103}} \\
+{(An Autonomous Institute under Visvesvaraya Technological University, Belagavi)}
+\textbf{{\small{DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}}}
+$$\includegraphics[scale=1.0]{Logo}$$
+
+{\color{red}{\Large \bf CERTIFICATE}}\\[0.5cm]
+\end{center}
+
+Certified that the mini project work entitled {\color{blue}"KUMA: AI-POWERED PERSONAL ASSISTANT"} is a bonafide work carried out by Suraj Kumar (1SI23AD057), Himanshu Rai (1SI23AD016) and Aditya Raj (1SI23CS008) in partial fulfillment for the completion of V Semester of Bachelor of Engineering in Artificial Intelligence and Data Science from Siddaganga Institute of Technology, an autonomous institute under Visvesvaraya Technological University, Belagavi during the academic year 2025-26. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the department library. The Mini project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the Bachelor of Engineering degree.\\[1.0cm] 
+
+\begin{tabular}{lll}
+Dr Sheela S    \hspace{8cm} & Head of the Department \hspace{8cm}        \\
+Assistant Professor      & Dept. of CSE          \\
+Dept. of CSE   & SIT,Tumakuru-03        &                 \\
+SIT,Tumakuru-03  &                        &                
+\end{tabular}\\[1.0cm]
+
+\textbf{External viva:}\\
+\textbf{Names of the Examiners} \hspace{6.0cm} \textbf{Signature with date}\\
+\textbf{1.}\\
+\textbf{2.}\\
+\end{titlepage}
+
+% ==================== ACKNOWLEDGEMENT ====================
+\begin{titlepage}
+\begin{center}
+{\Large \textbf{ACKNOWLEDGEMENT}}
+\end{center}
+
+We offer our humble pranams at the lotus feet of \textbf{His} Holiness, \textbf{Dr. Sree Sree Sivakumara Swamigalu}, Founder President and \textbf{His} Holiness, \textbf{Sree Sree Siddalinga Swamigalu}, President, Sree Siddaganga Education Society, Sree Siddaganga Math for bestowing upon their blessings.\\
+
+We deem it as a privilege to thank \textbf{Dr. Shivakumaraiah}, CEO, SIT, Tumakuru, and \textbf{Dr. S V Dinesh}, Principal, SIT, Tumakuru for fostering an excellent academic environment in this institution, which made this endeavor fruitful.\\
+
+We would like to express our sincere gratitude to \textbf{Dr Sunitha. N R}, Professor and Head, Department of Computer Science and Engineering, SIT, Tumakuru for her encouragement and valuable suggestions.\\
+
+We thank our guide \textbf{Dr Sheela S}, Assistant Professor, Department of Computer Science and Engineering, SIT, Tumakuru for the valuable guidance, advice and encouragement.\\
+
+\begin{flushright}
+\begin{tabular}{ll}
+Suraj Kumar & (1SI23AD057)  \\
+Himanshu Rai & (1SI23AD016)  \\
+Aditya Raj & (1SI23CS008)  \\
+\end{tabular}\\[1.5cm]
+\end{flushright}
+\end{titlepage}
+
+% ==================== COURSE OUTCOMES ====================
+\begin{titlepage}
+\begin{center}
+{\Large \textbf{Course Outcomes}}
+\end{center}
+
+CO1: To identify a problem through literature survey and knowledge of contemporary engineering technology. \\      
+	% PO12: Life  long learning (3)\\
+CO2: To consolidate the literature search to identify issues/gaps and formulate the engineering problem \\
+%PO2  Problem analysis(3)\\
+CO3: To prepare project schedule for the identified design methodology and engage in budget analysis, and share responsibility for every member in the team\\
+%PO11  Project management and finance (3)\\
+CO4: To provide sustainable  engineering solution considering health, safety, legal, cultural issues and also demonstrate concern for environment \\
+%PO6 Engineer and Society (3)\\
+%PO7 Environment and sustainability (3)\\
+CO5: To identify and apply the mathematical concepts, science concepts, engineering and management concepts necessary to implement the identified engineering problem \\
+%PO1 Engineering Knowledge \\
+%PO2 Problem Analysis(3)
+CO6: To select the engineering tools/components required to implement the proposed solution for the identified engineering problem\\
+%PO5 Modern tool Usage(3) \\
+CO7: To analyze, design, and implement optimal design solution, interpret results of  experiments and draw valid conclusion \\
+%PO3 Design/Development of Solutions(3) \\
+%PO4 Conduct investigation of complex problems(3)\\
+CO8: To demonstrate effective written communication through the project report, the one-page poster presentation, and preparation of the video about the project and the four page IEEE/Springer/ paper format of the work\\
+%PO10 Communication (3)\\
+CO9: To engage in effective oral communication through power point presentation and demonstration of the project work \\
+%PO10 Communication(3)\\
+CO10:To demonstrate compliance to the prescribed standards/ safety norms and abide by the norms of professional ethics\\
+%PO8 Ethics(3)\\
+CO11: To perform in the team, contribute to the team and mentor/lead the team
+%PO9 Individual and Team work (3)\\
+
+
+
+%CO 1 : Identify , formulate the problem and define the objectives\\
+%CO 2 : Review the literature and provide efficient design solution with appropriate consideration for societal, health and safety issues\\
+%CO 3 : Select the engineering tools/components and develop an  experimental setup to validate the design \\
+%CO 4 : Test, analyse and interpret the results of the experiments in compliance with the  defined objectives\\
+%CO 5 : Document as per the standard, present effectively the work following professional ethics and interact with target group\\
+%CO 6 : Contribute to the team, lead the diverse team, demonstrating engineering and management principles\\
+%CO 7 : Demonstrate engineering and management principles, perform the budget analysis through utilization of the resources (finance, power, area, bandwidth, weight, size, etc)\\
+\begin{table}[h!]
+\caption*{\textbf{CO-PO Mapping}}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+ & PO1 & PO2 & PO3 & PO4 & PO5 & PO6 & PO7 & PO8 & PO9 & PO10 & PO11 & PSO1 & PSO2 & PSo3 \\ \hline
+CO-1 &  &  &  &  &  &  &  &  &  &  &   3 &  & 3  &\\ \hline
+CO-2 &  &3  &  &3  &  &  &  &  &  &  &    &  &  3 &\\ \hline
+CO-3 &  &  &  &  &  &  &  &  &  & 3 & 3   &  & 3  & \\ \hline
+CO-4 &  &  &  &  &  & 3 & 3 &  &  &    &  &  & 3  & \\ \hline
+CO-5 & 3 & 3 &  &  &  &  &  &  &  & &  &  & 3  &\\ \hline
+CO-6 &  &  &  &  & 3 &  &  &  &  &  &    &  & 3  &\\ \hline
+CO-7 &  & 3 & 3 & 3 &  &  &  &  &  &  &    & & 3  &\\ \hline
+CO-8 &  &  &  &  &  &  &  &  & 3 &  &    &  &3  &\\ \hline
+CO-9 &  &  &  &  &  &  &  &  & 3 &  &    &  &  3&\\ \hline
+CO-10 &  &  &  &  &  &  &3  &  &  &  &    &  &  3 &\\ \hline
+CO-11 &  &  &  &  &  &  &  & 3 &  &  &   &  & 3  & \\ \hline
+
+\end{tabular}%
+}
+\end{table}
+
+\vspace{10px}
+\\Attainment level: - 1: Slight (low) 2: Moderate (medium)	3: Substantial (high)
+\\POs: PO1: Engineering Knowledge, PO2: Problem analysis, PO3: Design/Development of solutions, PO4: Conduct investigations of complex problems, PO5: Engineering tool usage, PO6: Engineer and the world, PO7: Ethics, PO8: Individual and collaborative team work, PO9: Communication, PO10: Project management and finance, PO11: Lifelong learning\\PSO1:Computer based systems development,PSO2:Software development,PSO3:Computer Communications and Internet applications
+\end{titlepage}
+
+% ==================== ABSTRACT ====================
+\chapter*{Abstract}
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{\numberline{}Abstract}
+
+[Add abstract here: A concise summary of the Kuma AI-powered personal assistant project. The abstract should answer: 
+\begin{itemize}
+    \item Why this project? (Motivation - first paragraph)
+    \item What is the main objective? (second paragraph)
+    \item How is it implemented? (Implementation details, tools/software used - third paragraph)
+\end{itemize}
+Include brief mentions of technologies used: TypeScript, Bun, React, Prisma, LangChain, Google Gemini AI, etc.]
+
+% ==================== TABLE OF CONTENTS ====================
+\pagenumbering{roman}
+\tableofcontents
+\thispagestyle{empty}
+
+% ==================== LIST OF FIGURES ====================
+\listoffigures
+\addcontentsline{toc}{chapter}{\numberline{}List of Figures}
+
+% ==================== LIST OF TABLES ====================
+\listoftables
+\addcontentsline{toc}{chapter}{\numberline{}List of Tables}
+
+\cleardoublepage
+
+% ==================== MAIN CONTENT ====================
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ==================== CHAPTER 1: INTRODUCTION ====================
+\chapter{Introduction}
+
+\section{Motivation}
+[Discuss the need for AI-powered personal assistants in the modern digital age. Talk about the challenges of managing multiple tasks, handling information overload, and the need for intelligent automation. Explain how AI technologies like LangChain and Google Gemini can revolutionize personal productivity.]
+
+\section{Objective of the project}
+[State the primary objectives of the Kuma project:
+\begin{itemize}
+    \item Development of an intelligent personal assistant using AI technologies
+    \item Integration of multiple services (Gmail, Calendar, Docs, Drive)
+    \item Implementation of specialized agents for different tasks
+    \item Creating a user-friendly interface for seamless interaction
+    \item Providing secure authentication and data management
+\end{itemize}]
+
+\section{Organisation of the report}
+[Describe the structure of the report:
+\begin{itemize}
+    \item Chapter 1: Introduction to the project and its objectives
+    \item Chapter 2: Literature survey on AI assistants, LangChain, and related technologies
+    \item Chapter 3: System design, architecture, and methodology
+    \item Chapter 4: Implementation details of backend and frontend
+    \item Chapter 5: Results, screenshots, and performance analysis
+    \item Chapter 6: Conclusion and future enhancements
+    \item Bibliography and Appendices
+\end{itemize}]
+
+% ==================== CHAPTER 2: LITERATURE SURVEY ====================
+\chapter{Literature Survey}
+
+[This chapter should include a comprehensive review of:
+\begin{itemize}
+    \item Existing AI-powered personal assistants (Google Assistant, Siri, Alexa)
+    \item LangChain framework and its applications
+    \item Google Gemini AI capabilities
+    \item Agent-based systems and multi-agent architectures
+    \item Web technologies: React, TypeScript, Vite
+    \item Backend technologies: Bun runtime, Express, Prisma ORM
+    \item OAuth authentication and security best practices
+    \item Database design for chat applications
+\end{itemize}
+
+Include citations from IEEE, Springer, ACM, and other peer-reviewed journals and conferences. Use proper citation format as shown: \cite{reference1}, \cite{reference2}.]
+
+% ==================== CHAPTER 3: SYSTEM DESIGN & METHODOLOGY ====================
+\chapter{System Design \& Methodology}
+
+\section{Functional \& Non-Functional Requirements}
+
+\subsection{Functional Requirements}
+[List functional requirements:
+\begin{enumerate}
+    \item User authentication and authorization
+    \item Chat interface for user interactions
+    \item AI agent processing and response generation
+    \item Integration with Google services (Gmail, Calendar, Docs, Drive)
+    \item File upload and document management
+    \item Memory management for conversation context
+    \item Web search capabilities
+    \item Stock market information retrieval
+    \item Vision capabilities for image processing
+\end{enumerate}]
+
+\subsection{Non-Functional Requirements}
+[List non-functional requirements:
+\begin{enumerate}
+    \item Performance: Response time < 2 seconds
+    \item Security: Encrypted data storage and secure authentication
+    \item Scalability: Support for multiple concurrent users
+    \item Reliability: 99\% uptime
+    \item Usability: Intuitive user interface
+    \item Maintainability: Modular code architecture
+\end{enumerate}]
+
+\section{List of Hardware \& Software Requirements}
+
+\subsection{Hardware Requirements}
+[Specify hardware requirements:
+\begin{itemize}
+    \item Processor: Intel Core i5 or equivalent (minimum)
+    \item RAM: 8 GB (minimum), 16 GB (recommended)
+    \item Storage: 20 GB free space
+    \item Network: Stable internet connection
+\end{itemize}]
+
+\subsection{Software Requirements}
+[Specify software requirements:
+\begin{itemize}
+    \item Operating System: Windows 10/11, macOS, or Linux
+    \item Runtime: Bun >= 1.0.0
+    \item Database: PostgreSQL
+    \item Node.js: Version 18+ (optional)
+    \item Browser: Chrome, Firefox, Safari (latest versions)
+    \item Development Tools: VS Code or similar IDE
+    \item Version Control: Git
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}
+    \item Backend: TypeScript, Bun, Express, Prisma ORM
+    \item Frontend: React, Vite, TypeScript, Zustand, shadcn/ui
+    \item AI/ML: LangChain, Google Gemini API
+    \item APIs: Google OAuth, Gmail API, Calendar API, Drive API
+\end{itemize}]
+
+\section{System Architecture}
+[Describe the overall system architecture. Include:
+\begin{itemize}
+    \item Three-tier architecture diagram
+    \item Client-Server communication flow
+    \item Database schema overview
+    \item AI agent architecture
+    \item Integration layer for external services
+\end{itemize}
+
+Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{architecture_diagram}
+\caption{System Architecture of Kuma AI Assistant}
+\label{fig:architecture}
+\end{figure}
+
+\section{Data Flow Diagrams}
+
+\subsection{Level 0 DFD - Context Diagram}
+[Describe the context-level data flow showing the system as a single process with external entities (User, Google Services, AI APIs)]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{dfd_level0}
+\caption{Context Diagram (Level 0 DFD)}
+\label{fig:dfd0}
+\end{figure}
+
+\subsection{Level 1 DFD}
+[Describe the Level 1 DFD showing major processes: Authentication, Chat Management, Agent Processing, File Management, Integration Services]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{dfd_level1}
+\caption{Level 1 Data Flow Diagram}
+\label{fig:dfd1}
+\end{figure}
+
+\subsection{Level 2 DFD - Agent Processing}
+[Describe detailed data flow within the agent processing module]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{dfd_level2}
+\caption{Level 2 DFD - Agent Processing Module}
+\label{fig:dfd2}
+\end{figure}
+
+\section{Algorithms}
+
+\subsection{Chat Processing Algorithm}
+[Describe the algorithm for processing user queries:
+\begin{enumerate}
+    \item Receive user input
+    \item Authenticate user session
+    \item Retrieve conversation context from memory
+    \item Select appropriate agent based on query type
+    \item Process query using LangChain agent
+    \item Generate response using Gemini AI
+    \item Update conversation memory
+    \item Return response to user
+\end{enumerate}]
+
+\subsection{Agent Selection Algorithm}
+[Describe how the system selects the appropriate agent for a given task]
+
+\subsection{Memory Management Algorithm}
+[Describe the algorithm for managing conversation context and history]
+
+\subsection{OAuth Authentication Flow}
+[Describe the OAuth 2.0 authentication flow for Google services integration]
+
+% ==================== CHAPTER 4: IMPLEMENTATION DETAILS ====================
+\chapter{Implementation Details}
+
+\section{Backend Implementation}
+
+\subsection{Project Setup}
+[Describe the backend setup using Bun, TypeScript, and Express. Include package installation, configuration, and project structure.]
+
+\subsection{Database Design}
+[Describe the Prisma schema, database tables, relationships, and migrations. Include the schema for:
+\begin{itemize}
+    \item User table
+    \item Chat table
+    \item Message table
+    \item Agent table
+    \item Document table
+    \item Memory table
+\end{itemize}]
+
+\subsection{API Endpoints}
+[Document all API endpoints:
+\begin{itemize}
+    \item Authentication routes (/auth)
+    \item Chat routes (/chat)
+    \item Agent routes (/agents)
+    \item Document routes (/documents)
+    \item Upload routes (/upload)
+    \item App integration routes (/apps)
+\end{itemize}]
+
+\subsection{AI Integration}
+[Describe the implementation of:
+\begin{itemize}
+    \item LangChain agent configuration
+    \item Google Gemini API integration
+    \item Custom tool development
+    \item Prompt engineering
+    \item Memory management using LangChain
+\end{itemize}]
+
+\subsection{Google Services Integration}
+[Describe the implementation of:
+\begin{itemize}
+    \item Gmail API integration
+    \item Google Calendar integration
+    \item Google Docs integration
+    \item Google Drive integration
+    \item OAuth 2.0 authentication flow
+\end{itemize}]
+
+\section{Frontend Implementation}
+
+\subsection{Project Setup}
+[Describe the frontend setup using React, Vite, and TypeScript. Include component structure and routing.]
+
+\subsection{State Management}
+[Describe Zustand store implementation for managing application state]
+
+\subsection{UI Components}
+[Describe the implementation of key UI components:
+\begin{itemize}
+    \item Chat interface
+    \item Message bubbles
+    \item File upload component
+    \item Authentication forms
+    \item Navigation menu
+    \item Settings panel
+\end{itemize}]
+
+\subsection{API Integration}
+[Describe how the frontend communicates with the backend API, including error handling and loading states]
+
+\section{Security Implementation}
+[Describe security measures:
+\begin{itemize}
+    \item JWT-based authentication
+    \item Data encryption
+    \item CORS configuration
+    \item Input validation and sanitization
+    \item Secure API key management
+\end{itemize}]
+
+\section{Code Snippets}
+[Include relevant code snippets for key implementations]
+
+% ==================== CHAPTER 5: RESULTS ====================
+\chapter{Results}
+
+\section{Screenshots}
+
+[Include screenshots of:
+\begin{itemize}
+    \item Login/Registration page
+    \item Main chat interface
+    \item AI agent responses
+    \item File upload functionality
+    \item Google service integrations
+    \item Settings page
+    \item Mobile responsive views
+\end{itemize}
+
+Example reference:]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{screenshot_chat}
+\caption{Main Chat Interface}
+\label{fig:chat}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{screenshot_gmail}
+\caption{Gmail Integration}
+\label{fig:gmail}
+\end{figure}
+
+\section{Analysis}
+
+\subsection{Performance Metrics}
+[Present performance analysis with tables and graphs:
+\begin{itemize}
+    \item Response time measurements
+    \item API latency
+    \item Database query performance
+    \item Memory usage
+    \item Concurrent user handling
+\end{itemize}]
+
+\begin{table}[h]
+\centering
+\caption{Performance Metrics}
+\label{tab:performance}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{Minimum} & \textbf{Average} & \textbf{Maximum} \\ \hline
+Response Time (ms) & & & \\ \hline
+API Latency (ms) & & & \\ \hline
+Memory Usage (MB) & & & \\ \hline
+Concurrent Users & & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Comparison with Existing Systems}
+[Compare Kuma with existing AI assistants]
+
+\begin{table}[h]
+\centering
+\caption{Comparison with Existing AI Assistants}
+\label{tab:comparison}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Feature} & \textbf{Kuma} & \textbf{Google Assistant} & \textbf{Siri} & \textbf{Alexa} \\ \hline
+Custom Agents & Yes & No & No & Limited \\ \hline
+Gmail Integration & Yes & Yes & No & No \\ \hline
+Calendar Integration & Yes & Yes & Yes & Yes \\ \hline
+Document Management & Yes & Limited & Limited & No \\ \hline
+Open Source & Yes & No & No & No \\ \hline
+Customizable & Yes & No & No & Limited \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Testing Results}
+[Present results from:
+\begin{itemize}
+    \item Unit testing
+    \item Integration testing
+    \item User acceptance testing
+    \item Performance testing
+\end{itemize}]
+
+\subsection{User Feedback}
+[If applicable, include user feedback and satisfaction metrics]
+
+% ==================== CHAPTER 6: CONCLUSION ====================
+\chapter{Conclusion \& Future Enhancement}
+
+\section{Conclusion}
+[Summarize the project achievements:
+\begin{itemize}
+    \item Successfully developed an AI-powered personal assistant
+    \item Implemented multi-agent architecture using LangChain
+    \item Integrated multiple Google services seamlessly
+    \item Created a responsive and user-friendly interface
+    \item Achieved performance goals and security requirements
+\end{itemize}
+
+Highlight the contributions and learning outcomes from the project.]
+
+\section{Future Enhancement}
+[Discuss potential future improvements:
+\begin{itemize}
+    \item Support for additional service integrations (Slack, Microsoft Office)
+    \item Voice input and output capabilities
+    \item Mobile application development
+    \item Advanced natural language processing
+    \item Personalized agent training based on user behavior
+    \item Multi-language support
+    \item Collaborative features for team usage
+    \item Enhanced security with biometric authentication
+    \item Integration with IoT devices
+    \item Offline mode capabilities
+\end{itemize}]
+
+% ==================== BIBLIOGRAPHY ====================
+\addcontentsline{toc}{chapter}{Bibliography}
+
+\begin{thebibliography}{99}
+
+\bibitem{langchain}
+LangChain Documentation,
+\textit{"LangChain: Building applications with LLMs through composability"},
+\texttt{https://langchain.com/docs}, 2024.
+
+\bibitem{gemini}
+Google DeepMind,
+\textit{"Gemini: A Family of Highly Capable Multimodal Models"},
+arXiv preprint, 2023.
+
+\bibitem{react}
+Meta Open Source,
+\textit{"React: A JavaScript library for building user interfaces"},
+\texttt{https://react.dev}, 2024.
+
+\bibitem{typescript}
+Microsoft Corporation,
+\textit{"TypeScript: JavaScript with syntax for types"},
+\texttt{https://www.typescriptlang.org}, 2024.
+
+\bibitem{prisma}
+Prisma Data, Inc.,
+\textit{"Prisma: Next-generation Node.js and TypeScript ORM"},
+\texttt{https://www.prisma.io}, 2024.
+
+\bibitem{oauth}
+IETF OAuth Working Group,
+\textit{"The OAuth 2.0 Authorization Framework"},
+RFC 6749, October 2012.
+
+% Add more references as needed
+
+\end{thebibliography}
+
+% ==================== APPENDICES ====================
+\begin{appendices}
+\chapter{Sustainable Development Goals addressed}
+{\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline 
+{\#}&{\bf SDG} & {\bf Level} \\ \hline
+1&No Poverty &  \\ \hline
+2&Zero Hunger & \\ \hline
+3&Good Health and Well-being& \\\hline
+4&Quality education &  \\ \hline
+5&Gender Quality & \\ \hline
+6&Clean water and Sanitation & \\\hline
+7&Affordable and Clean Energy & \\ \hline
+8&Decent work and Economic Growth & \\ \hline
+9&Industry, Innovation and Infrastructure& \\ \hline
+10&Reduced Inequalities& \\ \hline
+11&Sustainable cities and Communities& \\ \hline
+12&Responsible Consumption and production& \\ \hline
+13&Climate action& \\ \hline
+14&Life below water& \\ \hline
+15&Life on Land & \\ \hline
+16&Peace, Justice and Strong Institutions& \\ \hline
+17&Partnership's for the Goals &\\  \hline
+\end{tabular}
+%    \caption{Caption}
+%    \label{tab:my_label}
+\end{table}}
+ \\ {\bf Levels: Poor:1, Good :2, Excellent:3}
+ 
+\chapter{Self-Assesment of the Project}
+{\begin{table}[h]
+%\centering
+\begin{tabular}{|c|c|c|c|}
+\hline 
+{\#}&{\bf PO and PSO} & {\bf Contribution from the Project}&{\bf Level} \\ \hline
+1&Engineering Knowledge:
+ & & \\ \hline
+2&Problem Analysis:&&\\ \hline
+3&Design/development of solutions &&\\ \hline
+4&Conduct investigations of complex problems: &&\\ \hline
+5&
+Modern tool usage: &&\\ \hline
+6&The Engineer and the world:
+&&\\ \hline
+7&
+Ethics: &&\\ \hline
+8&
+Individual and Team Work: &&\\ \hline
+9&
+Communication:&&\\ \hline
+10&
+Project Management and Finance:&&\\ \hline
+11&
+Life-long Learning: &&\\ \hline
+1&
+PSO1 &&\\ \hline
+2&
+PSO2&&\\ \hline
+3&PSO3  &&\\ \hline
+\end{tabular}
+%    \caption{Caption}
+%    \label{tab:my_label}
+\end{table}}
+\textbf{PSO1: Computer based systems development:} Ability to apply the basic knowledge of database systems, computing, operating system, digital circuits, microcontroller, computer organization and architecture in the design of computer based systems.\\
+\textbf{PSO2: Software development:} Ability to specify, design and develop projects, application softwares and system softwares by using the knowledge of data structures, analysis and design of algorithm, programming languages, software engineering practices and open source tools.\\
+\textbf{PSO3: Computer communications \\ and Internet applications:} Ability to design and develop network protocols and internet applications by incorporating the knowledge of computer networks, communication protocol engineering, cryptography and network security,   distributed and cloud computing, data mining, big data analytics, ad hoc networks, storage area networks and wireless sensor networks. 
+ \\ {\bf Levels: Poor:1, Good :2, Excellent:3}
+
+\chapter{Data Sheet of component 1 }
+
+{\large \textbf{Note: Only include relevant details of the components that are referred w.r.t. project.}}
+
+%% As the data sheets are not edited, to update page number on next appendix i.e., Data Sheet of component 2 use this instruction
+
+\chapter{Data Sheet of component 2}
+\setcounter{page}{20}
+
+%% in this, {20}, the no. of pages in Data Sheet of component 1 are 5
+
+%% Enable the above command and in place of {30}, replace with a number that is appropriate.
+%% For e.g., Page No. on  Appendix A: Data Sheet of component 1 is 25 and it has 7 sheets.
+%% Now replace {30} with {25+7+1} or {33}, this +1 is because Appendix B is a new page and needs to be counted.
+ 
+%% Do it for further Appendix, if any
+\end{appendices}
+
+\end{document}
