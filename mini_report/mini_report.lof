@@ -8,16 +8,16 @@
 \contentsline {figure}{\numberline {3.4}{\ignorespaces Docker Deployment Architecture}}{9}{}%
 \contentsline {figure}{\numberline {3.5}{\ignorespaces Context Diagram (Level 0 DFD)}}{10}{}%
 \contentsline {figure}{\numberline {3.6}{\ignorespaces Level 1 Data Flow Diagram}}{10}{}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Level 2 DFD - Agent Processing Module}}{11}{}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Level 2 DFD - Agent Processing Module}}{10}{}%
 \contentsline {figure}{\numberline {3.8}{\ignorespaces Level 2 DFD - Voice Processing Module}}{11}{}%
 \contentsline {figure}{\numberline {3.9}{\ignorespaces Level 2 DFD - Image Processing Module}}{11}{}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Main Chat Interface}}{22}{}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Voice Interaction Interface}}{22}{}%
-\contentsline {figure}{\numberline {5.3}{\ignorespaces Image Analysis Results}}{23}{}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Gmail Integration}}{23}{}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Docker Container Dashboard}}{24}{}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Main Chat Interface}}{21}{}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Voice Interaction Interface}}{21}{}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Image Analysis Results}}{21}{}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Gmail Integration}}{22}{}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Docker Container Dashboard}}{22}{}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

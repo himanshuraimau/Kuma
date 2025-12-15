@@ -1,0 +1,83 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                  KUMA MINI REPORT - QUICK REFERENCE              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 LOCATION
+  /home/himanshu/Desktop/Kuma/mini_report/
+
+🚀 QUICK BUILD COMMANDS
+  
+  Build (recommended):
+    ./build.sh latexmk
+  
+  Build (manual):
+    ./build.sh build
+  
+  View PDF:
+    ./build.sh view
+  
+  Watch mode (auto-rebuild):
+    ./build.sh watch
+  
+  Clean files:
+    ./build.sh clean
+
+📝 MANUAL BUILD (if script doesn't work)
+  
+  cd /home/himanshu/Desktop/Kuma/mini_report
+  pdflatex mini_report.tex
+  pdflatex mini_report.tex
+  pdflatex mini_report.tex
+  xdg-open mini_report.pdf
+
+🔧 TROUBLESHOOTING
+
+  Problem: Build fails
+  Solution: ./build.sh clean && ./build.sh latexmk
+  
+  Problem: PDF not opening
+  Solution: xdg-open mini_report.pdf
+  
+  Problem: Permission denied
+  Solution: chmod +x build.sh
+
+📊 DOCUMENT STATUS
+  
+  ✅ Template structure complete (44 pages)
+  ✅ All chapters and sections defined
+  ✅ Bibliography and appendices included
+  ⚠️  Content placeholders need to be filled
+  ⚠️  Diagrams need to be created and added
+  ⚠️  Screenshots need to be captured
+  ⚠️  Performance metrics need to be measured
+
+📋 WHAT TO FILL IN
+
+  1. Abstract (3 paragraphs)
+  2. Chapter 1: Introduction
+  3. Chapter 2: Literature Survey
+  4. Chapter 3: System Design (add diagrams)
+  5. Chapter 4: Implementation (add code snippets)
+  6. Chapter 5: Results (add screenshots & metrics)
+  7. Chapter 6: Conclusion
+
+🎯 TEAM INFO
+  
+  Team Members:
+    - Suraj Kumar (1SI23AD057)
+    - Himanshu Rai (1SI23AD016)
+    - Aditya Raj (1SI23CS008)
+  
+  Guide: Dr. Sheela S
+  Institution: SIT, Tumakuru
+  Year: 2025-26
+
+📚 HELP & DOCUMENTATION
+  
+  Detailed Guide: BUILD_GUIDE.md
+  Project Info: README.md
+  LaTeX Help: https://www.overleaf.com/learn
+
+╔══════════════════════════════════════════════════════════════════╗
+║  TIP: Run './build.sh help' for all available options            ║
+╚══════════════════════════════════════════════════════════════════╝

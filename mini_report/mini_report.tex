@@ -30,12 +30,48 @@
 \usepackage[autostyle, english = american]{csquotes}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{tocloft}
+\usepackage{setspace}
+
+% ==================== TOC FORMATTING ====================
+% TOC title
+\renewcommand{\contentsname}{Contents}
+
+% Spacing between entries
+\setlength{\cftbeforechapskip}{6pt}
+\setlength{\cftbeforesecskip}{2pt}
+\setlength{\cftbeforesubsecskip}{1pt}
+
+% Dotted leaders for all levels
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
+
+% Fonts - bold chapters, normal sections
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftsecfont}{}
+\renewcommand{\cftsubsecfont}{}
+
+\renewcommand{\cftchappagefont}{\bfseries}
+\renewcommand{\cftsecpagefont}{}
+\renewcommand{\cftsubsecpagefont}{}
+
+% Indentation
+\setlength{\cftchapindent}{0pt}
+\setlength{\cftsecindent}{1.5em}
+\setlength{\cftsubsecindent}{3em}
+
+% Number width
+\setlength{\cftchapnumwidth}{2.5em}
+\setlength{\cftsecnumwidth}{3.2em}
+\setlength{\cftsubsecnumwidth}{4em}
 
 \MakeOuterQuote{"}
 
 % Page layout settings
 \setlength{\voffset}{-0.75in}
 \setlength{\headsep}{10pt}
+\setlength{\headheight}{14.5pt}
 \setlength{\parindent}{0cm}
 
 % Title formatting
@@ -227,8 +263,9 @@ CO-11 &  &  &  &  &  &  &  & 3 &  &  &   &  & 3  & \\ \hline
 \end{table}
 
 \vspace{10px}
-\\Attainment level: - 1: Slight (low) 2: Moderate (medium)	3: Substantial (high)
-\\POs: PO1: Engineering Knowledge, PO2: Problem analysis, PO3: Design/Development of solutions, PO4: Conduct investigations of complex problems, PO5: Engineering tool usage, PO6: Engineer and the world, PO7: Ethics, PO8: Individual and collaborative team work, PO9: Communication, PO10: Project management and finance, PO11: Lifelong learning\\PSO1:Computer based systems development,PSO2:Software development,PSO3:Computer Communications and Internet applications
+Attainment level: - 1: Slight (low) 2: Moderate (medium)	3: Substantial (high)
+POs: PO1: Engineering Knowledge, PO2: Problem analysis, PO3: Design/Development of solutions, PO4: Conduct investigations of complex problems, PO5: Engineering tool usage, PO6: Engineer and the world, PO7: Ethics, PO8: Individual and collaborative team work, PO9: Communication, PO10: Project management and finance, PO11: Lifelong learning
+PSO1:Computer based systems development,PSO2:Software development,PSO3:Computer Communications and Internet applications
 \end{titlepage}
 
 % ==================== ABSTRACT ====================
@@ -248,10 +285,12 @@ CO-11 &  &  &  &  &  &  &  & 3 &  &  &   &  & 3  & \\ \hline
 \pagenumbering{roman}
 \tableofcontents
 \thispagestyle{empty}
+\clearpage
 
 % ==================== LIST OF FIGURES ====================
 \listoffigures
 \addcontentsline{toc}{chapter}{\numberline{}List of Figures}
+\clearpage
 
 % ==================== LIST OF TABLES ====================
 \listoftables
@@ -1111,7 +1150,7 @@ NeurIPS 2017.
 %    \caption{Caption}
 %    \label{tab:my_label}
 \end{table}}
- \\ {\bf Levels: Poor:1, Good :2, Excellent:3}
+{\bf Levels: Poor:1, Good :2, Excellent:3}
  
 \chapter{Self-Assesment of the Project}
 {\begin{table}[h]
