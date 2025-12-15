@@ -18,7 +18,7 @@ export const CTASection = () => {
                 </h2>
 
                 <p className="text-lg text-zinc-400 mb-10 leading-relaxed max-w-xl mx-auto">
-                    Join thousands of professionals using Kuma to enhance their productivity.
+                    Join thousands of professionals using kuma-ai to enhance their productivity.
                 </p>
 
                 <div className="flex flex-col items-center gap-6">

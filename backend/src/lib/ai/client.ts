@@ -1,10 +1,10 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
 
 /**
- * Google Generative AI client for Vercel AI SDK
+ * OpenAI client for Vercel AI SDK
  */
-export const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_API_KEY!,
+export const openai = createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY!,
 });
 
 /**
@@ -13,8 +13,8 @@ export const google = createGoogleGenerativeAI({
  * - pro: For deep tasks, research, complex reasoning
  */
 export const models = {
-    fast: google('gemini-2.5-flash'),
-    pro: google('gemini-2.5-pro'),
+    fast: openai('gpt-4o-mini'),
+    pro: openai('gpt-4o'),
 };
 
 /**

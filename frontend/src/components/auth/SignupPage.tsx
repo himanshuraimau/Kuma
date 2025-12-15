@@ -105,6 +105,8 @@ export const SignupPage = () => {
                 email: formData.email,
                 password: formData.password,
             });
+            // Small delay to ensure auth state is set before navigation
+            await new Promise(resolve => setTimeout(resolve, 100));
             // Navigate to chat dashboard on success
             navigate('/chat');
         } catch (error) {

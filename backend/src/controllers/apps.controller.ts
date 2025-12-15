@@ -19,12 +19,12 @@ export async function getApps(req: Request, res: Response) {
         const availableApps = appRegistry.getAll();
 
         // Get user's connected apps
-        const userApps = await prisma.userApp.findMany({
+        const userApps = await prisma.user_apps.findMany({
             where: { userId, isConnected: true },
-            include: { app: true },
+            include: { apps: true },
         });
 
-        const userAppMap = new Map(userApps.map((ua) => [ua.app.name, ua]));
+        const userAppMap = new Map(userApps.map((ua) => [ua.apps.name, ua]));
 
         // Combine data
         const apps = availableApps.map((app) => ({
@@ -58,17 +58,17 @@ export async function getConnectedApps(req: Request, res: Response) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const userApps = await prisma.userApp.findMany({
+        const userApps = await prisma.user_apps.findMany({
             where: { userId, isConnected: true },
-            include: { app: true },
+            include: { apps: true },
         });
 
         const apps = userApps.map((ua) => {
-            const app = appRegistry.get(ua.app.name);
+            const app = appRegistry.get(ua.apps.name);
             return {
                 id: ua.id,
-                appName: ua.app.name,
-                displayName: ua.app.displayName,
+                appName: ua.apps.name,
+                displayName: ua.apps.displayName,
                 icon: app?.icon || '📦',
                 connectedAt: ua.createdAt,
                 metadata: ua.metadata,
@@ -181,16 +181,16 @@ export async function getAvailableTools(req: Request, res: Response) {
         }
 
         // Get user's connected apps
-        const userApps = await prisma.userApp.findMany({
+        const userApps = await prisma.user_apps.findMany({
             where: { userId, isConnected: true },
-            include: { app: true },
+            include: { apps: true },
         });
 
         // Get tools from connected apps using new AI SDK tool loaders
         const tools: any[] = [];
 
         for (const userApp of userApps) {
-            const appName = userApp.app.name;
+            const appName = userApp.apps.name;
             try {
                 let appTools: Record<string, any> = {};
 

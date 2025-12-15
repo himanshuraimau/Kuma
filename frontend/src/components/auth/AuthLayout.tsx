@@ -20,7 +20,7 @@ export const AuthLayout = ({
 
                         <img src="/logo.png" alt="Logo" className="w-6 h-6" />
 
-                        <span className="text-xl font-bold tracking-tight text-white">Kuma</span>
+                        <span className="text-xl font-bold tracking-tight text-white">kuma-ai</span>
                     </Link>
 
                     {/* Nav Link */}

@@ -83,8 +83,8 @@ export const DashboardSidebar = () => {
                 {state === 'expanded' ? (
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <img src="/logo.png" alt="Kuma" className="w-8 h-8 shrink-0" />
-                            <span className="text-zinc-100 font-semibold text-lg tracking-tight animate-in fade-in duration-300">Kuma</span>
+                            <img src="/logo.png" alt="kuma-ai" className="w-8 h-8 shrink-0" />
+                            <span className="text-zinc-100 font-semibold text-lg tracking-tight animate-in fade-in duration-300">kuma-ai</span>
                         </div>
                         <SidebarTrigger className="text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors" />
                     </div>
@@ -97,7 +97,7 @@ export const DashboardSidebar = () => {
                         >
                             <img
                                 src="/logo.png"
-                                alt="Kuma"
+                                alt="kuma-ai"
                                 className="w-8 absolute inset-0 transition-opacity duration-200 group-hover/trigger:opacity-0"
                             />
                             <PanelLeft className="w-5 h-5 text-zinc-400 absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover/trigger:opacity-100" />

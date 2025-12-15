@@ -7,11 +7,11 @@ import type { AgentConfig } from './types';
  */
 export const routerAgentConfig: AgentConfig = {
     name: 'router',
-    displayName: 'Kuma Assistant',
+    displayName: 'kuma-ai Assistant',
     description: 'Your intelligent AI assistant for research, finance, vision analysis, and more',
     modelType: 'fast',
 
-    systemPrompt: `You are Kuma, a versatile and intelligent AI assistant with multiple specialized capabilities.
+    systemPrompt: `You are kuma-ai, a versatile and intelligent AI assistant with multiple specialized capabilities.
 
 ⚠️ MANDATORY FIRST ACTION - CHECK AND USE PERSONAL INFO:
 

@@ -97,7 +97,7 @@ export const ExperienceSection = () => {
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="text-center mb-24 space-y-4">
                     <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">Built for Your Day-to-Day</h2>
-                    <p className="text-xl text-zinc-400 max-w-2xl mx-auto">From morning planning to evening reflection, Kuma adapts to your rhythm.</p>
+                    <p className="text-xl text-zinc-400 max-w-2xl mx-auto">From morning planning to evening reflection, kuma-ai adapts to your rhythm.</p>
                 </div>
                 <div className="space-y-32">
                     {useCases.map((useCase, index) => (

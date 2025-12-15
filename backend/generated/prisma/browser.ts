@@ -62,3 +62,8 @@ export type UserApp = Prisma.UserAppModel
  * 
  */
 export type Document = Prisma.DocumentModel
+/**
+ * Model MessageJob
+ * 
+ */
+export type MessageJob = Prisma.MessageJobModel

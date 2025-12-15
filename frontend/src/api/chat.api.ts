@@ -15,6 +15,8 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
  */
 export interface StreamCallbacks {
     onChatId?: (chatId: string) => void;
+    onJobId?: (jobId: string) => void; // For Redis queue mode
+    onStatus?: (status: string, message?: string) => void; // For Redis queue status updates
     onChunk?: (content: string) => void;
     onToolCall?: (toolName: string, args: Record<string, unknown>) => void;
     onToolResult?: (toolName: string, success: boolean) => void;
@@ -101,6 +103,14 @@ export const streamMessage = async (
                         switch (data.type) {
                             case 'chat_id':
                                 callbacks.onChatId?.(data.chatId);
+                                break;
+                            case 'job_id':
+                                // Redis queue mode: message queued
+                                callbacks.onJobId?.(data.jobId);
+                                break;
+                            case 'status':
+                                // Redis queue status update
+                                callbacks.onStatus?.(data.status, data.message);
                                 break;
                             case 'chunk':
                                 callbacks.onChunk?.(data.content);

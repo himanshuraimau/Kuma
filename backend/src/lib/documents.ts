@@ -1,22 +1,19 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleGenAI } from '@google/genai';
+import { generateText } from 'ai';
+import { openai } from './ai/client';
 import { prisma } from '../db/prisma';
 import fs from 'fs/promises';
+import { createRequire } from 'module';
 
-// Use @google/generative-ai for content generation
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-// Use @google/genai for file management
-const genaiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 
 export interface DocumentUploadResult {
   documentId: string;
-  geminiFileUri: string;
-  geminiFileName: string;
   status: 'processing' | 'ready' | 'failed';
   fileSize: number;
   filename: string;
   displayName: string;
+  extractedText?: string;
 }
 
 export interface DocumentQueryResult {
@@ -31,13 +28,13 @@ export interface DocumentQueryResult {
 export interface DocumentAttachment {
   id: string;
   displayName: string;
-  geminiFileUri: string;
+  extractedText: string;
   pageCount: number | null;
   fileSize: number;
 }
 
 /**
- * Upload a PDF document to Gemini File API and save metadata to database
+ * Upload a PDF document and extract text for OpenAI processing
  */
 export async function uploadDocument(
   userId: string,
@@ -50,20 +47,29 @@ export async function uploadDocument(
     const stats = await fs.stat(filePath);
     const fileSize = stats.size;
 
-    // Upload to Gemini File API using @google/genai
-    const uploadResult = await genaiClient.files.upload({
-      file: filePath,
-      config: {
-        mimeType: 'application/pdf',
-        displayName: originalFilename,
-      },
-    });
+    // Read PDF file
+    const dataBuffer = await fs.readFile(filePath);
+    
+    // Extract text from PDF using pdf-parse
+    let extractedText = '';
+    let pageCount = 0;
+    let status: 'processing' | 'ready' | 'failed' = 'processing';
+    
+    try {
+      const pdfData = await pdfParse(dataBuffer);
+      extractedText = pdfData.text;
+      pageCount = pdfData.numpages;
+      status = 'ready';
+    } catch (error) {
+      console.error('Failed to extract PDF text:', error);
+      status = 'failed';
+    }
 
     // Create display name (remove .pdf extension)
     const displayName = originalFilename.replace(/\.pdf$/i, '');
 
-    // Save to database
-    const document = await prisma.document.create({
+    // Save to database with extracted text
+    const document = await prisma.documents.create({
       data: {
         userId,
         chatId: chatId || null,
@@ -71,43 +77,23 @@ export async function uploadDocument(
         displayName,
         mimeType: 'application/pdf',
         fileSize,
-        geminiFileUri: uploadResult.uri!,
-        geminiFileName: uploadResult.name!,
-        status: 'processing',
-        // Gemini files expire after 48 hours
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
-      },
-    });
-
-    // Check file status and wait if needed
-    let file = await genaiClient.files.get({ name: uploadResult.name! });
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    while (file.state === 'PROCESSING' && attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      file = await genaiClient.files.get({ name: uploadResult.name! });
-      attempts++;
-    }
-
-    // Update document status
-    const status = file.state === 'ACTIVE' ? 'ready' : file.state === 'FAILED' ? 'failed' : 'processing';
-    await prisma.document.update({
-      where: { id: document.id },
-      data: { 
+        geminiFileUri: '', // Keep for backward compatibility but not used
+        geminiFileName: '', // Keep for backward compatibility but not used
+        extractedText,
+        pageCount,
         status,
-        pageCount: file.state === 'ACTIVE' ? (file as any).videoMetadata?.videoDuration ? null : null : null,
+        // Documents don't expire since we're storing text locally
+        expiresAt: null,
       },
     });
 
     return {
       documentId: document.id,
-      geminiFileUri: uploadResult.uri!,
-      geminiFileName: uploadResult.name!,
       status,
       fileSize,
       filename: originalFilename,
       displayName,
+      extractedText: status === 'ready' ? extractedText : undefined,
     };
   } catch (error: any) {
     throw new Error(`Failed to upload document: ${error.message}`);
@@ -115,10 +101,10 @@ export async function uploadDocument(
 }
 
 /**
- * Generate a summary for a document
+ * Generate a summary for a document using OpenAI
  */
 export async function summarizeDocument(documentId: string): Promise<string> {
-  const document = await prisma.document.findUnique({
+  const document = await prisma.documents.findUnique({
     where: { id: documentId },
   });
 
@@ -130,39 +116,33 @@ export async function summarizeDocument(documentId: string): Promise<string> {
     throw new Error('Document is not ready for processing');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  if (!document.extractedText) {
+    throw new Error('Document text not available');
+  }
 
-  const result = await model.generateContent([
-    {
-      fileData: {
-        mimeType: document.mimeType,
-        fileUri: document.geminiFileUri,
-      },
-    },
-    {
-      text: 'Please provide a comprehensive summary of this document. Include the main topics, key points, and any important conclusions or recommendations.',
-    },
-  ]);
-
-  const summary = result.response.text();
-
-  // Save summary to database
-  await prisma.document.update({
-    where: { id: documentId },
-    data: { summary },
+  // Use OpenAI to generate summary
+  const { text } = await generateText({
+    model: openai('gpt-4o'),
+    prompt: `Please provide a comprehensive summary of this document. Include the main topics, key points, and any important conclusions or recommendations.\n\nDocument:\n${document.extractedText}`,
   });
 
-  return summary;
+  // Save summary to database
+  await prisma.documents.update({
+    where: { id: documentId },
+    data: { summary: text },
+  });
+
+  return text;
 }
 
 /**
- * Query a document with a specific question
+ * Query a document with a specific question using OpenAI
  */
 export async function queryDocument(
   documentId: string,
   question: string
 ): Promise<DocumentQueryResult> {
-  const document = await prisma.document.findUnique({
+  const document = await prisma.documents.findUnique({
     where: { id: documentId },
   });
 
@@ -174,26 +154,24 @@ export async function queryDocument(
     throw new Error('Document is not ready for processing');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  if (!document.extractedText) {
+    throw new Error('Document text not available');
+  }
 
-  const result = await model.generateContent([
-    {
-      fileData: {
-        mimeType: document.mimeType,
-        fileUri: document.geminiFileUri,
-      },
-    },
-    { text: question },
-  ]);
+  // Use OpenAI to answer the question
+  const { text } = await generateText({
+    model: openai('gpt-4o'),
+    prompt: `Based on the following document, answer this question: ${question}\n\nDocument:\n${document.extractedText}`,
+  });
 
   return {
-    answer: result.response.text(),
+    answer: text,
     documentName: document.displayName,
   };
 }
 
 /**
- * Compare multiple documents
+ * Compare multiple documents using OpenAI
  */
 export async function compareDocuments(
   documentIds: string[],
@@ -203,7 +181,7 @@ export async function compareDocuments(
     throw new Error('At least 2 documents are required for comparison');
   }
 
-  const documents = await prisma.document.findMany({
+  const documents = await prisma.documents.findMany({
     where: {
       id: { in: documentIds },
       status: 'ready',
@@ -214,27 +192,25 @@ export async function compareDocuments(
     throw new Error('Not enough ready documents found for comparison');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  // Combine all document texts
+  const combinedText = documents
+    .map((doc, idx) => `Document ${idx + 1} (${doc.displayName}):\n${doc.extractedText}`)
+    .join('\n\n---\n\n');
 
-  const parts = [
-    ...documents.map((doc) => ({
-      fileData: {
-        mimeType: doc.mimeType,
-        fileUri: doc.geminiFileUri,
-      },
-    })),
-    { text: comparisonPrompt },
-  ];
+  // Use OpenAI to compare documents
+  const { text } = await generateText({
+    model: openai('gpt-4o'),
+    prompt: `${comparisonPrompt}\n\n${combinedText}`,
+  });
 
-  const result = await model.generateContent(parts);
-  return result.response.text();
+  return text;
 }
 
 /**
- * Extract text from a document
+ * Extract text from a document (returns the already extracted text)
  */
 export async function extractDocumentText(documentId: string): Promise<string> {
-  const document = await prisma.document.findUnique({
+  const document = await prisma.documents.findUnique({
     where: { id: documentId },
   });
 
@@ -246,28 +222,18 @@ export async function extractDocumentText(documentId: string): Promise<string> {
     throw new Error('Document is not ready for processing');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  if (!document.extractedText) {
+    throw new Error('Document text not available');
+  }
 
-  const result = await model.generateContent([
-    {
-      fileData: {
-        mimeType: document.mimeType,
-        fileUri: document.geminiFileUri,
-      },
-    },
-    {
-      text: 'Extract all text from this document. Preserve formatting, structure, and organization as much as possible. Include headings, sections, and any important formatting.',
-    },
-  ]);
-
-  return result.response.text();
+  return document.extractedText;
 }
 
 /**
  * Get document by ID
  */
 export async function getDocument(documentId: string, userId: string) {
-  return prisma.document.findFirst({
+  return prisma.documents.findFirst({
     where: {
       id: documentId,
       userId,
@@ -279,7 +245,7 @@ export async function getDocument(documentId: string, userId: string) {
  * List user's documents
  */
 export async function listUserDocuments(userId: string, chatId?: string) {
-  return prisma.document.findMany({
+  return prisma.documents.findMany({
     where: {
       userId,
       ...(chatId && { chatId }),
@@ -294,7 +260,7 @@ export async function listUserDocuments(userId: string, chatId?: string) {
  * Delete a document
  */
 export async function deleteDocument(documentId: string, userId: string): Promise<void> {
-  const document = await prisma.document.findFirst({
+  const document = await prisma.documents.findFirst({
     where: {
       id: documentId,
       userId,
@@ -305,43 +271,34 @@ export async function deleteDocument(documentId: string, userId: string): Promis
     throw new Error('Document not found');
   }
 
-  // Delete from Gemini File API
-  try {
-    await genaiClient.files.delete({ name: document.geminiFileName });
-  } catch (error) {
-    console.error('Failed to delete file from Gemini:', error);
-    // Continue anyway to clean up database
-  }
-
-  // Delete from database
-  await prisma.document.delete({
+  // Delete from database (no need to delete from external API)
+  await prisma.documents.delete({
     where: { id: documentId },
   });
 }
 
 /**
- * Clean up expired documents
+ * Clean up expired documents (no longer needed since we don't have expiring external files)
  */
 export async function cleanupExpiredDocuments(): Promise<number> {
-  const expiredDocs = await prisma.document.findMany({
+  // With OpenAI, documents don't expire, but we can still clean up old ones if needed
+  const expiredDocs = await prisma.documents.findMany({
     where: {
       expiresAt: {
+        not: null,
         lt: new Date(),
       },
     },
   });
 
-  for (const doc of expiredDocs) {
-    try {
-      await genaiClient.files.delete({ name: doc.geminiFileName });
-    } catch (error) {
-      console.error(`Failed to delete expired file ${doc.geminiFileName}:`, error);
-    }
+  if (expiredDocs.length === 0) {
+    return 0;
   }
 
-  const result = await prisma.document.deleteMany({
+  const result = await prisma.documents.deleteMany({
     where: {
       expiresAt: {
+        not: null,
         lt: new Date(),
       },
     },
@@ -357,7 +314,7 @@ export function toDocumentAttachment(document: any): DocumentAttachment {
   return {
     id: document.id,
     displayName: document.displayName,
-    geminiFileUri: document.geminiFileUri,
+    extractedText: document.extractedText || '',
     pageCount: document.pageCount,
     fileSize: document.fileSize,
   };
@@ -370,7 +327,7 @@ export async function getDocumentAttachments(
   documentIds: string[],
   userId: string
 ): Promise<DocumentAttachment[]> {
-  const documents = await prisma.document.findMany({
+  const documents = await prisma.documents.findMany({
     where: {
       id: { in: documentIds },
       userId,
@@ -382,29 +339,20 @@ export async function getDocumentAttachments(
 }
 
 /**
- * Build multimodal parts for Gemini API with documents
- * Combines text and document file references
+ * Build context for OpenAI with documents
+ * Combines text with document contents
  */
-export function buildDocumentParts(
-  text: string,
+export function buildDocumentContext(
+  userMessage: string,
   documentAttachments: DocumentAttachment[]
-): any[] {
-  const parts: any[] = [];
-  
-  // Add document parts first (as file URIs)
-  for (const doc of documentAttachments) {
-    parts.push({
-      fileData: {
-        mimeType: 'application/pdf',
-        fileUri: doc.geminiFileUri,
-      },
-    });
+): string {
+  if (documentAttachments.length === 0) {
+    return userMessage;
   }
-  
-  // Add text part last
-  if (text && text.trim()) {
-    parts.push({ text: text.trim() });
-  }
-  
-  return parts;
+
+  const documentContext = documentAttachments
+    .map((doc) => `[Document: ${doc.displayName}]\n${doc.extractedText}`)
+    .join('\n\n---\n\n');
+
+  return `${documentContext}\n\n---\n\nUser question: ${userMessage}`;
 }

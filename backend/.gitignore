@@ -1,6 +1,6 @@
 # Prisma
-
 prisma/.env
+generated/
 
 # Dependencies
 node_modules

@@ -1,12 +1,11 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateText } from 'ai';
+import { openai } from './ai/client';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import type { ImageAttachment } from './storage';
 import { getChatImageBase64 } from './storage';
 import type { DocumentAttachment } from './documents';
-import { buildDocumentParts } from './documents';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+import { buildDocumentContext } from './documents';
 
 export interface VisionAnalysisResult {
     description: string;
@@ -15,20 +14,7 @@ export interface VisionAnalysisResult {
 }
 
 /**
- * Convert image file to base64
- */
-async function fileToGenerativePart(filepath: string, mimeType: string) {
-    const data = await fs.readFile(filepath);
-    return {
-        inlineData: {
-            data: data.toString('base64'),
-            mimeType,
-        },
-    };
-}
-
-/**
- * Analyze image with Gemini Vision
+ * Analyze image with OpenAI Vision (GPT-4o)
  */
 export async function analyzeImage(
     filepath: string,
@@ -40,17 +26,28 @@ export async function analyzeImage(
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
-        const imagePart = await fileToGenerativePart(filepath, mimeType);
+        // Read image and convert to base64
+        const imageBuffer = await fs.readFile(filepath);
+        const base64Image = imageBuffer.toString('base64');
+        const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = result.response;
-        const text = response.text();
+        const { text } = await generateText({
+            model: openai('gpt-4o'),
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: prompt },
+                        { type: 'image', image: dataUrl },
+                    ],
+                },
+            ],
+        });
 
         return {
             description: text,
             metadata: {
-                model: 'gemini-2.5-pro',
+                model: 'gpt-4o',
                 timestamp: new Date().toISOString(),
             },
         };
@@ -102,38 +99,26 @@ export async function answerImageQuestion(
 }
 
 /**
- * Build multimodal content parts for Gemini API
- * Combines text and images in the format Gemini expects
+ * Build image content for OpenAI messages format
  */
-export async function buildMultimodalParts(
-    text: string,
+async function buildImageContent(
     chatId: string,
     imageAttachments: ImageAttachment[]
-): Promise<any[]> {
-    const parts: any[] = [];
+): Promise<Array<{ type: 'image'; image: string }>> {
+    const imageContent: Array<{ type: 'image'; image: string }> = [];
     
-    // Add text part first
-    if (text && text.trim()) {
-        parts.push({ text: text.trim() });
-    }
-    
-    // Add image parts
     for (const attachment of imageAttachments) {
         const base64Data = await getChatImageBase64(chatId, attachment.filename);
-        parts.push({
-            inlineData: {
-                mimeType: attachment.mimetype,
-                data: base64Data,
-            },
-        });
+        const dataUrl = `data:${attachment.mimetype};base64,${base64Data}`;
+        imageContent.push({ type: 'image', image: dataUrl });
     }
     
-    return parts;
+    return imageContent;
 }
 
 /**
  * Generate content with multimodal input (text + images)
- * Uses Gemini API directly for streaming support with images
+ * Uses OpenAI GPT-4o for vision capabilities
  */
 export async function generateMultimodalContent(options: {
     prompt: string;
@@ -141,15 +126,23 @@ export async function generateMultimodalContent(options: {
     imageAttachments: ImageAttachment[];
     model?: string;
 }): Promise<VisionAnalysisResult> {
-    const { prompt, chatId, imageAttachments, model = 'gemini-2.5-pro' } = options;
+    const { prompt, chatId, imageAttachments, model = 'gpt-4o' } = options;
     
     try {
-        const genModel = genAI.getGenerativeModel({ model });
-        const parts = await buildMultimodalParts(prompt, chatId, imageAttachments);
+        const imageContent = await buildImageContent(chatId, imageAttachments);
         
-        const result = await genModel.generateContent(parts);
-        const response = result.response;
-        const text = response.text();
+        const { text } = await generateText({
+            model: openai(model),
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: prompt },
+                        ...imageContent,
+                    ],
+                },
+            ],
+        });
         
         return {
             description: text,
@@ -166,7 +159,7 @@ export async function generateMultimodalContent(options: {
 
 /**
  * Stream multimodal content (text + images + documents)
- * Uses Gemini API streaming for real-time responses
+ * Uses OpenAI GPT-4o for streaming responses with vision
  */
 export async function streamMultimodalContent(options: {
     prompt: string;
@@ -176,32 +169,44 @@ export async function streamMultimodalContent(options: {
     model?: string;
     onChunk: (chunk: string) => void;
 }): Promise<string> {
-    const { prompt, chatId, imageAttachments, documentAttachments, model = 'gemini-2.5-pro', onChunk } = options;
+    const { prompt, chatId, imageAttachments, documentAttachments, model = 'gpt-4o', onChunk } = options;
     
     try {
-        const genModel = genAI.getGenerativeModel({ model });
-        let parts: any[];
+        const content: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = [];
         
-        // Handle documents (use file URIs)
+        // Build the user message content
+        let textContent = prompt;
+        
+        // Add document context if present
         if (documentAttachments && documentAttachments.length > 0) {
-            parts = buildDocumentParts(prompt, documentAttachments);
-        }
-        // Handle images (use base64)
-        else if (imageAttachments && imageAttachments.length > 0) {
-            parts = await buildMultimodalParts(prompt, chatId, imageAttachments);
-        }
-        // Text only (shouldn't happen but handle gracefully)
-        else {
-            parts = [{ text: prompt }];
+            textContent = buildDocumentContext(prompt, documentAttachments);
         }
         
-        const result = await genModel.generateContentStream(parts);
+        content.push({ type: 'text', text: textContent });
+        
+        // Add images if present
+        if (imageAttachments && imageAttachments.length > 0) {
+            const imageContent = await buildImageContent(chatId, imageAttachments);
+            content.push(...imageContent);
+        }
+        
+        // Use streamText from AI SDK for streaming
+        const { streamText } = await import('ai');
+        const result = streamText({
+            model: openai(model),
+            messages: [
+                {
+                    role: 'user',
+                    content: content as any,
+                },
+            ],
+        });
+        
         let fullText = '';
         
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            fullText += chunkText;
-            onChunk(chunkText);
+        for await (const chunk of result.textStream) {
+            fullText += chunk;
+            onChunk(chunk);
         }
         
         return fullText;

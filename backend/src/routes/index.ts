@@ -6,6 +6,10 @@ import appsRoutes from './apps.routes';
 import uploadRoutes from './upload.routes';
 import memoryRoutes from './memory.routes';
 import documentsRoutes from './documents.routes';
+import adminRoutes from './admin.routes';
+
+import voiceRoutes from './voice.routes';
+import voiceProcessRoutes from './voice-process.routes';
 
 const router = Router();
 
@@ -17,6 +21,9 @@ router.use('/apps', appsRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/memories', memoryRoutes);
 router.use('/documents', documentsRoutes);
+router.use('/admin', adminRoutes);
+router.use('/voice', voiceRoutes);
+router.use('/voice', voiceProcessRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

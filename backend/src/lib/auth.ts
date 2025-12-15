@@ -13,7 +13,7 @@ export async function signUp(data: SignupRequest): Promise<AuthResponse> {
     const { email, password, name } = data;
 
     // Check if user already exists in database
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
         where: { email },
     });
 
@@ -22,10 +22,12 @@ export async function signUp(data: SignupRequest): Promise<AuthResponse> {
     }
 
     // Hash password
+    console.log(`🔐 Hashing password (length: ${password.length})`);
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    console.log(`✅ Password hashed (length: ${hashedPassword.length})`);
 
     // Create user in database
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
         data: {
             email,
             name,
@@ -56,20 +58,39 @@ export async function signUp(data: SignupRequest): Promise<AuthResponse> {
 export async function signIn(data: LoginRequest): Promise<AuthResponse> {
     const { email, password } = data;
 
+    console.log(`🔍 Looking up user with email: ${email}`);
+
     // Find user in database
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
         where: { email },
     });
 
     if (!user) {
+        console.log(`❌ User not found: ${email}`);
+        throw new Error('Invalid email or password');
+    }
+
+    console.log(`✅ User found: ${user.email} (ID: ${user.id})`);
+    console.log(`🔍 User password field exists: ${!!user.password}`);
+    console.log(`🔍 User password field length: ${user.password?.length || 0}`);
+    console.log(`🔍 Input password length: ${password.length}`);
+
+    // Check if password field is null or empty
+    if (!user.password) {
+        console.log(`❌ User password is null or empty for: ${email}`);
         throw new Error('Invalid email or password');
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log(`🔐 Password comparison result: ${isPasswordValid}`);
+    
     if (!isPasswordValid) {
+        console.log(`❌ Password mismatch for user: ${email}`);
         throw new Error('Invalid email or password');
     }
+
+    console.log(`✅ Password verified for user: ${email}`);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -104,7 +125,7 @@ export function verifyToken(token: string): { userId: string; email: string } {
  * Get user by ID
  */
 export async function getUser(userId: string) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
         where: { id: userId },
         select: {
             id: true,

@@ -5,6 +5,7 @@ import { appRegistry } from '../../apps/base.app';
 import { GoogleOAuthProvider } from './providers/google';
 import { GitHubOAuthProvider } from './providers/github';
 import type { OAuthUserInfo } from '../../types/apps.types';
+import { redis } from '../redis/client';
 
 /**
  * OAuth service for handling app connections
@@ -15,6 +16,70 @@ class OAuthService {
         string,
         { userId: string; appName: string; expiresAt: number }
     >();
+
+    /**
+     * Store state - try Redis first, fallback to memory
+     */
+    private async storeState(state: string, data: { userId: string; appName: string; expiresAt: number }) {
+        // Always store in memory as fallback
+        this.stateStore.set(state, data);
+        console.log(`✅ Stored OAuth state in memory: ${state} for app: ${data.appName}`);
+        
+        // Also try Redis if available
+        try {
+            if (process.env.USE_REDIS_QUEUE === 'true' && redis.isReady()) {
+                const client = redis.getClient();
+                await client.setex(`oauth:state:${state}`, 600, JSON.stringify(data));
+                console.log(`✅ Also stored in Redis for persistence`);
+            }
+        } catch (error) {
+            console.warn('Redis storage failed, using memory only:', error);
+        }
+    }
+
+    /**
+     * Get state - try Redis first, fallback to memory
+     */
+    private async getState(state: string): Promise<{ userId: string; appName: string; expiresAt: number } | null> {
+        // Try Redis first
+        try {
+            if (process.env.USE_REDIS_QUEUE === 'true' && redis.isReady()) {
+                const client = redis.getClient();
+                const data = await client.get(`oauth:state:${state}`);
+                if (data) {
+                    console.log(`📦 Found state in Redis`);
+                    return JSON.parse(data);
+                }
+            }
+        } catch (error) {
+            console.warn('Redis lookup failed, trying memory:', error);
+        }
+        
+        // Fallback to memory
+        const memData = this.stateStore.get(state);
+        if (memData) {
+            console.log(`📦 Found state in memory`);
+        }
+        return memData || null;
+    }
+
+    /**
+     * Delete state from both Redis and memory
+     */
+    private async deleteState(state: string) {
+        // Delete from memory
+        this.stateStore.delete(state);
+        
+        // Try to delete from Redis
+        try {
+            if (process.env.USE_REDIS_QUEUE === 'true' && redis.isReady()) {
+                const client = redis.getClient();
+                await client.del(`oauth:state:${state}`);
+            }
+        } catch (error) {
+            console.warn('Failed to delete from Redis:', error);
+        }
+    }
 
     /**
      * Clean up expired states
@@ -41,7 +106,7 @@ class OAuthService {
 
         // Generate state for CSRF protection
         const state = crypto.randomBytes(32).toString('hex');
-        this.stateStore.set(state, {
+        await this.storeState(state, {
             userId,
             appName,
             expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
@@ -76,16 +141,27 @@ class OAuthService {
         userInfo: OAuthUserInfo;
     }> {
         // Verify state
-        const stateData = this.stateStore.get(state);
-        if (!stateData || stateData.expiresAt < Date.now()) {
+        console.log(`🔍 Looking up OAuth state: ${state}`);
+        const stateData = await this.getState(state);
+        console.log(`📦 State data found:`, stateData ? 'Yes' : 'No');
+        
+        if (!stateData) {
+            console.error(`❌ State not found: ${state}`);
+            throw new Error('Invalid or expired state');
+        }
+        
+        if (stateData.expiresAt < Date.now()) {
+            console.error(`❌ State expired: ${new Date(stateData.expiresAt)} < ${new Date()}`);
             throw new Error('Invalid or expired state');
         }
 
         if (stateData.appName !== appName) {
+            console.error(`❌ App name mismatch: ${stateData.appName} !== ${appName}`);
             throw new Error('App name mismatch');
         }
 
-        this.stateStore.delete(state);
+        console.log(`✅ State verified for user: ${stateData.userId}`);
+        await this.deleteState(state);
 
         const app = appRegistry.get(appName);
         if (!app) {
@@ -114,7 +190,7 @@ class OAuthService {
         const encryptedCredentials = encryptCredentials(tokens);
 
         // Get app from database
-        const appRecord = await prisma.app.findUnique({
+        const appRecord = await prisma.apps.findUnique({
             where: { name: appName },
         });
 
@@ -123,7 +199,7 @@ class OAuthService {
         }
 
         // Save to database
-        await prisma.userApp.upsert({
+        await prisma.user_apps.upsert({
             where: {
                 userId_appId: {
                     userId: stateData.userId,
@@ -155,7 +231,7 @@ class OAuthService {
      * Disconnect an app
      */
     async disconnectApp(userId: string, appName: string): Promise<void> {
-        const appRecord = await prisma.app.findUnique({
+        const appRecord = await prisma.apps.findUnique({
             where: { name: appName },
         });
 
@@ -163,7 +239,7 @@ class OAuthService {
             throw new Error(`App "${appName}" not found`);
         }
 
-        await prisma.userApp.updateMany({
+        await prisma.user_apps.updateMany({
             where: {
                 userId,
                 appId: appRecord.id,
@@ -178,7 +254,7 @@ class OAuthService {
      * Refresh OAuth tokens for an app
      */
     async refreshTokens(userId: string, appName: string): Promise<void> {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
                 app: { name: appName },
@@ -200,7 +276,7 @@ class OAuthService {
         const newCredentials = await app.refreshCredentials(userApp.credentials);
         const encryptedCredentials = encryptCredentials(newCredentials);
 
-        await prisma.userApp.update({
+        await prisma.user_apps.update({
             where: { id: userApp.id },
             data: {
                 credentials: encryptedCredentials,

@@ -2,22 +2,24 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Mic, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon, X, FileText } from 'lucide-react';
+import { Bell, Send, Infinity as InfinityIcon, Zap, AlertCircle, Command, Image as ImageIcon, X, FileText, Phone } from 'lucide-react';
 import { useChatStore } from '@/stores/chat.store';
 import { useAppsStore } from '@/stores/apps.store';
 import { useDocumentsStore } from '@/stores/documents.store';
 import { uploadDocument } from '@/api/documents.api';
 import { MessageList } from '@/components/chat/MessageList';
+import { VoiceControl } from '@/components/voice/VoiceControl';
+import { LiveVoiceModal } from '@/components/voice/LiveVoiceModal';
 
 export const ChatInterface = () => {
     const { id: chatIdFromUrl } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState('');
-    const [isRecording, setIsRecording] = useState(false);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [selectedDocuments, setSelectedDocuments] = useState<Array<{ id: string; displayName: string }>>([]);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
     const [uploadingDoc, setUploadingDoc] = useState(false);
+    const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +34,7 @@ export const ChatInterface = () => {
         clearError,
         loadChat,
         createNewChat,
+        stopPolling,
     } = useChatStore();
 
     const { connectedApps, loadConnectedApps } = useAppsStore();
@@ -51,7 +54,12 @@ export const ChatInterface = () => {
     useEffect(() => {
         loadConnectedApps();
         fetchDocuments();
-    }, [loadConnectedApps, fetchDocuments]);
+
+        // Cleanup: stop polling when component unmounts
+        return () => {
+            stopPolling();
+        };
+    }, [loadConnectedApps, fetchDocuments, stopPolling]);
 
     // Handle URL changes - sync chat state with URL
     useEffect(() => {
@@ -111,7 +119,7 @@ export const ChatInterface = () => {
             const message = inputValue.trim();
             const imagesToSend = [...selectedImages];
             const documentIdsToSend = selectedDocuments.map(d => d.id);
-            
+
             setInputValue('');
             setSelectedImages([]);
             setSelectedDocuments([]);
@@ -140,11 +148,11 @@ export const ChatInterface = () => {
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
-        
+
         // Limit to 5 images
         const newImages = [...selectedImages, ...imageFiles].slice(0, 5);
         setSelectedImages(newImages);
-        
+
         // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -158,22 +166,22 @@ export const ChatInterface = () => {
     const handlePdfSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         const pdfFiles = files.filter(file => file.type === 'application/pdf');
-        
+
         if (pdfFiles.length === 0) return;
-        
+
         setUploadingDoc(true);
         try {
             // Upload each PDF
             for (const pdfFile of pdfFiles) {
                 const result = await uploadDocument(pdfFile, currentChatId || undefined);
-                
+
                 // Add to selected documents once uploaded
-                setSelectedDocuments(docs => [...docs, { 
-                    id: result.documentId, 
-                    displayName: result.displayName 
+                setSelectedDocuments(docs => [...docs, {
+                    id: result.documentId,
+                    displayName: result.displayName
                 }]);
             }
-            
+
             // Refresh documents list
             await fetchDocuments();
         } catch (err) {
@@ -185,6 +193,19 @@ export const ChatInterface = () => {
             if (pdfInputRef.current) {
                 pdfInputRef.current.value = '';
             }
+        }
+    };
+
+    const handleVoiceTranscript = (transcript: string) => {
+        // Append the transcript to the input value
+        setInputValue(prev => {
+            const newValue = prev ? `${prev} ${transcript}` : transcript;
+            return newValue;
+        });
+        
+        // Focus the textarea
+        if (textareaRef.current) {
+            textareaRef.current.focus();
         }
     };
 
@@ -226,21 +247,21 @@ export const ChatInterface = () => {
                                 <InfinityIcon className="w-8 h-8 text-white" />
                             </div>
                             <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
-                                Just talk to <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">Kuma</span>
+                                Just talk to <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">kuma-ai</span>
                             </h1>
                             <p className="text-zinc-400 text-lg max-w-md">
                                 Your AI assistant for stock analysis, financial planning, and daily tasks.
                             </p>
-                            
+
                             {/* Connected Apps Indicator */}
                             {connectedApps.length > 0 && (
                                 <div className="mt-6 flex flex-col items-center gap-3">
                                     <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Connected Apps</p>
                                     <div className="flex gap-2 flex-wrap justify-center">
                                         {connectedApps.map((app) => (
-                                            <Badge 
-                                                key={app.id} 
-                                                variant="outline" 
+                                            <Badge
+                                                key={app.id}
+                                                variant="outline"
                                                 className="bg-zinc-800/50 border-zinc-700 text-zinc-300 px-3 py-1"
                                             >
                                                 <span className="mr-1.5">{app.icon}</span>
@@ -288,7 +309,7 @@ export const ChatInterface = () => {
                                             </button>
                                         </div>
                                     ))}
-                                    
+
                                     {/* Document Attachments */}
                                     {selectedDocuments.map((doc, index) => (
                                         <div
@@ -305,7 +326,7 @@ export const ChatInterface = () => {
                                             </button>
                                         </div>
                                     ))}
-                                    
+
                                     {/* Add buttons */}
                                     {selectedImages.length < 5 && (
                                         <button
@@ -325,7 +346,7 @@ export const ChatInterface = () => {
                                     )}
                                 </div>
                             )}
-                            
+
                             {/* Document Picker Dropdown */}
                             {showDocumentPicker && documents.length > 0 && (
                                 <div className="mb-3 p-3 bg-zinc-800 rounded-lg border border-zinc-700 max-h-48 overflow-y-auto">
@@ -348,11 +369,10 @@ export const ChatInterface = () => {
                                                             setSelectedDocuments(docs => [...docs, { id: doc.id, displayName: doc.displayName }]);
                                                         }
                                                     }}
-                                                    className={`w-full p-2 rounded flex items-center gap-2 transition-colors ${
-                                                        isSelected 
-                                                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500' 
-                                                            : 'bg-zinc-900 hover:bg-zinc-700 text-zinc-300'
-                                                    }`}
+                                                    className={`w-full p-2 rounded flex items-center gap-2 transition-colors ${isSelected
+                                                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500'
+                                                        : 'bg-zinc-900 hover:bg-zinc-700 text-zinc-300'
+                                                        }`}
                                                 >
                                                     <FileText className="w-4 h-4" />
                                                     <span className="text-sm truncate flex-1 text-left">{doc.displayName}</span>
@@ -369,7 +389,7 @@ export const ChatInterface = () => {
                                 value={inputValue}
                                 onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Talk to Kuma... Use / for prompts"
+                                placeholder="Talk to kuma-ai... Use / for prompts"
                                 className="w-full bg-transparent border-none text-zinc-100 placeholder:text-zinc-500 resize-none outline-none text-base leading-relaxed max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700"
                                 rows={1}
                                 style={{ minHeight: '24px' }}
@@ -405,7 +425,7 @@ export const ChatInterface = () => {
                                         onChange={handleImageSelect}
                                         className="hidden"
                                     />
-                                    
+
                                     <input
                                         ref={pdfInputRef}
                                         type="file"
@@ -437,7 +457,7 @@ export const ChatInterface = () => {
                                     >
                                         <FileText className="w-5 h-5" />
                                     </button>
-                                    
+
                                     <button
                                         onClick={() => pdfInputRef.current?.click()}
                                         disabled={uploadingDoc}
@@ -456,12 +476,20 @@ export const ChatInterface = () => {
                                         )}
                                     </button>
 
-                                    <button
-                                        onClick={() => setIsRecording(!isRecording)}
-                                        className={`p-2 rounded-full transition-all ${isRecording ? 'text-red-500 bg-red-500/10 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+                                    <VoiceControl 
+                                        chatId={currentChatId || undefined}
+                                        onTranscript={handleVoiceTranscript}
+                                    />
+
+                                    <Button
+                                        onClick={() => setIsLiveVoiceOpen(true)}
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-9 w-9 rounded-full border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 hover:border-orange-500/50 text-orange-400 transition-all duration-300"
+                                        title="Live Voice Chat"
                                     >
-                                        <Mic className="w-5 h-5" />
-                                    </button>
+                                        <Phone className="h-4 w-4" />
+                                    </Button>
 
                                     <Button
                                         onClick={handleSend}
@@ -492,6 +520,12 @@ export const ChatInterface = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Live Voice Modal */}
+            <LiveVoiceModal 
+                isOpen={isLiveVoiceOpen}
+                onClose={() => setIsLiveVoiceOpen(false)}
+            />
         </div>
     );
 };

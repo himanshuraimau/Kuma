@@ -60,7 +60,7 @@ export const AppsPage = () => {
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold mb-2">Apps</h1>
                     <p className="text-zinc-400 text-lg">
-                        Connect apps to extend Kuma's capabilities
+                        Connect apps to extend kuma-ai's capabilities
                     </p>
                 </div>
 
@@ -130,7 +130,7 @@ export const AppsPage = () => {
                         </li>
                         <li className="flex gap-3">
                             <span className="text-orange-500 font-semibold">2.</span>
-                            <span>Authorize Kuma to access your account</span>
+                            <span>Authorize kuma-ai to access your account</span>
                         </li>
                         <li className="flex gap-3">
                             <span className="text-orange-500 font-semibold">3.</span>

@@ -60,7 +60,7 @@ export const MessageList = ({ messages, isLoading = false }: MessageListProps) =
                     <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="flex items-start gap-3 max-w-[80%]">
                              <div className="w-6 h-6 rounded-md flex items-center justify-center mt-1 shadow-sm">
-                                <img src="/logo.png" alt="Kuma" className="w-5 h-5 object-contain" />
+                                <img src="/logo.png" alt="kuma-ai" className="w-5 h-5 object-contain" />
                             </div>
                             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5 shadow-sm">
                                 <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>

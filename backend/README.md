@@ -1,6 +1,6 @@
-# Kuma Backend - Authentication API
+# kuma-ai Backend - Authentication API
 
-Backend server for Kuma application with Supabase authentication and Prisma ORM.
+Backend server for kuma-ai application with Supabase authentication and Prisma ORM.
 
 ## Tech Stack
 

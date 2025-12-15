@@ -5,6 +5,119 @@ import { prisma } from '../db/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { saveChatImage, type ImageAttachment } from '../lib/storage';
 import { getDocumentAttachments, type DocumentAttachment } from '../lib/documents';
+import { publishMessage } from '../lib/redis/producer';
+import { subscribeToJobStatus, subscribeToChatMessages } from '../lib/redis/status';
+import { JobStatus } from '../lib/redis/types';
+
+// Feature flag for Redis queue (can be toggled via env)
+const USE_REDIS_QUEUE = process.env.USE_REDIS_QUEUE === 'true';
+
+/**
+ * Stream message via Redis queue
+ */
+async function streamMessageViaRedis(
+    res: Response,
+    chatId: string,
+    userId: string,
+    message: string,
+    agentType: string,
+    imageAttachments?: ImageAttachment[],
+    documentAttachments?: DocumentAttachment[]
+) {
+    // Publish message to Redis stream
+    const jobId = await publishMessage({
+        userId,
+        chatId,
+        message,
+        agentType,
+        imageAttachments,
+        documentAttachments,
+    });
+
+    console.log(`📤 Published to Redis queue: jobId=${jobId}`);
+
+    // Send job ID to client
+    res.write(`data: ${JSON.stringify({ type: 'job_id', jobId })}\n\n`);
+
+    // Subscribe to job status updates and stream to client
+    const unsubscribe = await subscribeToJobStatus(jobId, (update) => {
+        res.write(`data: ${JSON.stringify({ type: 'status', status: update.status, message: update.message })}\n\n`);
+
+        // If completed, we'll get the message via chat subscription
+        if (update.status === JobStatus.FAILED || update.status === JobStatus.DEAD) {
+            res.write(`data: ${JSON.stringify({ type: 'error', error: update.message })}\n\n`);
+        }
+    });
+
+    // Subscribe to chat messages to get the actual response
+    const unsubscribeChat = await subscribeToChatMessages(chatId, (msg) => {
+        console.log(`📨 Received chat message via pub/sub:`, msg);
+        if (msg.role === 'assistant') {
+            // Stream the full response
+            res.write(`data: ${JSON.stringify({ type: 'done', fullResponse: msg.content })}\n\n`);
+            console.log(`✅ Sent 'done' event to client with response length: ${msg.content.length}`);
+            
+            // End the SSE connection after sending the response
+            res.end();
+            
+            // Cleanup subscriptions
+            setTimeout(async () => {
+                await unsubscribe();
+                await unsubscribeChat();
+                clearTimeout(timeout);
+            }, 100);
+        }
+    });
+
+    // Wait for completion (with timeout)
+    const timeout = setTimeout(async () => {
+        await unsubscribe();
+        await unsubscribeChat();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: 'Processing timeout' })}\n\n`);
+    }, 300000); // 5 minutes
+
+    // Cleanup on client disconnect
+    res.on('close', async () => {
+        clearTimeout(timeout);
+        await unsubscribe();
+        await unsubscribeChat();
+    });
+}
+
+/**
+ * Stream message directly (original flow without Redis)
+ */
+async function streamMessageDirect(
+    res: Response,
+    chatId: string,
+    userId: string,
+    message: string,
+    agentType: string,
+    imageAttachments?: ImageAttachment[],
+    documentAttachments?: DocumentAttachment[]
+) {
+    await streamAgent({
+        agentName: agentType as AgentName,
+        userId,
+        chatId,
+        message,
+        imageAttachments,
+        documentAttachments,
+        onChunk: (chunk) => {
+            res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
+        },
+        onToolCall: (toolName, args) => {
+            res.write(`data: ${JSON.stringify({ type: 'tool_call', toolName, args })}\n\n`);
+        },
+        onToolResult: (toolName, result) => {
+            res.write(`data: ${JSON.stringify({ type: 'tool_result', toolName, success: true })}\n\n`);
+        },
+        onFinish: (fullResponse) => {
+            res.write(`data: ${JSON.stringify({ type: 'done', fullResponse })}\n\n`);
+        },
+    });
+}
+
 
 /**
  * Send a message to the chat agent (streaming)
@@ -50,7 +163,7 @@ export async function streamMessage(req: Request, res: Response) {
 
         // Get or create chat
         if (chatId) {
-            chat = await prisma.chat.findUnique({
+            chat = await prisma.chats.findUnique({
                 where: { id: chatId, userId },
             });
 
@@ -60,8 +173,9 @@ export async function streamMessage(req: Request, res: Response) {
         } else {
             // Create new chat
             const threadId = uuidv4();
-            chat = await prisma.chat.create({
+            chat = await prisma.chats.create({
                 data: {
+                    id: uuidv4(),
                     userId,
                     agentType,
                     threadId,
@@ -104,28 +218,14 @@ export async function streamMessage(req: Request, res: Response) {
         // Send chat ID first (for new chats)
         res.write(`data: ${JSON.stringify({ type: 'chat_id', chatId: chat.id })}\n\n`);
 
-        // Stream the response
-        await streamAgent({
-            agentName: agentType as AgentName,
-            userId,
-            chatId: chat.id,
-            message: message.trim(),
-            imageAttachments,
-            documentAttachments,
-            onChunk: (chunk) => {
-                res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
-            },
-            onToolCall: (toolName, args) => {
-                res.write(`data: ${JSON.stringify({ type: 'tool_call', toolName, args })}\n\n`);
-            },
-            onToolResult: (toolName, result) => {
-                // Don't send full result to client (can be large), just notify
-                res.write(`data: ${JSON.stringify({ type: 'tool_result', toolName, success: true })}\n\n`);
-            },
-            onFinish: (fullResponse) => {
-                res.write(`data: ${JSON.stringify({ type: 'done', fullResponse })}\n\n`);
-            },
-        });
+        // Route based on feature flag
+        if (USE_REDIS_QUEUE) {
+            // NEW: Publish to Redis and stream status updates
+            await streamMessageViaRedis(res, chat.id, userId, message.trim(), agentType, imageAttachments, documentAttachments);
+        } else {
+            // OLD: Direct processing (original flow)
+            await streamMessageDirect(res, chat.id, userId, message.trim(), agentType, imageAttachments, documentAttachments);
+        }
 
         res.end();
     } catch (error) {
@@ -174,7 +274,7 @@ export async function sendMessage(req: Request, res: Response) {
 
         // Get or create chat
         if (chatId) {
-            chat = await prisma.chat.findUnique({
+            chat = await prisma.chats.findUnique({
                 where: { id: chatId, userId },
             });
 
@@ -184,8 +284,9 @@ export async function sendMessage(req: Request, res: Response) {
         } else {
             // Create new chat
             const threadId = uuidv4();
-            chat = await prisma.chat.create({
+            chat = await prisma.chats.create({
                 data: {
+                    id: uuidv4(),
                     userId,
                     agentType,
                     threadId,
@@ -228,7 +329,7 @@ export async function getChats(req: Request, res: Response) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const chats = await prisma.chat.findMany({
+        const chats = await prisma.chats.findMany({
             where: { userId },
             orderBy: { updatedAt: 'desc' },
             include: {
@@ -259,7 +360,7 @@ export async function getChat(req: Request, res: Response) {
 
         const { id } = req.params;
 
-        const chat = await prisma.chat.findUnique({
+        const chat = await prisma.chats.findUnique({
             where: { id, userId },
             include: {
                 messages: {
@@ -292,7 +393,7 @@ export async function deleteChat(req: Request, res: Response) {
 
         const { id } = req.params;
 
-        const chat = await prisma.chat.findUnique({
+        const chat = await prisma.chats.findUnique({
             where: { id, userId },
         });
 
@@ -300,7 +401,7 @@ export async function deleteChat(req: Request, res: Response) {
             return res.status(404).json({ error: 'Chat not found' });
         }
 
-        await prisma.chat.delete({
+        await prisma.chats.delete({
             where: { id },
         });
 
@@ -329,7 +430,7 @@ export async function updateChatTitle(req: Request, res: Response) {
             return res.status(400).json({ error: 'Title is required and must be a non-empty string' });
         }
 
-        const chat = await prisma.chat.findUnique({
+        const chat = await prisma.chats.findUnique({
             where: { id, userId },
         });
 
@@ -337,7 +438,7 @@ export async function updateChatTitle(req: Request, res: Response) {
             return res.status(404).json({ error: 'Chat not found' });
         }
 
-        const updatedChat = await prisma.chat.update({
+        const updatedChat = await prisma.chats.update({
             where: { id },
             data: { title: title.trim() },
         });

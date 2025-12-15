@@ -4,7 +4,7 @@ async function seedApps() {
     console.log('🌱 Seeding apps...');
 
     // Create Gmail app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'gmail' },
         update: {},
         create: {
@@ -20,7 +20,7 @@ async function seedApps() {
     });
 
     // Create Google Calendar app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'calendar' },
         update: {},
         create: {
@@ -36,7 +36,7 @@ async function seedApps() {
     });
 
     // Create Google Docs app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'docs' },
         update: {},
         create: {
@@ -52,7 +52,7 @@ async function seedApps() {
     });
 
     // Create Google Drive app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'drive' },
         update: {},
         create: {
@@ -68,7 +68,7 @@ async function seedApps() {
     });
 
     // Create Google Sheets app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'sheets' },
         update: {},
         create: {
@@ -84,7 +84,7 @@ async function seedApps() {
     });
 
     // Create Google Slides app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'slides' },
         update: {},
         create: {
@@ -100,7 +100,7 @@ async function seedApps() {
     });
 
     // Create GitHub app
-    await prisma.app.upsert({
+    await prisma.apps.upsert({
         where: { name: 'github' },
         update: {},
         create: {

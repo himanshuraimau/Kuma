@@ -236,13 +236,13 @@ CO-11 &  &  &  &  &  &  &  & 3 &  &  &   &  & 3  & \\ \hline
 \thispagestyle{plain}
 \addcontentsline{toc}{chapter}{\numberline{}Abstract}
 
-[Add abstract here: A concise summary of the Kuma AI-powered personal assistant project. The abstract should answer: 
-\begin{itemize}
-    \item Why this project? (Motivation - first paragraph)
-    \item What is the main objective? (second paragraph)
-    \item How is it implemented? (Implementation details, tools/software used - third paragraph)
-\end{itemize}
-Include brief mentions of technologies used: TypeScript, Bun, React, Prisma, LangChain, Google Gemini AI, etc.]
+[Add abstract here covering three paragraphs:
+
+\textbf{Paragraph 1 - Motivation:} Discuss the growing need for intelligent personal assistants that can handle diverse tasks across productivity tools, voice interaction, and document analysis. Highlight limitations of existing solutions and the opportunity for a customizable, self-hosted alternative.
+
+\textbf{Paragraph 2 - Objectives:} State the main goals including development of a multi-agent AI system, voice-enabled interaction with Indic language support, vision capabilities for image and document analysis, scalable architecture using Redis message queues, and containerized deployment using Docker.
+
+\textbf{Paragraph 3 - Implementation:} Mention key technologies: TypeScript and Bun runtime for backend, React and Vite for frontend, Google Gemini and OpenAI for AI processing, Sarvam AI for voice, Redis Streams for message queuing, PostgreSQL with Prisma ORM for data persistence, and Docker for containerized deployment. Highlight the multi-agent architecture with specialized agents for different task domains.]
 
 % ==================== TABLE OF CONTENTS ====================
 \pagenumbering{roman}
@@ -267,46 +267,71 @@ Include brief mentions of technologies used: TypeScript, Bun, React, Prisma, Lan
 \chapter{Introduction}
 
 \section{Motivation}
-[Discuss the need for AI-powered personal assistants in the modern digital age. Talk about the challenges of managing multiple tasks, handling information overload, and the need for intelligent automation. Explain how AI technologies like LangChain and Google Gemini can revolutionize personal productivity.]
+[Discuss the following points:
+\begin{itemize}
+    \item Growing complexity of digital workflows requiring intelligent automation
+    \item Fragmentation of productivity tools (email, calendar, documents) needing unified access
+    \item Limitations of existing assistants: closed ecosystems, limited customization, privacy concerns
+    \item Emergence of powerful LLMs enabling sophisticated conversational agents
+    \item Need for multimodal interaction combining text, voice, and visual inputs
+    \item Importance of self-hosted solutions for data privacy and customization
+    \item Opportunity to leverage open-source AI frameworks for building personalized assistants
+    \item Growing demand for Indic language support in voice-based interfaces
+\end{itemize}]
 
 \section{Objective of the project}
 [State the primary objectives of the Kuma project:
 \begin{itemize}
-    \item Development of an intelligent personal assistant using AI technologies
-    \item Integration of multiple services (Gmail, Calendar, Docs, Drive)
-    \item Implementation of specialized agents for different tasks
-    \item Creating a user-friendly interface for seamless interaction
-    \item Providing secure authentication and data management
+    \item Development of an intelligent personal assistant using modern AI technologies
+    \item Implementation of multi-agent architecture with specialized agents for different tasks
+    \item Voice-enabled interaction with speech-to-text and text-to-speech capabilities
+    \item Image understanding and vision-based document analysis
+    \item Integration of productivity services (Gmail, Calendar, Docs, Drive, GitHub)
+    \item Scalable message queue architecture for reliable AI processing
+    \item Containerized deployment using Docker for production readiness
+    \item Creating a responsive and intuitive user interface
 \end{itemize}]
 
 \section{Organisation of the report}
 [Describe the structure of the report:
 \begin{itemize}
-    \item Chapter 1: Introduction to the project and its objectives
-    \item Chapter 2: Literature survey on AI assistants, LangChain, and related technologies
-    \item Chapter 3: System design, architecture, and methodology
-    \item Chapter 4: Implementation details of backend and frontend
-    \item Chapter 5: Results, screenshots, and performance analysis
-    \item Chapter 6: Conclusion and future enhancements
-    \item Bibliography and Appendices
+    \item Chapter 1: Introduction covering motivation, objectives, and report organization
+    \item Chapter 2: Literature survey on conversational AI, agent frameworks, voice processing, and containerization
+    \item Chapter 3: System design including architecture, data flow, Redis queue system, and Docker deployment
+    \item Chapter 4: Implementation covering backend services, AI agents, voice pipeline, vision processing, and frontend
+    \item Chapter 5: Results with screenshots, performance benchmarks, and comparative analysis
+    \item Chapter 6: Conclusion summarizing achievements and outlining future enhancements
+    \item Bibliography and Appendices with SDG mapping and component data sheets
 \end{itemize}]
 
 % ==================== CHAPTER 2: LITERATURE SURVEY ====================
 \chapter{Literature Survey}
 
-[This chapter should include a comprehensive review of:
-\begin{itemize}
-    \item Existing AI-powered personal assistants (Google Assistant, Siri, Alexa)
-    \item LangChain framework and its applications
-    \item Google Gemini AI capabilities
-    \item Agent-based systems and multi-agent architectures
-    \item Web technologies: React, TypeScript, Vite
-    \item Backend technologies: Bun runtime, Express, Prisma ORM
-    \item OAuth authentication and security best practices
-    \item Database design for chat applications
-\end{itemize}
+\section{Conversational AI and Virtual Assistants}
+[Review existing AI assistants - Google Assistant, Siri, Alexa, ChatGPT. Discuss their capabilities, limitations, and architectural approaches. Analyze trends in conversational AI research.]
 
-Include citations from IEEE, Springer, ACM, and other peer-reviewed journals and conferences. Use proper citation format as shown: \cite{reference1}, \cite{reference2}.]
+\section{Large Language Models and Agent Frameworks}
+[Explore LLM architectures and their evolution. Discuss agent frameworks including LangChain, AutoGPT, and ReAct pattern. Review multi-agent coordination strategies.]
+
+\section{Google Gemini and Multimodal AI}
+[Analyze Google Gemini's multimodal capabilities for text, image, and audio processing. Compare with GPT-4V and other vision-language models.]
+
+\section{Speech Processing Technologies}
+[Review speech-to-text and text-to-speech technologies. Discuss real-time voice communication protocols and WebRTC/LiveKit frameworks. Analyze Indic language support in voice systems.]
+
+\section{Image Understanding and Vision AI}
+[Explore computer vision for document analysis. Review OCR technologies and vision-language models for image captioning and visual question answering.]
+
+\section{Message Queue Architectures}
+[Discuss asynchronous processing patterns using Redis Streams, RabbitMQ, and Kafka. Analyze producer-consumer models and dead letter queue strategies.]
+
+\section{Containerization and Deployment}
+[Review Docker containerization benefits and multi-stage build patterns. Discuss container orchestration and microservices deployment strategies.]
+
+\section{Web Application Technologies}
+[Analyze modern web stack choices - React, TypeScript, Vite for frontend. Review Bun runtime, Express, and Prisma ORM for backend development. Mention JWT for user sessions and OAuth 2.0 for third-party service integration.]
+
+[Include citations from IEEE, Springer, ACM, and other peer-reviewed journals. Use proper citation format: \cite{langchain}, \cite{gemini}.]
 
 % ==================== CHAPTER 3: SYSTEM DESIGN & METHODOLOGY ====================
 \chapter{System Design \& Methodology}
@@ -316,26 +341,31 @@ Include citations from IEEE, Springer, ACM, and other peer-reviewed journals and
 \subsection{Functional Requirements}
 [List functional requirements:
 \begin{enumerate}
-    \item User authentication and authorization
-    \item Chat interface for user interactions
-    \item AI agent processing and response generation
+    \item User login and session management
+    \item Real-time chat interface with streaming AI responses
+    \item Multi-agent system with intelligent routing to specialized agents
+    \item Voice input processing with speech-to-text transcription
+    \item Voice output generation with text-to-speech synthesis
+    \item Image upload and vision-based analysis
+    \item Document upload with PDF text extraction and summarization
     \item Integration with Google services (Gmail, Calendar, Docs, Drive)
-    \item File upload and document management
-    \item Memory management for conversation context
-    \item Web search capabilities
-    \item Stock market information retrieval
-    \item Vision capabilities for image processing
+    \item GitHub repository interaction capabilities
+    \item Long-term memory storage and contextual retrieval
+    \item Web search and information gathering tools
+    \item Asynchronous message processing via Redis queue
+    \item Docker-based containerized deployment
 \end{enumerate}]
 
 \subsection{Non-Functional Requirements}
 [List non-functional requirements:
 \begin{enumerate}
-    \item Performance: Response time < 2 seconds
-    \item Security: Encrypted data storage and secure authentication
-    \item Scalability: Support for multiple concurrent users
-    \item Reliability: 99\% uptime
-    \item Usability: Intuitive user interface
-    \item Maintainability: Modular code architecture
+    \item Performance: AI response generation within 3 seconds, voice latency under 500ms
+    \item Security: Basic user authentication and secure API access
+    \item Scalability: Horizontal scaling via Redis queue and containerized deployment
+    \item Reliability: Health checks, automatic container restarts, dead letter queue for failed jobs
+    \item Usability: Responsive interface supporting both text and voice input
+    \item Maintainability: Modular architecture with separate services for API, worker, and frontend
+    \item Portability: Docker containers enabling consistent deployment across environments
 \end{enumerate}]
 
 \section{List of Hardware \& Software Requirements}
@@ -363,20 +393,27 @@ Include citations from IEEE, Springer, ACM, and other peer-reviewed journals and
 
 \textbf{Key Technologies:}
 \begin{itemize}
-    \item Backend: TypeScript, Bun, Express, Prisma ORM
-    \item Frontend: React, Vite, TypeScript, Zustand, shadcn/ui
-    \item AI/ML: LangChain, Google Gemini API
-    \item APIs: Google OAuth, Gmail API, Calendar API, Drive API
+    \item Backend: TypeScript, Bun runtime, Express framework, Prisma ORM
+    \item Frontend: React 18, Vite, TypeScript, Zustand state management, shadcn/ui components
+    \item AI/ML: Vercel AI SDK, Google Gemini API, OpenAI API, Supermemory for long-term memory
+    \item Voice: Sarvam AI for Indic speech-to-text and text-to-speech, LiveKit for real-time communication
+    \item Vision: Google Gemini Vision for image analysis and document understanding
+    \item Queue: Redis Streams for asynchronous message processing
+    \item Containerization: Docker, Docker Compose, NGINX for production serving
+    \item APIs: Google OAuth 2.0, Gmail API, Calendar API, Drive API, Docs API, GitHub API
 \end{itemize}]
 
 \section{System Architecture}
 [Describe the overall system architecture. Include:
 \begin{itemize}
-    \item Three-tier architecture diagram
-    \item Client-Server communication flow
-    \item Database schema overview
-    \item AI agent architecture
-    \item Integration layer for external services
+    \item Three-tier architecture with React frontend, Express API, and PostgreSQL database
+    \item Client-Server communication via REST API and Server-Sent Events for streaming
+    \item Redis-based message queue for asynchronous AI processing
+    \item Multi-agent system with router agent delegating to specialized agents
+    \item Voice pipeline connecting Sarvam STT/TTS with AI agents
+    \item Vision module for image analysis and document processing
+    \item OAuth integration layer for Google and GitHub services
+    \item Docker containerization with separate containers for API, worker, and frontend
 \end{itemize}
 
 Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
@@ -388,10 +425,74 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 \label{fig:architecture}
 \end{figure}
 
+\section{Redis Queue Architecture}
+[Describe the asynchronous message processing system:
+\begin{itemize}
+    \item Producer-consumer pattern using Redis Streams
+    \item Message job lifecycle: pending, processing, completed, failed
+    \item Consumer groups for reliable message delivery
+    \item Dead letter queue for failed message handling
+    \item Status tracking and real-time updates via pub/sub
+\end{itemize}
+
+Refer to Figure \ref{fig:redis} for the Redis queue flow diagram.]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{redis_architecture}
+\caption{Redis Message Queue Architecture}
+\label{fig:redis}
+\end{figure}
+
+\section{Voice Processing Architecture}
+[Describe the voice interaction pipeline:
+\begin{itemize}
+    \item Audio capture and streaming using LiveKit
+    \item Speech-to-text conversion using Sarvam AI
+    \item AI agent processing of transcribed text
+    \item Text-to-speech synthesis for voice responses
+    \item Real-time bidirectional communication flow
+\end{itemize}
+
+Refer to Figure \ref{fig:voice} for the voice processing flow diagram.]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{voice_architecture}
+\caption{Voice Processing Pipeline}
+\label{fig:voice}
+\end{figure}
+
+\section{Docker Deployment Architecture}
+[Describe the containerized deployment setup:
+\begin{itemize}
+    \item Multi-stage Dockerfile builds for optimized images
+    \item Docker Compose orchestration of all services
+    \item Service containers: frontend (NGINX), backend (Bun), worker, PostgreSQL, Redis
+    \item Volume mounts for persistent data storage
+    \item Health checks and automatic restart policies
+    \item Network isolation using Docker bridge networks
+\end{itemize}
+
+Refer to Figure \ref{fig:docker} for the Docker deployment diagram.]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{docker_architecture}
+\caption{Docker Deployment Architecture}
+\label{fig:docker}
+\end{figure}
+
 \section{Data Flow Diagrams}
 
 \subsection{Level 0 DFD - Context Diagram}
-[Describe the context-level data flow showing the system as a single process with external entities (User, Google Services, AI APIs)]
+[Describe the context-level data flow showing the system as a single process with external entities:
+\begin{itemize}
+    \item User (text, voice, image inputs)
+    \item Google Services (Gmail, Calendar, Docs, Drive)
+    \item AI APIs (Gemini, OpenAI, Supermemory)
+    \item Voice Services (Sarvam STT/TTS, LiveKit)
+\end{itemize}]
 
 \begin{figure}[h]
 \centering
@@ -401,7 +502,16 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 \end{figure}
 
 \subsection{Level 1 DFD}
-[Describe the Level 1 DFD showing major processes: Authentication, Chat Management, Agent Processing, File Management, Integration Services]
+[Describe the Level 1 DFD showing major processes:
+\begin{itemize}
+    \item Authentication and Session Management
+    \item Chat and Message Processing
+    \item AI Agent Routing and Execution
+    \item Voice Input/Output Processing
+    \item Image and Document Analysis
+    \item External Service Integration
+    \item Redis Queue Management
+\end{itemize}]
 
 \begin{figure}[h]
 \centering
@@ -411,7 +521,14 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 \end{figure}
 
 \subsection{Level 2 DFD - Agent Processing}
-[Describe detailed data flow within the agent processing module]
+[Describe detailed data flow within the agent processing module:
+\begin{itemize}
+    \item Router agent receiving user query
+    \item Agent selection based on query classification
+    \item Tool invocation and external API calls
+    \item Response generation and formatting
+    \item Memory storage and context retrieval
+\end{itemize}]
 
 \begin{figure}[h]
 \centering
@@ -420,29 +537,123 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 \label{fig:dfd2}
 \end{figure}
 
+\subsection{Level 2 DFD - Voice Processing}
+[Describe detailed data flow for voice interactions:
+\begin{itemize}
+    \item Audio stream capture and buffering
+    \item Speech recognition and transcription
+    \item Text processing by AI agent
+    \item Speech synthesis and audio streaming
+\end{itemize}]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{dfd_voice}
+\caption{Level 2 DFD - Voice Processing Module}
+\label{fig:dfd_voice}
+\end{figure}
+
+\subsection{Level 2 DFD - Image Processing}
+[Describe detailed data flow for vision capabilities:
+\begin{itemize}
+    \item Image upload and validation
+    \item Vision model analysis (Gemini Vision)
+    \item Text extraction (OCR) from documents
+    \item Scene description and object detection
+    \item Response generation with visual context
+\end{itemize}]
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{dfd_vision}
+\caption{Level 2 DFD - Image Processing Module}
+\label{fig:dfd_vision}
+\end{figure}
+
 \section{Algorithms}
 
 \subsection{Chat Processing Algorithm}
 [Describe the algorithm for processing user queries:
 \begin{enumerate}
-    \item Receive user input
-    \item Authenticate user session
-    \item Retrieve conversation context from memory
-    \item Select appropriate agent based on query type
-    \item Process query using LangChain agent
-    \item Generate response using Gemini AI
-    \item Update conversation memory
-    \item Return response to user
+    \item Receive user input (text, images, or documents)
+    \item Validate JWT token and authenticate user session
+    \item Create or retrieve existing chat thread
+    \item Load conversation context and relevant memories
+    \item Route to appropriate specialized agent
+    \item Execute agent with tool access and external APIs
+    \item Stream response tokens via Server-Sent Events
+    \item Persist message and update conversation summary
+    \item Return complete response to user
 \end{enumerate}]
 
 \subsection{Agent Selection Algorithm}
-[Describe how the system selects the appropriate agent for a given task]
+[Describe the router agent's decision process:
+\begin{enumerate}
+    \item Analyze user query semantics and intent
+    \item Check for domain-specific keywords (email, calendar, code, etc.)
+    \item Evaluate available agent capabilities
+    \item Select most appropriate specialized agent
+    \item Fallback to general assistant for ambiguous queries
+\end{enumerate}]
+
+\subsection{Redis Queue Processing Algorithm}
+[Describe the asynchronous message processing flow:
+\begin{enumerate}
+    \item Producer publishes message job to Redis Stream
+    \item Consumer group claims pending messages
+    \item Worker processes message through AI agent pipeline
+    \item Status updates published via Redis pub/sub
+    \item Completed response stored in database
+    \item Failed messages moved to dead letter queue after retries
+    \item Client receives updates through SSE subscription
+\end{enumerate}]
+
+\subsection{Voice Processing Algorithm}
+[Describe the voice interaction pipeline:
+\begin{enumerate}
+    \item Capture audio stream from client microphone
+    \item Buffer audio chunks for processing
+    \item Send audio to Sarvam STT for transcription
+    \item Process transcribed text through AI agent
+    \item Convert AI response to speech using Sarvam TTS
+    \item Stream synthesized audio back to client
+    \item Handle interruptions and turn-taking
+\end{enumerate}]
+
+\subsection{Image Analysis Algorithm}
+[Describe the vision processing workflow:
+\begin{enumerate}
+    \item Receive image upload with optional prompt
+    \item Validate file type and size constraints
+    \item Encode image to base64 for API transmission
+    \item Send to Gemini Vision model with context
+    \item Parse structured response (description, extracted text, objects)
+    \item Store analysis results with chat message
+    \item Return formatted response to user
+\end{enumerate}]
 
 \subsection{Memory Management Algorithm}
-[Describe the algorithm for managing conversation context and history]
+[Describe context and memory handling:
+\begin{enumerate}
+    \item Retrieve recent message history from database
+    \item Query Supermemory for relevant long-term memories
+    \item Combine into structured context for AI agent
+    \item After response, extract key facts for memory storage
+    \item Periodically summarize old conversations
+    \item Prune and consolidate duplicate memories
+\end{enumerate}]
 
-\subsection{OAuth Authentication Flow}
-[Describe the OAuth 2.0 authentication flow for Google services integration]
+\subsection{Google Services Connection Flow}
+[Describe the OAuth 2.0 flow for connecting Google apps:
+\begin{enumerate}
+    \item User initiates connection for a Google service (Gmail, Calendar, etc.)
+    \item Redirect to Google consent screen with required scopes
+    \item User grants permissions on Google's authorization page
+    \item Google redirects back with authorization code
+    \item Exchange code for access and refresh tokens
+    \item Store encrypted tokens for future API calls
+    \item Automatically refresh tokens when expired
+\end{enumerate}]
 
 % ==================== CHAPTER 4: IMPLEMENTATION DETAILS ====================
 \chapter{Implementation Details}
@@ -477,21 +688,79 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 \subsection{AI Integration}
 [Describe the implementation of:
 \begin{itemize}
-    \item LangChain agent configuration
-    \item Google Gemini API integration
-    \item Custom tool development
-    \item Prompt engineering
-    \item Memory management using LangChain
+    \item Vercel AI SDK configuration for streaming responses
+    \item Google Gemini and OpenAI model integration
+    \item Custom tool definitions using Zod schemas
+    \item System prompt engineering for each agent type
+    \item Hybrid memory using chat history and Supermemory
+    \item Multi-agent router pattern implementation
+\end{itemize}]
+
+\subsection{Voice Processing Implementation}
+[Describe the implementation of:
+\begin{itemize}
+    \item Sarvam AI client for Indic language STT/TTS
+    \item Audio format handling and conversion
+    \item LiveKit integration for real-time voice rooms
+    \item Token generation for secure voice sessions
+    \item Voice-to-agent pipeline coordination
+    \item Error handling for audio processing failures
+\end{itemize}]
+
+\subsection{Vision and Image Processing}
+[Describe the implementation of:
+\begin{itemize}
+    \item Multer configuration for image uploads
+    \item Base64 encoding for API transmission
+    \item Gemini Vision API integration
+    \item OCR text extraction from documents
+    \item Scene description and analysis
+    \item Image attachment storage and retrieval
+\end{itemize}]
+
+\subsection{Redis Queue Implementation}
+[Describe the implementation of:
+\begin{itemize}
+    \item Redis client connection management
+    \item Stream producer for message publishing
+    \item Consumer group and worker setup
+    \item Job status tracking via pub/sub
+    \item Dead letter queue for failed messages
+    \item Retry logic with exponential backoff
+    \item Health monitoring and metrics collection
 \end{itemize}]
 
 \subsection{Google Services Integration}
 [Describe the implementation of:
 \begin{itemize}
-    \item Gmail API integration
-    \item Google Calendar integration
-    \item Google Docs integration
-    \item Google Drive integration
-    \item OAuth 2.0 authentication flow
+    \item OAuth 2.0 flow for connecting Google accounts
+    \item Gmail API for reading, searching, and composing emails
+    \item Google Calendar for event creation and schedule queries
+    \item Google Docs for document creation and editing
+    \item Google Drive for file listing and management
+    \item Google Sheets for spreadsheet operations
+    \item Token refresh mechanism for persistent access
+\end{itemize}]
+
+\subsection{Other External Services}
+[Describe the implementation of:
+\begin{itemize}
+    \item GitHub API for repository operations and code search
+    \item Exa for intelligent web search capabilities
+    \item Supermemory for long-term memory storage and retrieval
+\end{itemize}]
+
+\subsection{Docker Containerization}
+[Describe the implementation of:
+\begin{itemize}
+    \item Multi-stage Dockerfile for backend API
+    \item Separate worker Dockerfile for queue processing
+    \item Frontend Dockerfile with NGINX serving
+    \item Docker Compose for service orchestration
+    \item Environment variable management
+    \item Volume configuration for persistent data
+    \item Health check definitions
+    \item Development vs production configurations
 \end{itemize}]
 
 \section{Frontend Implementation}
@@ -536,16 +805,20 @@ Refer to Figure \ref{fig:architecture} for the system architecture diagram.]
 
 [Include screenshots of:
 \begin{itemize}
-    \item Login/Registration page
-    \item Main chat interface
-    \item AI agent responses
-    \item File upload functionality
-    \item Google service integrations
-    \item Settings page
+    \item Login and Registration pages
+    \item Main chat interface with message history
+    \item AI agent responses with tool usage
+    \item Voice interaction interface
+    \item Image upload and analysis results
+    \item Document processing and OCR output
+    \item Google service integrations (Gmail, Calendar)
+    \item App connection settings
+    \item Memory and context display
     \item Mobile responsive views
+    \item Docker container status
 \end{itemize}
 
-Example reference:]
+Example references:]
 
 \begin{figure}[h]
 \centering
@@ -556,9 +829,30 @@ Example reference:]
 
 \begin{figure}[h]
 \centering
+% \includegraphics[width=\textwidth]{screenshot_voice}
+\caption{Voice Interaction Interface}
+\label{fig:voice_ui}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{screenshot_vision}
+\caption{Image Analysis Results}
+\label{fig:vision_ui}
+\end{figure}
+
+\begin{figure}[h]
+\centering
 % \includegraphics[width=\textwidth]{screenshot_gmail}
 \caption{Gmail Integration}
 \label{fig:gmail}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=\textwidth]{screenshot_docker}
+\caption{Docker Container Dashboard}
+\label{fig:docker_ui}
 \end{figure}
 
 \section{Analysis}
@@ -566,43 +860,93 @@ Example reference:]
 \subsection{Performance Metrics}
 [Present performance analysis with tables and graphs:
 \begin{itemize}
-    \item Response time measurements
-    \item API latency
+    \item AI response generation time
+    \item Voice transcription and synthesis latency
+    \item Image processing duration
+    \item Redis queue throughput
     \item Database query performance
-    \item Memory usage
-    \item Concurrent user handling
+    \item Docker container resource usage
+    \item Concurrent user handling capacity
 \end{itemize}]
 
 \begin{table}[h]
 \centering
-\caption{Performance Metrics}
+\caption{Text Chat Performance Metrics}
 \label{tab:performance}
 \begin{tabular}{|l|c|c|c|}
 \hline
 \textbf{Metric} & \textbf{Minimum} & \textbf{Average} & \textbf{Maximum} \\ \hline
-Response Time (ms) & & & \\ \hline
-API Latency (ms) & & & \\ \hline
+AI Response Time (ms) & & & \\ \hline
+First Token Latency (ms) & & & \\ \hline
+Database Query (ms) & & & \\ \hline
 Memory Usage (MB) & & & \\ \hline
-Concurrent Users & & & \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Voice Processing Metrics}
+\label{tab:voice_perf}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{Minimum} & \textbf{Average} & \textbf{Maximum} \\ \hline
+STT Latency (ms) & & & \\ \hline
+TTS Latency (ms) & & & \\ \hline
+End-to-End Voice (ms) & & & \\ \hline
+Audio Quality (MOS) & & & \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Vision Processing Metrics}
+\label{tab:vision_perf}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{Minimum} & \textbf{Average} & \textbf{Maximum} \\ \hline
+Image Analysis (ms) & & & \\ \hline
+OCR Extraction (ms) & & & \\ \hline
+Scene Description (ms) & & & \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Docker Resource Usage}
+\label{tab:docker_perf}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Container} & \textbf{CPU (\%)} & \textbf{Memory (MB)} & \textbf{Image Size (MB)} \\ \hline
+Backend API & & & \\ \hline
+Worker & & & \\ \hline
+Frontend (NGINX) & & & \\ \hline
+PostgreSQL & & & \\ \hline
+Redis & & & \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Comparison with Existing Systems}
-[Compare Kuma with existing AI assistants]
+[Compare Kuma with existing AI assistants across key capabilities]
 
 \begin{table}[h]
 \centering
 \caption{Comparison with Existing AI Assistants}
 \label{tab:comparison}
-\begin{tabular}{|l|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Feature} & \textbf{Kuma} & \textbf{Google Assistant} & \textbf{Siri} & \textbf{Alexa} \\ \hline
-Custom Agents & Yes & No & No & Limited \\ \hline
-Gmail Integration & Yes & Yes & No & No \\ \hline
-Calendar Integration & Yes & Yes & Yes & Yes \\ \hline
-Document Management & Yes & Limited & Limited & No \\ \hline
-Open Source & Yes & No & No & No \\ \hline
-Customizable & Yes & No & No & Limited \\ \hline
+\textbf{Feature} & \textbf{Kuma} & \textbf{ChatGPT} & \textbf{Google Assistant} & \textbf{Siri} & \textbf{Alexa} \\ \hline
+Custom AI Agents & Yes & Limited & No & No & No \\ \hline
+Multi-Agent Routing & Yes & No & No & No & No \\ \hline
+Gmail Integration & Yes & No & Yes & No & No \\ \hline
+Calendar Integration & Yes & No & Yes & Yes & Yes \\ \hline
+Document Analysis & Yes & Yes & Limited & Limited & No \\ \hline
+Voice Interaction & Yes & Yes & Yes & Yes & Yes \\ \hline
+Image Understanding & Yes & Yes & Yes & Yes & Limited \\ \hline
+Indic Language Voice & Yes & Limited & Yes & Limited & Limited \\ \hline
+Self-Hosted & Yes & No & No & No & No \\ \hline
+Open Source & Yes & No & No & No & No \\ \hline
+Docker Deployment & Yes & N/A & N/A & N/A & N/A \\ \hline
+Long-term Memory & Yes & Yes & Limited & Limited & Limited \\ \hline
 \end{tabular}
 \end{table}
 
@@ -624,28 +968,36 @@ Customizable & Yes & No & No & Limited \\ \hline
 \section{Conclusion}
 [Summarize the project achievements:
 \begin{itemize}
-    \item Successfully developed an AI-powered personal assistant
-    \item Implemented multi-agent architecture using LangChain
-    \item Integrated multiple Google services seamlessly
-    \item Created a responsive and user-friendly interface
-    \item Achieved performance goals and security requirements
+    \item Successfully developed a comprehensive AI-powered personal assistant platform
+    \item Implemented multi-agent architecture with router pattern for intelligent task delegation
+    \item Integrated voice interaction with Indic language support using Sarvam AI
+    \item Built vision capabilities for image analysis and document understanding
+    \item Designed scalable architecture with Redis message queues for reliable processing
+    \item Containerized entire stack using Docker for consistent deployment
+    \item Integrated multiple productivity services (Gmail, Calendar, Docs, Drive, GitHub)
+    \item Created responsive user interface with real-time streaming responses
+    \item Achieved production-ready deployment with health monitoring and error recovery
 \end{itemize}
 
-Highlight the contributions and learning outcomes from the project.]
+Highlight the learning outcomes: practical experience with modern AI frameworks, full-stack development, containerization, and building production-grade applications.]
 
 \section{Future Enhancement}
 [Discuss potential future improvements:
 \begin{itemize}
-    \item Support for additional service integrations (Slack, Microsoft Office)
-    \item Voice input and output capabilities
-    \item Mobile application development
-    \item Advanced natural language processing
-    \item Personalized agent training based on user behavior
-    \item Multi-language support
-    \item Collaborative features for team usage
-    \item Enhanced security with biometric authentication
-    \item Integration with IoT devices
-    \item Offline mode capabilities
+    \item Additional service integrations (Slack, Microsoft Office 365, Notion)
+    \item Mobile application using React Native for iOS and Android
+    \item Fine-tuned models trained on user interaction patterns
+    \item Multi-user collaborative workspaces with shared agents
+    \item Plugin architecture for community-developed agents and tools
+    \item WebSocket-based real-time collaboration features
+    \item Kubernetes deployment for enterprise-scale orchestration
+    \item On-device voice processing for reduced latency
+    \item Offline mode with local LLM support (Ollama integration)
+    \item Advanced analytics dashboard for usage insights
+    \item Biometric and multi-factor authentication options
+    \item IoT device integration for smart home control
+    \item Video call integration with screen sharing analysis
+    \item Browser extension for contextual assistance
 \end{itemize}]
 
 % ==================== BIBLIOGRAPHY ====================
@@ -661,7 +1013,7 @@ LangChain Documentation,
 \bibitem{gemini}
 Google DeepMind,
 \textit{"Gemini: A Family of Highly Capable Multimodal Models"},
-arXiv preprint, 2023.
+arXiv preprint arXiv:2312.11805, December 2023.
 
 \bibitem{react}
 Meta Open Source,
@@ -679,11 +1031,54 @@ Prisma Data, Inc.,
 \texttt{https://www.prisma.io}, 2024.
 
 \bibitem{oauth}
-IETF OAuth Working Group,
+D. Hardt,
 \textit{"The OAuth 2.0 Authorization Framework"},
-RFC 6749, October 2012.
+RFC 6749, IETF, October 2012.
 
-% Add more references as needed
+\bibitem{redis}
+Redis Ltd.,
+\textit{"Redis Streams: Introduction to Redis Streams"},
+\texttt{https://redis.io/docs/data-types/streams/}, 2024.
+
+\bibitem{docker}
+Docker Inc.,
+\textit{"Docker Documentation: Build, Share, and Run Container Applications"},
+\texttt{https://docs.docker.com}, 2024.
+
+\bibitem{vercelai}
+Vercel Inc.,
+\textit{"AI SDK: The TypeScript toolkit for building AI applications"},
+\texttt{https://sdk.vercel.ai/docs}, 2024.
+
+\bibitem{livekit}
+LiveKit Inc.,
+\textit{"LiveKit: Open source WebRTC infrastructure"},
+\texttt{https://livekit.io/docs}, 2024.
+
+\bibitem{sarvam}
+Sarvam AI,
+\textit{"Sarvam APIs: Speech-to-Text and Text-to-Speech for Indic Languages"},
+\texttt{https://www.sarvam.ai}, 2024.
+
+\bibitem{supermemory}
+Supermemory,
+\textit{"Supermemory: Long-term memory for AI applications"},
+\texttt{https://supermemory.ai}, 2024.
+
+\bibitem{bun}
+Oven Sh.,
+\textit{"Bun: A fast all-in-one JavaScript runtime"},
+\texttt{https://bun.sh}, 2024.
+
+\bibitem{agents}
+S. Yao et al.,
+\textit{"ReAct: Synergizing Reasoning and Acting in Language Models"},
+ICLR 2023, arXiv:2210.03629.
+
+\bibitem{transformers}
+A. Vaswani et al.,
+\textit{"Attention Is All You Need"},
+NeurIPS 2017.
 
 \end{thebibliography}
 

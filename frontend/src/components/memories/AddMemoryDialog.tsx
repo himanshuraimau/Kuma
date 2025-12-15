@@ -54,7 +54,7 @@ export const AddMemoryDialog = ({ isOpen, onClose, onAdd }: AddMemoryDialogProps
                 <form onSubmit={handleSubmit} className="p-4">
                     <div className="mb-4">
                         <label htmlFor="memory-content" className="block text-sm font-medium text-zinc-400 mb-2">
-                            What would you like Kuma to remember?
+                            What would you like kuma-ai to remember?
                         </label>
                         <textarea
                             id="memory-content"
@@ -68,7 +68,7 @@ export const AddMemoryDialog = ({ isOpen, onClose, onAdd }: AddMemoryDialogProps
                     </div>
 
                     <p className="text-sm text-zinc-500 mb-4">
-                        This memory will be available to Kuma during your conversations.
+                        This memory will be available to kuma-ai during your conversations.
                     </p>
 
                     {/* Actions */}

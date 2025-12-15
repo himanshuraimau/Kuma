@@ -25,7 +25,7 @@ export const Navigation = () => {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="logo" className="w-8 h-8 object-contain" />
-          <span className="text-white font-bold text-xl tracking-tight">Kuma</span>
+          <span className="text-white font-bold text-xl tracking-tight">kuma-ai</span>
         </div>
 
         {/* Desktop Links */}

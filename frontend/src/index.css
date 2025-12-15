@@ -9,7 +9,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* UPDATED KUMA PALETTE (Mapped to Clean Zinc/Black Theme) */
+  /* UPDATED kuma-ai PALETTE (Mapped to Clean Zinc/Black Theme) */
   
   /* Was "Coral" -> Now Vivid Orange */
   --color-coral: #f97316; 

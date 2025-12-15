@@ -130,13 +130,13 @@ Summary:`
  */
 async function loadChatHistory(chatId: string): Promise<{ messages: CoreMessage[], contextSummary: string | null }> {
     // Get chat with summary info
-    const chat = await prisma.chat.findUnique({
+    const chat = await prisma.chats.findUnique({
         where: { id: chatId },
         select: { summary: true, summarizedUpTo: true }
     });
     
     // Get all messages
-    const allMessages = await prisma.message.findMany({
+    const allMessages = await prisma.messages.findMany({
         where: { chatId },
         orderBy: { createdAt: 'asc' },
     });
@@ -171,7 +171,7 @@ async function loadChatHistory(chatId: string): Promise<{ messages: CoreMessage[
         const newSummary = await summarizeMessages(contentToSummarize);
         
         // Update chat with new summary
-        await prisma.chat.update({
+        await prisma.chats.update({
             where: { id: chatId },
             data: {
                 summary: newSummary,
@@ -223,7 +223,7 @@ async function saveMessage(
     imageAttachments?: ImageAttachment[],
     documentAttachments?: DocumentAttachment[]
 ): Promise<void> {
-    await prisma.message.create({
+    await prisma.messages.create({
         data: {
             chatId,
             role,
@@ -287,7 +287,7 @@ export async function streamAgent(options: StreamAgentOptions) {
         // Save user message with attachments
         await saveMessage(chatId, 'user', message, undefined, imageAttachments, documentAttachments);
 
-        // Use Gemini API directly for multimodal streaming
+        // Use OpenAI GPT-4o for multimodal streaming
         let fullResponse = '';
         
         try {
@@ -296,7 +296,7 @@ export async function streamAgent(options: StreamAgentOptions) {
                 chatId,
                 imageAttachments,
                 documentAttachments,
-                model: config.modelType === 'pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash',
+                model: config.modelType === 'pro' ? 'gpt-4o' : 'gpt-4o-mini',
                 onChunk: (chunk) => {
                     onChunk?.(chunk);
                 },

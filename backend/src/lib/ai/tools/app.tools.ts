@@ -11,10 +11,10 @@ import { createDocumentTools } from './document.tools';
 export function createGmailTools(userId: string) {
     // Helper to get Gmail client
     const getGmailClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'gmail' },
+                apps: { name: 'gmail' },
                 isConnected: true,
             },
         });
@@ -219,10 +219,10 @@ export function createGmailTools(userId: string) {
  */
 export function createCalendarTools(userId: string) {
     const getCalendarClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'calendar' },
+                apps: { name: 'calendar' },
                 isConnected: true,
             },
         });
@@ -332,10 +332,10 @@ export function createCalendarTools(userId: string) {
  */
 export function createDocsTools(userId: string) {
     const getDocsClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'docs' },
+                apps: { name: 'docs' },
                 isConnected: true,
             },
         });
@@ -441,10 +441,10 @@ export function createDocsTools(userId: string) {
  */
 export function createDriveTools(userId: string) {
     const getDriveClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'drive' },
+                apps: { name: 'drive' },
                 isConnected: true,
             },
         });
@@ -840,10 +840,10 @@ export function createDriveTools(userId: string) {
  */
 export function createSheetsTools(userId: string) {
     const getSheetsClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'sheets' },
+                apps: { name: 'sheets' },
                 isConnected: true,
             },
         });
@@ -1039,7 +1039,7 @@ export function createSheetsTools(userId: string) {
                         return 'No spreadsheets found.';
                     }
 
-                    const list = files.map((file, i) => 
+                    const list = files.map((file, i) =>
                         `${i + 1}. ${file.name}\n   ID: ${file.id}\n   Modified: ${file.modifiedTime}\n   URL: ${file.webViewLink}`
                     ).join('\n\n');
 
@@ -1057,10 +1057,10 @@ export function createSheetsTools(userId: string) {
  */
 export function createSlidesTools(userId: string) {
     const getSlidesClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'slides' },
+                apps: { name: 'slides' },
                 isConnected: true,
             },
         });
@@ -1184,11 +1184,11 @@ export function createSlidesTools(userId: string) {
                         const slide = presentation.data.slides?.find(s => s.objectId === slideId);
 
                         if (slide) {
-                            const titleElement = slide.pageElements?.find(el => 
-                                el.shape?.placeholder?.type === 'CENTERED_TITLE' || 
+                            const titleElement = slide.pageElements?.find(el =>
+                                el.shape?.placeholder?.type === 'CENTERED_TITLE' ||
                                 el.shape?.placeholder?.type === 'TITLE'
                             );
-                            const bodyElement = slide.pageElements?.find(el => 
+                            const bodyElement = slide.pageElements?.find(el =>
                                 el.shape?.placeholder?.type === 'BODY'
                             );
 
@@ -1250,7 +1250,7 @@ export function createSlidesTools(userId: string) {
                         return 'No presentations found.';
                     }
 
-                    const list = files.map((file, i) => 
+                    const list = files.map((file, i) =>
                         `${i + 1}. ${file.name}\n   ID: ${file.id}\n   Modified: ${file.modifiedTime}\n   URL: ${file.webViewLink}`
                     ).join('\n\n');
 
@@ -1268,10 +1268,10 @@ export function createSlidesTools(userId: string) {
  */
 export function createGitHubTools(userId: string) {
     const getGitHubClient = async () => {
-        const userApp = await prisma.userApp.findFirst({
+        const userApp = await prisma.user_apps.findFirst({
             where: {
                 userId,
-                app: { name: 'github' },
+                apps: { name: 'github' },
                 isConnected: true,
             },
         });
@@ -1286,7 +1286,7 @@ export function createGitHubTools(userId: string) {
             headers: {
                 'Authorization': `Bearer ${credentials.access_token}`,
                 'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Kuma-AI-Assistant',
+                'User-Agent': 'kuma-ai-AI-Assistant',
             },
         };
     };
@@ -1321,7 +1321,7 @@ export function createGitHubTools(userId: string) {
                         return 'No repositories found.';
                     }
 
-                    const repoList = repos.map((repo, i) => 
+                    const repoList = repos.map((repo, i) =>
                         `${i + 1}. **${repo.full_name}**\n` +
                         `   ${repo.description || 'No description'}\n` +
                         `   ⭐ ${repo.stargazers_count} stars | 🍴 ${repo.forks_count} forks\n` +
@@ -1414,7 +1414,7 @@ export function createGitHubTools(userId: string) {
                         return `No ${state} issues found in ${owner}/${repo}.`;
                     }
 
-                    const issueList = actualIssues.map((issue, i) => 
+                    const issueList = actualIssues.map((issue, i) =>
                         `${i + 1}. #${issue.number}: ${issue.title}\n` +
                         `   State: ${issue.state} | Comments: ${issue.comments}\n` +
                         `   Created: ${new Date(issue.created_at).toLocaleDateString()}\n` +
@@ -1543,7 +1543,7 @@ export function createGitHubTools(userId: string) {
                         return `No ${state} pull requests found in ${owner}/${repo}.`;
                     }
 
-                    const prList = prs.map((pr, i) => 
+                    const prList = prs.map((pr, i) =>
                         `${i + 1}. #${pr.number}: ${pr.title}\n` +
                         `   By: ${pr.user.login} | State: ${pr.state}\n` +
                         `   Created: ${new Date(pr.created_at).toLocaleDateString()}\n` +
@@ -1587,7 +1587,7 @@ export function createGitHubTools(userId: string) {
                         return `No code found matching "${query}".`;
                     }
 
-                    const codeList = items.map((item: any, i: number) => 
+                    const codeList = items.map((item: any, i: number) =>
                         `${i + 1}. **${item.name}** in ${item.repository.full_name}\n` +
                         `   Path: ${item.path}\n` +
                         `   URL: ${item.html_url}`
@@ -1615,7 +1615,7 @@ export function createGitHubTools(userId: string) {
                 }
 
                 try {
-                    const url = ref 
+                    const url = ref
                         ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}`
                         : `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
@@ -1656,12 +1656,12 @@ export async function loadUserAppTools(userId: string) {
     const tools: Record<string, any> = {};
 
     // Check which apps are connected
-    const connectedApps = await prisma.userApp.findMany({
+    const connectedApps = await prisma.user_apps.findMany({
         where: { userId, isConnected: true },
-        include: { app: true },
+        include: { apps: true },
     });
 
-    const connectedAppNames = connectedApps.map((ua) => ua.app.name);
+    const connectedAppNames = connectedApps.map((ua) => ua.apps.name);
 
     // Add Gmail tools if connected
     if (connectedAppNames.includes('gmail')) {

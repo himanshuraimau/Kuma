@@ -1,171 +1,171 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  chats     Chat[]
-  userTools UserTool[]
-  userApps  UserApp[]
-  documents Document[]
-
-  @@map("users")
-}
-
-model Chat {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String?
-  agentType String   @default("router") // router, financial, stock-market, etc.
-  threadId  String   @unique // LangGraph thread_id for memory
-  summary   String?  @db.Text // Summary of older messages for context
-  summarizedUpTo Int @default(0) // Number of messages that have been summarized
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages Message[]
-  documents Document[]
-
-  @@index([userId])
-  @@index([threadId])
-  @@map("chats")
-}
-
-model Message {
-  id                  String   @id @default(uuid())
-  chatId              String
-  role                String   // user, assistant, tool, system
-  content             String   @db.Text
-  toolCalls           Json?    // Store tool calls if any
-  imageAttachments    Json?    // Array of {filename, mimetype, url, size}
-  documentAttachments Json?    // Array of {id, displayName, geminiFileUri, pageCount}
-  createdAt           DateTime @default(now())
-
-  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
-  @@index([chatId])
-  @@map("messages")
-}
-
-model Agent {
-  id          String   @id @default(uuid())
-  name        String   @unique // financial, stock-market, productivity, etc.
-  displayName String
-  description String   @db.Text
-  systemPrompt String  @db.Text
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("agents")
-}
-
-model Tool {
-  id          String   @id @default(uuid())
-  name        String   @unique // read_emails, create_issue, get_stock_price, etc.
-  category    String   // gmail, github, stock-market, calendar, slack
-  displayName String
-  description String   @db.Text
-  requiresAuth Boolean @default(false) // Does this tool need OAuth/API key?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("tools")
-}
-
-model UserTool {
+model agents {
   id           String   @id @default(uuid())
-  userId       String
-  toolCategory String   // gmail, github, stock-market, etc.
-  credentials  Json     // Encrypted OAuth tokens or API keys
-  isConnected  Boolean  @default(true)
+  name         String   @unique
+  displayName  String
+  description  String
+  systemPrompt String
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, toolCategory])
-  @@index([userId])
-  @@map("user_tools")
 }
 
-model App {
-  id          String   @id @default(uuid())
-  name        String   @unique // gmail, calendar, github, etc.
-  category    String   // communication, productivity, development
+model apps {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  category    String
   displayName String
-  description String   @db.Text
-  icon        String?  // Emoji or icon identifier
-  authType    String   // oauth2, api_key, none
-  isActive    Boolean  @default(true)
-  config      Json     @default("{}") // OAuth config, scopes, etc.
-  createdAt   DateTime @default(now())
+  description String
+  icon        String?
+  authType    String
+  isActive    Boolean     @default(true)
+  config      Json        @default("{}")
+  createdAt   DateTime    @default(now())
   updatedAt   DateTime @updatedAt
-
-  userApps UserApp[]
-
-  @@map("apps")
+  user_apps   user_apps[]
 }
 
-model UserApp {
+model chats {
+  id             String      @id @default(uuid())
+  userId         String
+  title          String?
+  agentType      String      @default("router")
+  threadId       String      @unique
+  summary        String?
+  summarizedUpTo Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime @updatedAt
+  users          users       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents      documents[]
+  messages       messages[]
+
+  @@index([threadId])
+  @@index([userId])
+}
+
+model documents {
+  id             String    @id @default(uuid())
+  userId         String
+  chatId         String?
+  filename       String
+  displayName    String
+  mimeType       String    @default("application/pdf")
+  fileSize       Int
+  pageCount      Int?
+  geminiFileUri  String    @default("")
+  geminiFileName String    @default("")
+  extractedText  String?   @db.Text
+  status         String    @default("processing")
+  summary        String?
+  metadata       Json?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime @updatedAt
+  chats          chats?    @relation(fields: [chatId], references: [id])
+  users          users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([status])
+  @@index([userId])
+}
+
+model message_jobs {
+  id          String    @id @default(uuid())
+  jobId       String    @unique
+  chatId      String
+  userId      String
+  status      String
+  message     String
+  agentType   String
+  result      Json?
+  error       String?
+  retryCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+
+  @@index([chatId])
+  @@index([createdAt])
+  @@index([jobId])
+  @@index([status])
+  @@index([userId])
+}
+
+model messages {
+  id                  String   @id @default(uuid())
+  chatId              String
+  role                String
+  content             String
+  toolCalls           Json?
+  imageAttachments    Json?
+  createdAt           DateTime @default(now())
+  documentAttachments Json?
+  chats               chats    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+model tools {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  category     String
+  displayName  String
+  description  String
+  requiresAuth Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model user_apps {
   id          String    @id @default(uuid())
   userId      String
   appId       String
-  credentials Json      // Encrypted OAuth tokens/API keys
-  metadata    Json?     // Connected email, account info, etc.
+  credentials Json
+  metadata    Json?
   isConnected Boolean   @default(true)
   lastSyncAt  DateTime?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  app  App  @relation(fields: [appId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime @updatedAt
+  apps        apps      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  users       users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, appId])
-  @@index([userId])
   @@index([appId])
-  @@map("user_apps")
+  @@index([userId])
 }
 
-model Document {
-  id              String    @id @default(uuid())
-  userId          String
-  chatId          String?   // Optional: link to specific chat
-  filename        String
-  displayName     String
-  mimeType        String    @default("application/pdf")
-  fileSize        Int       // Size in bytes
-  pageCount       Int?      // Number of pages
-  geminiFileUri   String    @unique // Gemini File API URI
-  geminiFileName  String    // Gemini File API name (for getting/deleting)
-  status          String    @default("processing") // processing, ready, failed
-  summary         String?   @db.Text // Auto-generated summary
-  metadata        Json?     // Additional metadata
-  expiresAt       DateTime? // Gemini files expire after 48 hours
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model user_tools {
+  id           String   @id @default(uuid())
+  userId       String
+  toolCategory String
+  credentials  Json
+  isConnected  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chat Chat? @relation(fields: [chatId], references: [id], onDelete: SetNull)
-
+  @@unique([userId, toolCategory])
   @@index([userId])
-  @@index([chatId])
-  @@index([status])
-  @@map("documents")
+}
+
+model users {
+  id         String       @id @default(uuid())
+  email      String       @unique
+  name       String
+  password   String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime @updatedAt
+  chats      chats[]
+  documents  documents[]
+  user_apps  user_apps[]
+  user_tools user_tools[]
 }

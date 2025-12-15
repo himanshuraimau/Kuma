@@ -30,10 +30,10 @@ export const MessageBubble = ({ role, content, timestamp, imageAttachments }: Me
                     {/* Avatar + Name Row (Optional) */}
                     <div className={`flex items-center gap-2 mb-1.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div className={`w-6 h-6 rounded-md flex items-center justify-center shadow-sm ${isUser ? 'bg-zinc-800' : ''}`}>
-                            {isUser ? <User className="w-3.5 h-3.5 text-zinc-400" /> : <img src="/logo.png" alt="Kuma" className="w-5 h-5 object-contain" />}
+                            {isUser ? <User className="w-3.5 h-3.5 text-zinc-400" /> : <img src="/logo.png" alt="kuma-ai" className="w-5 h-5 object-contain" />}
                         </div>
                         <span className="text-xs font-medium text-zinc-500">
-                            {isUser ? 'You' : 'Kuma'}
+                            {isUser ? 'You' : 'kuma-ai'}
                         </span>
                     </div>
 

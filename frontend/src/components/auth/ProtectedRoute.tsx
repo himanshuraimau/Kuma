@@ -8,18 +8,27 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+    const { isAuthenticated, isLoading, checkAuth, token } = useAuthStore();
     const [hasChecked, setHasChecked] = useState(false);
 
     useEffect(() => {
-        // Only check auth once on mount
-        if (!hasChecked) {
-            checkAuth().finally(() => setHasChecked(true));
+        // If user is already authenticated (e.g., just signed up), skip auth check
+        if (isAuthenticated && token) {
+            setHasChecked(true);
+            return;
         }
-    }, [checkAuth, hasChecked]);
+
+        // Only check auth once on mount if not already authenticated
+        if (!hasChecked && token) {
+            checkAuth().finally(() => setHasChecked(true));
+        } else if (!token) {
+            // No token, mark as checked so we can redirect
+            setHasChecked(true);
+        }
+    }, [checkAuth, hasChecked, isAuthenticated, token]);
 
     // Show loading only during initial auth check
-    if (!hasChecked || isLoading) {
+    if (!hasChecked || (isLoading && token)) {
         return (
             <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center gap-4">
                 <div className="relative">

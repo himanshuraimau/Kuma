@@ -56,7 +56,7 @@ export const MemoriesPage = () => {
                         <h1 className="text-4xl font-bold">Memories</h1>
                     </div>
                     <p className="text-zinc-400 text-lg">
-                        Kuma remembers important information from your conversations
+                        kuma-ai remembers important information from your conversations
                     </p>
                 </div>
 
@@ -142,7 +142,7 @@ export const MemoriesPage = () => {
                         <p className="text-zinc-500 mb-6">
                             {searchQuery
                                 ? 'Try a different search term'
-                                : 'Kuma will remember important information from your conversations, or you can add memories manually.'}
+                                : 'kuma-ai will remember important information from your conversations, or you can add memories manually.'}
                         </p>
                         {!searchQuery && (
                             <button

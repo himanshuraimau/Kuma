@@ -12,6 +12,7 @@ interface ChatState {
     isStreaming: boolean;
     streamingContent: string;
     error: string | null;
+    pollingInterval: number | null;
 
     // Actions
     sendMessage: (message: string, agentType?: string, images?: File[], documentIds?: string[]) => Promise<void>;
@@ -23,6 +24,9 @@ interface ChatState {
     createNewChat: () => void;
     setCurrentChat: (chatId: string | null) => void;
     clearError: () => void;
+    startPolling: () => void;
+    stopPolling: () => void;
+    refreshCurrentChat: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -35,6 +39,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     isStreaming: false,
     streamingContent: '',
     error: null,
+    pollingInterval: null,
 
     // Send a message with streaming
     sendMessageStreaming: async (message: string, agentType = 'router', images?: File[], documentIds?: string[]) => {
@@ -45,7 +50,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         // Optimistically add user message to UI
         const tempUserMessageId = `temp-user-${Date.now()}`;
         const tempAssistantMessageId = `temp-assistant-${Date.now()}`;
-        
+
         // Create temporary image attachments for display
         const tempImageAttachments = images?.map(file => ({
             filename: file.name,
@@ -53,7 +58,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             mimetype: file.type,
             size: file.size,
         }));
-        
+
         const tempUserMessage: Message = {
             id: tempUserMessageId,
             chatId: currentChatId || 'temp',
@@ -97,6 +102,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
                             set({ currentChatId: chatId });
                         }
                     },
+                    onJobId: (jobId) => {
+                        // Redis queue mode detected
+                        console.log('📋 Message queued with job ID:', jobId);
+
+                        // Start polling for new messages since we won't get streaming chunks
+                        get().startPolling();
+                    },
+                    onStatus: (status, message) => {
+                        console.log('📊 Job status:', status, message);
+                        // Could show status in UI (e.g., "Processing...", "Completed")
+                    },
                     onChunk: (content) => {
                         fullResponse += content;
                         set((state) => ({
@@ -116,6 +132,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
                         console.log('Tool result:', toolName, success);
                     },
                     onDone: (response) => {
+                        console.log('✅ Received done event with response:', response.substring(0, 100) + '...');
+
                         // Finalize the message
                         set((state) => ({
                             currentMessages: state.currentMessages.map((m) => {
@@ -131,6 +149,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
                             isStreaming: false,
                             streamingContent: '',
                         }));
+
+                        // Stop polling when message is done
+                        get().stopPolling();
                     },
                     onError: (error) => {
                         set({
@@ -330,5 +351,64 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Clear error
     clearError: () => {
         set({ error: null });
+    },
+
+    // Refresh current chat to check for new messages
+    refreshCurrentChat: async () => {
+        const { currentChatId, isSending } = get();
+        if (!currentChatId || !isSending) return;
+
+        try {
+            const response = await chatApi.getChat(currentChatId);
+            const newMessages = response.chat.messages || [];
+
+            // Check if we have a completed assistant response
+            const currentMessages = get().currentMessages;
+            const lastCurrentMsg = currentMessages[currentMessages.length - 1];
+            const lastNewMsg = newMessages[newMessages.length - 1];
+
+            // If we got a new assistant message with content, update
+            if (newMessages.length > currentMessages.length ||
+                (lastNewMsg?.role === 'assistant' && lastNewMsg?.content &&
+                    (!lastCurrentMsg || lastCurrentMsg.content !== lastNewMsg.content))) {
+
+                console.log('🔄 Polling detected new message, updating UI');
+                set({
+                    currentMessages: newMessages,
+                    isSending: false,
+                    isStreaming: false,
+                    streamingContent: '',
+                });
+
+                // Stop polling once we get the response
+                get().stopPolling();
+            }
+        } catch (error) {
+            console.error('Failed to refresh chat:', error);
+        }
+    },
+
+    // Start polling for new messages (useful when Redis queue is enabled)
+    startPolling: () => {
+        const { pollingInterval } = get();
+
+        // Don't start if already polling
+        if (pollingInterval) return;
+
+        const interval = setInterval(() => {
+            get().refreshCurrentChat();
+        }, 2000) as unknown as number; // Poll every 2 seconds
+
+        set({ pollingInterval: interval });
+    },
+
+    // Stop polling
+    stopPolling: () => {
+        const { pollingInterval } = get();
+
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            set({ pollingInterval: null });
+        }
     },
 }));

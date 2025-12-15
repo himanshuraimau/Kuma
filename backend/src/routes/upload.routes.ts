@@ -55,7 +55,7 @@ router.get('/chats/:chatId/:filename', authMiddleware, async (req, res) => {
         }
 
         // Verify user owns this chat
-        const chat = await prisma.chat.findUnique({
+        const chat = await prisma.chats.findUnique({
             where: { id: chatId, userId },
         });
 

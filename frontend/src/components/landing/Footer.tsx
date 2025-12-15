@@ -39,7 +39,7 @@ export const Footer = () => {
                             <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                                 <span className="text-white font-bold">K</span>
                             </div>
-                            <span className="text-white font-bold text-xl">Kuma</span>
+                            <span className="text-white font-bold text-xl">kuma-ai</span>
                         </div>
                         <p className="text-zinc-500 text-sm max-w-xs">
                             Your intelligent AI assistant designed to streamline your workflow and organize your life.
@@ -71,7 +71,7 @@ export const Footer = () => {
                 </div>
 
                 <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600">
-                    <p>© {currentYear} Kuma AI. All rights reserved.</p>
+                    <p>© {currentYear} kuma-ai AI. All rights reserved.</p>
                     <p>Designed for productivity.</p>
                 </div>
             </div>

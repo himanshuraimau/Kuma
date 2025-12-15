@@ -1,0 +1,206 @@
+# ===================================
+# Kuma AI - Docker Compose Configuration
+# ===================================
+# Complete stack: Frontend, Backend, Worker, PostgreSQL, Redis
+
+version: '3.8'
+
+services:
+  # ===================================
+  # PostgreSQL Database
+  # ===================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: kuma-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kuma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kumapassword}
+      POSTGRES_DB: ${POSTGRES_DB:-kuma_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kuma} -d ${POSTGRES_DB:-kuma_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kuma-network
+
+  # ===================================
+  # Redis (Message Queue & Cache)
+  # ===================================
+  redis:
+    image: redis:7-alpine
+    container_name: kuma-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kuma-network
+
+  # ===================================
+  # Backend API Server
+  # ===================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kuma-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Server
+      NODE_ENV: production
+      PORT: 3001
+      
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+      
+      # Redis
+      USE_REDIS_QUEUE: ${USE_REDIS_QUEUE:-false}
+      REDIS_URL: redis://redis:6379
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      
+      # Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      
+      # GitHub OAuth
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      
+      # External Services
+      SUPERMEMORY_API_KEY: ${SUPERMEMORY_API_KEY}
+      EXA_API_KEY: ${EXA_API_KEY}
+      SARVAM_API_KEY: ${SARVAM_API_KEY}
+      
+      # LiveKit
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      
+      # Frontend URL (for OAuth callbacks)
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+    ports:
+      - "3001:3001"
+    volumes:
+      - backend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - kuma-network
+
+  # ===================================
+  # Backend Worker (Redis Queue Processor)
+  # ===================================
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    container_name: kuma-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SUPERMEMORY_API_KEY: ${SUPERMEMORY_API_KEY}
+      EXA_API_KEY: ${EXA_API_KEY}
+    profiles:
+      - with-worker  # Only start when using Redis queue
+    networks:
+      - kuma-network
+
+  # ===================================
+  # Frontend (NGINX + React SPA)
+  # ===================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
+        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL}
+    container_name: kuma-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - kuma-network
+
+  # ===================================
+  # Prisma Studio (Development Only)
+  # ===================================
+  prisma-studio:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kuma-prisma-studio
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+    ports:
+      - "5555:5555"
+    command: ["bunx", "prisma", "studio", "--port", "5555", "--browser", "none"]
+    profiles:
+      - dev  # Only start in development
+    networks:
+      - kuma-network
+
+# ===================================
+# Networks
+# ===================================
+networks:
+  kuma-network:
+    driver: bridge
+
+# ===================================
+# Volumes
+# ===================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
