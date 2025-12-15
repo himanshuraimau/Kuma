@@ -1356,7 +1356,7 @@ flowchart LR
 
 ### File Structure
 
-```
+```bash
 Kuma/
 ├── docker-compose.yml        # Production stack
 ├── docker-compose.dev.yml    # Development stack
@@ -1429,9 +1429,9 @@ docker-compose exec backend bun run db:seed
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost |
-| Backend API | http://localhost:3001/api |
-| Prisma Studio | http://localhost:5555 (dev) |
+| Frontend | <http://localhost> |
+| Backend API | <http://localhost:3001/api> |
+| Prisma Studio | <http://localhost:5555> (dev) |
 
 ### Docker Commands Reference
 
@@ -1558,4 +1558,4 @@ docker-compose exec backend bunx prisma migrate deploy
 ---
 
 This architecture documentation provides a comprehensive view of the Kuma AI system. For implementation details, refer to the specific code files in the codebase.
-
+[EOF]

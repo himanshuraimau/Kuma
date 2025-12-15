@@ -2,14 +2,22 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces System Architecture of Kuma AI Assistant}}{6}{}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Context Diagram (Level 0 DFD)}}{6}{}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Level 1 Data Flow Diagram}}{6}{}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Level 2 DFD - Agent Processing Module}}{7}{}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces System Architecture of Kuma AI Assistant}}{8}{}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Redis Message Queue Architecture}}{8}{}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Voice Processing Pipeline}}{9}{}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Docker Deployment Architecture}}{9}{}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Context Diagram (Level 0 DFD)}}{10}{}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Level 1 Data Flow Diagram}}{10}{}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Level 2 DFD - Agent Processing Module}}{11}{}%
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Level 2 DFD - Voice Processing Module}}{11}{}%
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Level 2 DFD - Image Processing Module}}{11}{}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Main Chat Interface}}{11}{}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Gmail Integration}}{11}{}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Main Chat Interface}}{22}{}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Voice Interaction Interface}}{22}{}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Image Analysis Results}}{23}{}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Gmail Integration}}{23}{}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Docker Container Dashboard}}{24}{}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
