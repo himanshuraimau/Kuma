@@ -175,6 +175,7 @@ SIT,Tumakuru-03  &                        &
 \textbf{1.}\\
 \textbf{2.}\\
 \end{titlepage}
+\clearpage % Moved clearpage here to ensure it's after the titlepage environment
 
 % ==================== ACKNOWLEDGEMENT ====================
 \begin{titlepage}
@@ -268,7 +269,10 @@ POs: PO1: Engineering Knowledge, PO2: Problem analysis, PO3: Design/Development 
 PSO1:Computer based systems development,PSO2:Software development,PSO3:Computer Communications and Internet applications
 \end{titlepage}
 
+\clearpage
+
 % ==================== ABSTRACT ====================
+\clearpage
 \chapter*{Abstract}
 \thispagestyle{plain}
 \addcontentsline{toc}{chapter}{\numberline{}Abstract}
@@ -280,9 +284,10 @@ The primary objective is to develop a multi-agent AI system where specialized ag
 The implementation uses TypeScript with Bun runtime for backend and React 18 with Vite for frontend. AI processing integrates Google Gemini and OpenAI GPT-4 through Vercel AI SDK with Server-Sent Events for streaming responses. PostgreSQL with Prisma ORM manages data persistence. The multi-agent architecture uses a router pattern delegating tasks to specialized agents. Supermemory integration provides long-term memory for personalized conversations.
 
 % ==================== TABLE OF CONTENTS ====================
+\clearpage
 \pagenumbering{roman}
 \tableofcontents
-\thispagestyle{empty}
+\thispagestyle{plain}
 \clearpage
 
 % ==================== LIST OF FIGURES ====================
@@ -450,7 +455,7 @@ The system employs a three-tier architecture comprising a React-based frontend, 
 
 The multi-agent system implements a router pattern where a primary agent analyzes user queries and delegates tasks to specialized agents including research, stock market, and financial advisory agents, each configured with domain-specific system prompts and tool access. The voice pipeline integrates Sarvam AI for speech-to-text and text-to-speech processing with LiveKit for real-time audio streaming. The vision module leverages Google Gemini Vision for image analysis, optical character recognition, and document understanding. OAuth 2.0 integration provides secure connection to Google Workspace and GitHub services with encrypted token storage and automatic refresh handling. Docker containerization separates the system into distinct containers for frontend (NGINX), backend API (Bun), worker process, PostgreSQL database, and Redis cache, orchestrated through Docker Compose with health checks and automatic restart policies.
 
-Refer to Figure \\ref{fig:architecture} for the system architecture diagram.
+Refer to Figure \ref{fig:architecture} for the system architecture diagram.
 
 
 \begin{figure}[h]
@@ -487,7 +492,7 @@ Refer to Figure \ref{fig:voice} for the voice processing flow diagram.
 \section{Docker Deployment Architecture}
 The containerized deployment architecture utilizes Docker for consistent execution across environments. Multi-stage Dockerfile builds separate build-time and runtime dependencies, optimizing image size and security. The frontend Dockerfile builds the React application with Vite and serves static files through NGINX. The backend Dockerfile uses Bun runtime for TypeScript execution with Prisma for database access. Docker Compose orchestrates five services: frontend (NGINX serving React build), backend API (Bun with Express), worker (Bun processing Redis queue), PostgreSQL database, and Redis cache. Volume mounts ensure persistent storage for database data and uploaded files. Health checks monitor service availability, with automatic restart policies ensuring system resilience. Docker bridge networks provide isolation between services while enabling inter-container communication through service names as hostnames.
 
-Refer to Figure \\ref{fig:docker} for the Docker deployment diagram.
+Refer to Figure \ref{fig:docker} for the Docker deployment diagram.
 
 
 \begin{figure}[h]
