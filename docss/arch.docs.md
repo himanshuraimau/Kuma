@@ -82,7 +82,7 @@ flowchart TB
     end
     
     subgraph Redis["Redis"]
-        Stream[Message Stream<br/>Consumer Group]
+        Stream[Message Stream\nConsumer Group]
         PubSub[Pub/Sub Channels]
         DLQ[Dead Letter Queue]
     end
@@ -145,13 +145,13 @@ flowchart TB
     User((User))
     
     subgraph System["Kuma AI System"]
-        Core[AI Assistant<br/>Platform]
+        Core[AI Assistant\nPlatform]
     end
     
-    GoogleServices[Google Workspace<br/>Gmail, Calendar, Drive, Docs]
+    GoogleServices[Google Workspace\nGmail, Calendar, Drive, Docs]
     GitHub[GitHub]
-    AIAPIs[AI Services<br/>Gemini, OpenAI]
-    VoiceServices[Voice Services<br/>Sarvam AI, LiveKit]
+    AIAPIs[AI Services\nGemini, OpenAI]
+    VoiceServices[Voice Services\nSarvam AI, LiveKit]
     Memory[Supermemory]
     
     User -->|Text, Voice, Images| Core
@@ -175,18 +175,18 @@ flowchart TB
     User((User))
     
     subgraph System["Kuma AI System"]
-        Auth[1.0<br/>Authentication &<br/>Session Management]
-        Chat[2.0<br/>Chat &<br/>Message Processing]
-        Agent[3.0<br/>AI Agent<br/>Routing & Execution]
-        Voice[4.0<br/>Voice<br/>Processing]
-        Vision[5.0<br/>Image & Document<br/>Analysis]
-        Integration[6.0<br/>External Service<br/>Integration]
-        Queue[7.0<br/>Redis Queue<br/>Management]
+        Auth[1.0\nAuthentication &\nSession Management]
+        Chat[2.0\nChat &\nMessage Processing]
+        Agent[3.0\nAI Agent\nRouting & Execution]
+        Voice[4.0\nVoice\nProcessing]
+        Vision[5.0\nImage & Document\nAnalysis]
+        Integration[6.0\nExternal Service\nIntegration]
+        Queue[7.0\nRedis Queue\nManagement]
     end
     
     DB[(Database)]
     Redis[(Redis)]
-    External[External<br/>Services]
+    External[External\nServices]
     
     User -->|Credentials| Auth
     Auth -->|JWT Token| User
@@ -219,22 +219,22 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    Input[User Query +<br/>Context]
+    Input[User Query +\nContext]
     
     subgraph AgentProcessing["3.0 AI Agent Processing"]
-        Router[3.1<br/>Router Agent<br/>Query Classification]
-        LoadContext[3.2<br/>Load Context<br/>History + Memory]
-        SelectAgent[3.3<br/>Select Specialized<br/>Agent]
-        LoadTools[3.4<br/>Load User<br/>Tools]
-        Execute[3.5<br/>Execute Agent<br/>with Tools]
-        Stream[3.6<br/>Stream Response<br/>Tokens]
-        SaveMemory[3.7<br/>Save to<br/>Memory]
+        Router[3.1\nRouter Agent\nQuery Classification]
+        LoadContext[3.2\nLoad Context\nHistory + Memory]
+        SelectAgent[3.3\nSelect Specialized\nAgent]
+        LoadTools[3.4\nLoad User\nTools]
+        Execute[3.5\nExecute Agent\nwith Tools]
+        Stream[3.6\nStream Response\nTokens]
+        SaveMemory[3.7\nSave to\nMemory]
     end
     
     DB[(Database)]
     Memory[Supermemory]
-    Tools[External<br/>Tools/APIs]
-    Output[Streaming<br/>Response]
+    Tools[External\nTools/APIs]
+    Output[Streaming\nResponse]
     
     Input --> Router
     Router --> LoadContext
@@ -258,18 +258,18 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AudioInput[Audio<br/>Input]
+    AudioInput[Audio\nInput]
     
     subgraph VoiceProcessing["4.0 Voice Processing"]
-        Capture[4.1<br/>Audio Capture<br/>& Buffering]
-        STT[4.2<br/>Speech-to-Text<br/>Sarvam AI]
-        AgentProcess[4.3<br/>AI Agent<br/>Processing]
-        TTS[4.4<br/>Text-to-Speech<br/>Sarvam AI]
-        Stream[4.5<br/>Audio<br/>Streaming]
+        Capture[4.1\nAudio Capture\n& Buffering]
+        STT[4.2\nSpeech-to-Text\nSarvam AI]
+        AgentProcess[4.3\nAI Agent\nProcessing]
+        TTS[4.4\nText-to-Speech\nSarvam AI]
+        Stream[4.5\nAudio\nStreaming]
     end
     
-    Agent[AI Agent<br/>System]
-    AudioOutput[Audio<br/>Response]
+    Agent[AI Agent\nSystem]
+    AudioOutput[Audio\nResponse]
     
     AudioInput --> Capture
     Capture --> STT
@@ -288,20 +288,20 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    ImageInput[Image/Document<br/>Upload]
+    ImageInput[Image/Document\nUpload]
     
     subgraph ImageProcessing["5.0 Image & Document Analysis"]
-        Validate[5.1<br/>File Validation<br/>& Upload]
-        Encode[5.2<br/>Base64<br/>Encoding]
-        Vision[5.3<br/>Gemini Vision<br/>Analysis]
-        OCR[5.4<br/>Text Extraction<br/>OCR]
-        Scene[5.5<br/>Scene Description<br/>& Objects]
-        Store[5.6<br/>Store Results<br/>& Metadata]
+        Validate[5.1\nFile Validation\n& Upload]
+        Encode[5.2\nBase64\nEncoding]
+        Vision[5.3\nGemini Vision\nAnalysis]
+        OCR[5.4\nText Extraction\nOCR]
+        Scene[5.5\nScene Description\n& Objects]
+        Store[5.6\nStore Results\n& Metadata]
     end
     
     DB[(Database)]
-    GeminiAPI[Google<br/>Gemini Vision]
-    Output[Analysis<br/>Results]
+    GeminiAPI[Google\nGemini Vision]
+    Output[Analysis\nResults]
     
     ImageInput --> Validate
     Validate --> Encode
