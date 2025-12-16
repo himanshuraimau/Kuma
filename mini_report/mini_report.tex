@@ -76,7 +76,7 @@
 \setlength{\voffset}{-0.75in}
 \setlength{\headsep}{10pt}
 \setlength{\headheight}{14.5pt}
-\setlength{\parindent}{0cm}
+\setlength{\parindent}{1.5em}
 
 % Title formatting
 \titlespacing{\section}{0pt}{0pt}{0pt}
@@ -154,7 +154,7 @@ SIT, Tumakuru-03\\[1.0cm]
 \end{titlepage}
 
 % ==================== CERTIFICATE ====================
-\begin{titlepage}
+\thispagestyle{empty}
 \begin{center}
 {\textbf{SIDDAGANGA INSTITUTE OF TECHNOLOGY, TUMAKURU-572103}} \\
 {(An Autonomous Institute under Visvesvaraya Technological University, Belagavi)}
@@ -164,7 +164,7 @@ $$\includegraphics[scale=1.0]{Logo}$$
 {\color{red}{\Large \bf CERTIFICATE}}\\[0.5cm]
 \end{center}
 
-Certified that the mini project work entitled {\color{blue}"KUMA: AI-POWERED PERSONAL ASSISTANT"} is a bonafide work carried out by Himanshu Rai (1SI23AD016),Suraj Kumar (1SI23AD057), Aditya Raj (1SI23CS008) in partial fulfillment for the completion of V Semester of Bachelor of Engineering in Artificial Intelligence and Data Science from Siddaganga Institute of Technology, an autonomous institute under Visvesvaraya Technological University, Belagavi during the academic year 2025-26. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the department library. The Mini project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the Bachelor of Engineering degree.\\[1.0cm] 
+Certified that the mini project work entitled {\color{blue}"KUMA: AI-POWERED PERSONAL ASSISTANT"} is a bonafide work carried out by Himanshu Rai (1SI23AD016), Suraj Kumar (1SI23AD057), Aditya Raj (1SI23CS008) in partial fulfillment for the completion of V Semester of Bachelor of Engineering in Artificial Intelligence and Data Science from Siddaganga Institute of Technology, an autonomous institute under Visvesvaraya Technological University, Belagavi during the academic year 2025-26. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the department library. The Mini project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the Bachelor of Engineering degree.\\[1.0cm] 
 
 \begin{tabular}{lll}
 Dr Sheela S    \hspace{8cm} & Head of the Department \hspace{8cm}        \\
@@ -176,10 +176,12 @@ SIT,Tumakuru-03  &                        &
 \textbf{External viva:}\\
 \textbf{Names of the Examiners} \hspace{6.0cm} \textbf{Signature with date}\\
 \textbf{1.}\\
-\textbf{2.}\\
-\end{titlepage}
+\textbf{2.}
+
+\clearpage
 
 % ==================== ACKNOWLEDGEMENT ====================
+\thispagestyle{empty}
 \begin{center}
 {\Large \textbf{ACKNOWLEDGEMENT}}
 \end{center}
@@ -1392,21 +1394,21 @@ Manning Publications, Chapter 3: Interprocess Communication, 2018.
 {\#}&{\bf SDG} & {\bf Level} \\ \hline
 1&No Poverty &  \\ \hline
 2&Zero Hunger & \\ \hline
-3&Good Health and Well-being& \\ \hline
+3&Good Health and Well-being& 1 \\ \hline
 4&Quality education & 3 \\ \hline
-5&Gender Quality & \\ \hline
+5&Gender Quality & 1 \\ \hline
 6&Clean water and Sanitation & \\ \hline
 7&Affordable and Clean Energy & \\ \hline
 8&Decent work and Economic Growth & 2 \\ \hline
 9&Industry, Innovation and Infrastructure& 3 \\ \hline
 10&Reduced Inequalities& 2 \\ \hline
-11&Sustainable cities and Communities& \\ \hline
-12&Responsible Consumption and production& \\ \hline
+11&Sustainable cities and Communities& 1 \\ \hline
+12&Responsible Consumption and production& 1 \\ \hline
 13&Climate action& \\ \hline
 14&Life below water& \\ \hline
 15&Life on Land & \\ \hline
-16&Peace, Justice and Strong Institutions& \\ \hline
-17&Partnership's for the Goals &\\  \hline
+16&Peace, Justice and Strong Institutions& 2 \\ \hline
+17&Partnership's for the Goals & 1\\  \hline
 \end{tabular}
 %    \caption{Caption}
 %    \label{tab:my_label}
@@ -1454,22 +1456,112 @@ PSO2& Designed and developed full-stack application using modern practices &3\\ 
 \textbf{PSO3: Computer communications \\ and Internet applications:} Ability to design and develop network protocols and internet applications by incorporating the knowledge of computer networks, communication protocol engineering, cryptography and network security,   distributed and cloud computing, data mining, big data analytics, ad hoc networks, storage area networks and wireless sensor networks. 
  \\ {\bf Levels: Poor:1, Good :2, Excellent:3}
 
-\chapter{Data Sheet of component 1 }
+\chapter{System Technology Stack}
 
-{\large \textbf{Note: Only include relevant details of the components that are referred w.r.t. project.}}
+\section{Backend Technologies}
+\begin{itemize}
+\item \textbf{Runtime:} Bun 1.0+ - Fast JavaScript runtime
+\item \textbf{Framework:} Express 4.18.2 + TypeScript 5.3.3
+\item \textbf{Database:} PostgreSQL 16 with Prisma 6.0.0 ORM
+\item \textbf{Cache/Queue:} Redis 7 with ioredis client
+\item \textbf{AI Services:} Google Gemini API, OpenAI GPT-4, Supermemory
+\item \textbf{Integrations:} Google APIs (Gmail, Calendar, Drive, Docs, Sheets), LiveKit, Exa Search
+\item \textbf{Authentication:} JWT with bcrypt password hashing
+\item \textbf{File Processing:} Multer for uploads, pdf-parse for text extraction
+\end{itemize}
 
-%% As the data sheets are not edited, to update page number on next appendix i.e., Data Sheet of component 2 use this instruction
+\section{Frontend Technologies}
+\begin{itemize}
+\item \textbf{Framework:} React 19 with TypeScript
+\item \textbf{Build Tool:} Vite for fast development and optimized builds
+\item \textbf{State Management:} Zustand
+\item \textbf{Routing:} React Router
+\item \textbf{Styling:} TailwindCSS with shadcn/ui components
+\item \textbf{HTTP Client:} Axios for API communication
+\end{itemize}
 
-\chapter{Data Sheet of component 2}
-\setcounter{page}{20}
+\section{Infrastructure and Deployment}
+\begin{itemize}
+\item \textbf{Containerization:} Docker 20+ with Docker Compose 3.8
+\item \textbf{Web Server:} NGINX for serving frontend static files
+\item \textbf{Architecture:} Microservices with 5 containers (Frontend, Backend API, Worker, PostgreSQL, Redis)
+\end{itemize}
 
-%% in this, {20}, the no. of pages in Data Sheet of component 1 are 5
+\chapter{Installation Guide}
 
-%% Enable the above command and in place of {30}, replace with a number that is appropriate.
-%% For e.g., Page No. on  Appendix A: Data Sheet of component 1 is 25 and it has 7 sheets.
-%% Now replace {30} with {25+7+1} or {33}, this +1 is because Appendix B is a new page and needs to be counted.
- 
-%% Do it for further Appendix, if any
+\section{Prerequisites}
+\begin{itemize}
+\item Bun 1.0+ or Node.js 18+
+\item PostgreSQL 14+
+\item Redis 7+ (optional for development)
+\item Docker and Docker Compose (for containerized deployment)
+\item Git for version control
+\end{itemize}
+
+\section{Quick Start with Docker}
+
+\begin{lstlisting}[language=bash, caption={Docker Installation Steps}]
+# Clone repository
+git clone https://github.com/himanshuraimau/Kuma.git
+cd Kuma
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with API keys
+
+# Start all services
+docker-compose up -d
+
+# Run database migrations
+docker-compose exec backend bun run db:push
+
+# Access application at http://localhost
+\end{lstlisting}
+
+\section{Manual Installation}
+
+\begin{lstlisting}[language=bash, caption={Manual Installation Steps}]
+# Install dependencies
+bun install:all
+
+# Setup environment
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Configure database
+bun db:generate
+bun db:push
+
+# Start development servers
+bun dev
+\end{lstlisting}
+
+\chapter{Project Source Code}
+
+The complete source code for Kuma AI-Powered Personal Assistant is available at:
+
+\textbf{GitHub Repository:} https://github.com/himanshuraimau/Kuma
+
+\section{Repository Structure}
+\begin{lstlisting}
+Kuma/
+  backend/              Backend API server
+    src/
+      apps/             App integrations
+      controllers/      Route handlers
+      lib/              AI agents and utilities
+      routes/           API endpoints
+    prisma/             Database schema
+  
+  frontend/             React client application
+    src/
+      api/              API client functions
+      components/       UI components
+      stores/           State management
+  
+  docker-compose.yml    Container orchestration
+\end{lstlisting}
+
 \end{appendices}
 
 \end{document}
