@@ -4,18 +4,56 @@ This document contains only the essential diagrams needed for the mini project r
 
 ## Diagrams Included
 
-1. System Architecture
-2. Redis Queue Architecture  
-3. Voice Processing Flow
-4. Level 0 DFD (Context Diagram)
-5. Level 1 DFD
-6. Level 2 DFD - Agent Processing
-7. Level 2 DFD - Voice Processing
-8. Level 2 DFD - Image Processing
+1. **High-Level System Overview** (NEW - Simple 3-layer architecture)
+2. System Architecture
+3. Redis Queue Architecture  
+4. Voice Processing Flow
+5. Level 0 DFD (Context Diagram)
+6. Level 1 DFD
+7. Level 2 DFD - Agent Processing
+8. Level 2 DFD - Voice Processing
+9. Level 2 DFD - Image Processing
+10. Docker Deployment Architecture
 
 ---
 
-## 1. System Architecture
+## 1. High-Level System Overview
+
+**Figure: High-Level System Architecture**
+
+```mermaid
+flowchart LR
+    User([👤 User])
+    
+    Frontend[🎨 Frontend<br/>React Web App]
+    Backend[⚙️ Backend<br/>AI Agent System]
+    Database[(💾 Database<br/>PostgreSQL + Redis)]
+    External[🌐 External APIs<br/>Gemini, Sarvam AI, Google]
+    
+    User <-->|HTTPS| Frontend
+    Frontend <-->|REST API| Backend
+    Backend <-->|Store/Retrieve| Database
+    Backend <-->|AI/Voice/OAuth| External
+    
+    style Frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Backend fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style Database fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style External fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+```
+
+### Simple 4-Component Architecture
+
+**Frontend:** React-based web interface for user interaction
+
+**Backend:** Express API server with AI agents for intelligent processing
+
+**Database:** PostgreSQL for data storage, Redis for caching and queues
+
+**External APIs:** Third-party services for AI, voice, and app integrations
+
+---
+
+## 2. System Architecture
 
 **Figure: System Architecture of Kuma AI Assistant**
 
@@ -584,6 +622,7 @@ docker-compose up -d --scale worker=3
 
 ## Recommended Filenames
 
+- `high_level_overview.png` (NEW)
 - `system_architecture.png`
 - `redis_architecture.png`
 - `voice_pipeline.png`

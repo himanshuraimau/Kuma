@@ -504,6 +504,29 @@ The system requires the following software components:
 \end{itemize}
 
 \section{System Architecture}
+
+The Kuma AI system architecture is presented at two levels of abstraction. The high-level overview provides a simplified view of the major system components and their interactions, suitable for understanding the overall system organization. The detailed architecture subsequently elaborates on the internal structure, design patterns, and technical implementation details of each component.
+
+\subsection{High-Level Overview}
+
+The Kuma AI system follows a simple four-component architecture designed for clarity and maintainability. At the presentation layer, a React-based web application provides the user interface, handling user interactions including text input, voice commands, and image uploads. This frontend communicates with the backend through standard HTTP/HTTPS protocols using RESTful API endpoints for request-response operations and Server-Sent Events for real-time streaming of AI-generated responses.
+
+The backend layer consists of an Express API server built on the Bun runtime, implementing a multi-agent AI system. The router agent analyzes incoming queries and delegates them to specialized agents (research, financial, stock market) based on query classification. Each agent has access to domain-specific tools and can invoke external APIs as needed. The backend handles authentication, session management, and orchestrates all AI processing operations.
+
+The data layer combines PostgreSQL for persistent storage of user data, chat histories, and application state with Redis serving dual purposes: caching frequently accessed data and managing message queues for asynchronous AI processing. This separation enables horizontal scaling of worker processes that consume jobs from Redis Streams, preventing API timeouts during long-running AI operations.
+
+External services provide critical capabilities that extend the system's functionality. AI model providers (Google Gemini, OpenAI GPT-4) deliver natural language understanding and generation. Sarvam AI enables voice interaction with speech-to-text and text-to-speech capabilities supporting Indic languages. OAuth 2.0 integrations with Google Workspace (Gmail, Calendar, Drive, Docs, Sheets) and GitHub allow the AI agents to perform actions on behalf of users, such as reading emails, creating calendar events, or managing repositories.
+
+Refer to Figure \ref{fig:highlevel} for the high-level system overview.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{../images/high-level.png}
+\caption{High-Level System Overview}
+\label{fig:highlevel}
+\end{figure}
+
+\subsection{Detailed Architecture}
 The system employs a three-tier architecture comprising a React-based frontend, Express API backend, and PostgreSQL database for data persistence. Client-server communication utilizes RESTful APIs for standard operations and Server-Sent Events for real-time streaming of AI responses. The architecture implements a Redis-based message queue enabling asynchronous AI processing, where API requests are published to Redis Streams and consumed by worker processes, allowing horizontal scaling and preventing request timeouts during long-running AI operations.
 
 The multi-agent system implements a router pattern where a primary agent analyzes user queries and delegates tasks to specialized agents including research, stock market, and financial advisory agents, each configured with domain-specific system prompts and tool access. The voice pipeline integrates Sarvam AI for speech-to-text and text-to-speech processing with LiveKit for real-time audio streaming. The vision module leverages Google Gemini Vision for image analysis, optical character recognition, and document understanding. OAuth 2.0 integration provides secure connection to Google Workspace and GitHub services with encrypted token storage and automatic refresh handling. Docker containerization separates the system into distinct containers for frontend (NGINX), backend API (Bun), worker process, PostgreSQL database, and Redis cache, orchestrated through Docker Compose with health checks and automatic restart policies.
