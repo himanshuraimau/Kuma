@@ -317,6 +317,262 @@ flowchart TB
 
 ---
 
+## 9. Docker Deployment Architecture
+
+**Figure: Docker Deployment Architecture**
+
+```mermaid
+flowchart TB
+    subgraph DockerHost["Docker Host"]
+        subgraph FrontendContainer["Frontend Container (NGINX)"]
+            NGINX[NGINX Web Server]
+            StaticFiles[React Build /usr/share/nginx/html]
+        end
+        
+        subgraph BackendContainer["Backend API Container (Bun)"]
+            API[Express API Server]
+            Prisma[Prisma ORM]
+            AIAgents[AI Agents]
+        end
+        
+        subgraph WorkerContainer["Worker Container (Bun)"]
+            Worker[Queue Consumer]
+            AgentProcessor[AI Agent Processor]
+        end
+        
+        subgraph PostgresContainer["PostgreSQL Container"]
+            PostgresDB[(PostgreSQL Database)]
+            PGData[/var/lib/postgresql/data]
+        end
+        
+        subgraph RedisContainer["Redis Container"]
+            RedisServer[(Redis Server)]
+            RedisStreams[Streams + Pub/Sub]
+            RedisData[/data]
+        end
+    end
+    
+    subgraph Volumes["Docker Volumes"]
+        PGVolume[postgres-data]
+        RedisVolume[redis-data]
+        UploadsVolume[uploads]
+    end
+    
+    subgraph Networks["Docker Networks"]
+        BridgeNet[kuma-network bridge]
+    end
+    
+    subgraph External["External Services"]
+        Gemini[Google Gemini API]
+        OpenAI[OpenAI API]
+        GoogleWS[Google Workspace]
+        Sarvam[Sarvam AI]
+    end
+    
+    User[User Browser] -->|HTTP :80| NGINX
+    NGINX -->|Proxy /api| API
+    
+    API <-->|SQL| PostgresDB
+    API <-->|Pub/Sub| RedisServer
+    Worker <-->|Streams| RedisServer
+    Worker <-->|SQL| PostgresDB
+    
+    API -->|AI Requests| Gemini
+    API -->|AI Requests| OpenAI
+    API -->|OAuth/API| GoogleWS
+    API -->|STT/TTS| Sarvam
+    
+    Worker -->|AI Requests| Gemini
+    Worker -->|AI Requests| OpenAI
+    
+    PGData -.->|Mount| PGVolume
+    RedisData -.->|Mount| RedisVolume
+    API -.->|Mount| UploadsVolume
+    
+    FrontendContainer -.->|Connected| BridgeNet
+    BackendContainer -.->|Connected| BridgeNet
+    WorkerContainer -.->|Connected| BridgeNet
+    PostgresContainer -.->|Connected| BridgeNet
+    RedisContainer -.->|Connected| BridgeNet
+    
+    style FrontendContainer fill:#e3f2fd
+    style BackendContainer fill:#fff3e0
+    style WorkerContainer fill:#fff3e0
+    style PostgresContainer fill:#f3e5f5
+    style RedisContainer fill:#ffebee
+    style Volumes fill:#f1f8e9
+    style Networks fill:#fce4ec
+```
+
+### Container Details
+
+**1. Frontend Container (NGINX)**
+- **Base Image:** `nginx:alpine`
+- **Port:** 80:80
+- **Build:** Multi-stage (Node build → NGINX serve)
+- **Health Check:** `curl http://localhost:80`
+- **Config:** Custom nginx.conf for SPA routing
+
+**2. Backend API Container (Bun)**
+- **Base Image:** `oven/bun:latest`
+- **Port:** 3001:3001
+- **Environment:** 
+  - `DATABASE_URL`
+  - `JWT_SECRET`
+  - `GOOGLE_GENERATIVE_AI_API_KEY`
+  - `REDIS_URL`
+- **Health Check:** `curl http://localhost:3001/health`
+- **Volumes:** `./uploads:/app/uploads`
+
+**3. Worker Container (Bun)**
+- **Base Image:** `oven/bun:latest`
+- **No exposed ports** (internal only)
+- **Environment:** Same as Backend API
+- **Health Check:** Process running check
+- **Purpose:** Async AI processing from Redis queue
+
+**4. PostgreSQL Container**
+- **Base Image:** `postgres:15-alpine`
+- **Port:** 5432:5432
+- **Environment:**
+  - `POSTGRES_USER=kuma`
+  - `POSTGRES_PASSWORD=***`
+  - `POSTGRES_DB=kuma`
+- **Volume:** `postgres-data:/var/lib/postgresql/data`
+- **Health Check:** `pg_isready -U kuma`
+
+**5. Redis Container**
+- **Base Image:** `redis:7-alpine`
+- **Port:** 6379:6379
+- **Volume:** `redis-data:/data`
+- **Health Check:** `redis-cli ping`
+- **Purpose:** Message queue (Streams) + Pub/Sub
+
+### Docker Compose Configuration
+
+```yaml
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - kuma-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://kuma:password@postgres:5432/kuma
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - kuma-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    environment:
+      - DATABASE_URL=postgresql://kuma:password@postgres:5432/kuma
+      - REDIS_URL=redis://redis:6379
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - kuma-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=kuma
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=kuma
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - kuma-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kuma"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    networks:
+      - kuma-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:
+  uploads:
+
+networks:
+  kuma-network:
+    driver: bridge
+```
+
+### Deployment Commands
+
+```bash
+# Build all containers
+docker-compose build
+
+# Start all services
+docker-compose up -d
+
+# Start with worker
+docker-compose --profile with-worker up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+
+# Restart specific service
+docker-compose restart backend
+
+# Scale workers
+docker-compose up -d --scale worker=3
+```
+
+---
+
 ## How to Use These Diagrams
 
 1. Copy each mermaid code block
@@ -336,3 +592,4 @@ flowchart TB
 - `dfd_agent_processing.png`
 - `dfd_voice_processing.png`
 - `dfd_image_processing.png`
+- `docker_deployment.png`

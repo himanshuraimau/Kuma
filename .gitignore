@@ -1,1 +1,11 @@
 node_modules
+
+mini_report/*.pdf
+mini_report/*.aux
+mini_report/*.log
+mini_report/*.toc
+mini_report/*.lof
+mini_report/*.lot
+mini_report/*.synctex.gz
+
+mini_report/mini_report.pdf
