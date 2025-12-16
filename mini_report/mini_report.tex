@@ -32,6 +32,8 @@
 \usepackage{xcolor}
 \usepackage{tocloft}
 \usepackage{setspace}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 % ==================== TOC FORMATTING ====================
 % TOC title
@@ -595,7 +597,7 @@ The system data flow diagram decomposes the system into seven major processes. A
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{../images/Level 1 Data Flow Diagram.png}
+\includegraphics[width=\textwidth]{../images/Level 1 Data Flow Diagram.excalidraw.png}
 \caption{System Data Flow Diagram}
 \label{fig:dfd1}
 \end{figure}
@@ -605,7 +607,7 @@ The Agent Processing module's detailed data flow begins with the router agent re
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{../images/Agent Processing.png}
+\includegraphics[width=\textwidth]{../images/Level 2 DFD - Agent Processing Module.excalidraw.png}
 \caption{Agent Processing Data Flow Diagram}
 \label{fig:dfd2}
 \end{figure}
@@ -613,107 +615,116 @@ The Agent Processing module's detailed data flow begins with the router agent re
 \subsection{Voice Processing Data Flow}
 Voice processing data flow starts with audio stream capture from the user's microphone through LiveKit with voice activity detection. Audio chunks are buffered and sent to Sarvam AI's speech-to-text service, which returns transcribed text with language identification. The transcribed text flows into the AI agent processing pipeline identical to text-based queries. The agent's text response is sent to Sarvam AI's text-to-speech service for synthesis in the user's preferred Indic language. Synthesized audio streams back to the client through LiveKit, completing the bidirectional voice communication with minimal latency.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{../images/Voice Processing.png}
-\caption{Voice Processing Data Flow Diagram}
-\label{fig:dfd_voice}
-\end{figure}
 
 \subsection{Image Processing Data Flow}
 Image processing begins with file upload and validation of supported formats (JPEG, PNG, PDF). Images are encoded to base64 for transmission to Google Gemini Vision API. The vision model performs multiple analyses including scene description, object detection, and optical character recognition for text extraction. For documents, layout analysis identifies structure including tables, headings, and paragraphs. Analysis results are formatted and combined with the user's query to generate contextual responses. Visual context is stored with the message for future reference in the conversation thread.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{../images/Image Processing.png}
-\caption{Image Processing Data Flow Diagram}
-\label{fig:dfd_vision}
-\end{figure}
 
 \section{Algorithms}
 
 \subsection{Chat Processing Algorithm}
-The chat processing algorithm handles user queries through the following steps:
-\begin{enumerate}
-    \item Receive user input including text message, optional image attachments, and document references
-    \item Validate JWT token from Authorization header and authenticate user session
-    \item Create new chat thread or retrieve existing thread by ID from database
-    \item Load recent conversation history (last 15 messages) and query Supermemory for relevant long-term memories
-    \item Analyze query intent and route to appropriate specialized agent (router, research, stock-market, or financial)
-    \item Execute selected agent with user-specific tools loaded from connected OAuth applications
-    \item Stream response tokens to client via Server-Sent Events for real-time display
-    \item Persist user message and assistant response to database with metadata
-    \item Update conversation summary if message count exceeds threshold for hybrid memory management
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Chat Processing}
+\begin{algorithmic}[1]
+\State Receive user input including text message, optional image attachments, and document references
+\State Validate JWT token from Authorization header and authenticate user session
+\State Create new chat thread or retrieve existing thread by ID from database
+\State Load recent conversation history (last 15 messages) and query Supermemory for relevant long-term memories
+\State Analyze query intent and route to appropriate specialized agent (router, research, stock-market, or financial)
+\State Execute selected agent with user-specific tools loaded from connected OAuth applications
+\State Stream response tokens to client via Server-Sent Events for real-time display
+\State Persist user message and assistant response to database with metadata
+\State Update conversation summary if message count exceeds threshold for hybrid memory management
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Agent Selection Algorithm}
-The router agent selects the appropriate specialized agent through:
-\begin{enumerate}
-    \item Analyze user query using natural language understanding to extract intent and entities
-    \item Check for domain-specific keywords: "email"/"gmail" for financial agent, "stock"/"market" for stock-market agent, "research"/"search" for research agent
-    \item Evaluate query complexity and required tool access based on user's connected applications
-    \item Select specialized agent with highest confidence match to query domain
-    \item Default to router agent for general queries or when classification confidence is below threshold
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Agent Selection}
+\begin{algorithmic}[1]
+\State Analyze user query using natural language understanding to extract intent and entities
+\State Check for domain-specific keywords: "email"/"gmail" for financial agent, "stock"/"market" for stock-market agent, "research"/"search" for research agent
+\State Evaluate query complexity and required tool access based on user's connected applications
+\State Select specialized agent with highest confidence match to query domain
+\State Default to router agent for general queries or when classification confidence is below threshold
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Redis Queue Processing Algorithm}
-Redis queue processing implements asynchronous message handling:
-\begin{enumerate}
-    \item Producer (API server) publishes message job with user query, chat ID, and agent type to Redis Stream
-    \item Consumer group claims pending messages using XREADGROUP ensuring each message processed once
-    \item Worker process executes AI agent pipeline with streaming disabled for queue mode
-    \item Status updates (processing, tool calls, completion) published to Redis pub/sub channel
-    \item Completed response stored in database with message job marked as completed
-    \item Failed messages retried with exponential backoff, moved to dead letter queue after 3 attempts
-    \item Client subscribes to job status via SSE, receiving real-time updates until completion
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Redis Queue Processing}
+\begin{algorithmic}[1]
+\State Producer (API server) publishes message job with user query, chat ID, and agent type to Redis Stream
+\State Consumer group claims pending messages using XREADGROUP ensuring each message processed once
+\State Worker process executes AI agent pipeline with streaming disabled for queue mode
+\State Status updates (processing, tool calls, completion) published to Redis pub/sub channel
+\State Completed response stored in database with message job marked as completed
+\State Failed messages retried with exponential backoff, moved to dead letter queue after 3 attempts
+\State Client subscribes to job status via SSE, receiving real-time updates until completion
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Voice Processing Algorithm}
-Voice interaction processing follows these steps:
-\begin{enumerate}
-    \item Capture audio stream from client microphone using LiveKit with voice activity detection
-    \item Buffer audio chunks (typically 1-2 seconds) for batch processing
-    \item Send buffered audio to Sarvam AI speech-to-text API with language hint (Hindi/English)
-    \item Process transcribed text through standard AI agent pipeline with streaming enabled
-    \item Convert agent's text response to speech using Sarvam AI text-to-speech with selected voice
-    \item Stream synthesized audio back to client through LiveKit audio track
-    \item Handle user interruptions by stopping current audio playback and processing new input
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Voice Processing}
+\begin{algorithmic}[1]
+\State Capture audio stream from client microphone using LiveKit with voice activity detection
+\State Buffer audio chunks (typically 1-2 seconds) for batch processing
+\State Send buffered audio to Sarvam AI speech-to-text API with language hint (Hindi/English)
+\State Process transcribed text through standard AI agent pipeline with streaming enabled
+\State Convert agent's text response to speech using Sarvam AI text-to-speech with selected voice
+\State Stream synthesized audio back to client through LiveKit audio track
+\State Handle user interruptions by stopping current audio playback and processing new input
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Image Analysis Algorithm}
-Image analysis workflow processes visual inputs:
-\begin{enumerate}
-    \item Receive image upload with optional text prompt from user
-    \item Validate file type (JPEG, PNG, WebP) and size constraints (max 10MB)
-    \item Encode image to base64 string for API transmission
-    \item Send to Google Gemini Vision API with user prompt and system instructions
-    \item Parse structured JSON response containing scene description, detected objects, and extracted text (OCR)
-    \item Store analysis results as JSON metadata attached to chat message
-    \item Return formatted natural language response combining visual analysis with user query context
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Image Analysis}
+\begin{algorithmic}[1]
+\State Receive image upload with optional text prompt from user
+\State Validate file type (JPEG, PNG, WebP) and size constraints (max 10MB)
+\State Encode image to base64 string for API transmission
+\State Send to Google Gemini Vision API with user prompt and system instructions
+\State Parse structured JSON response containing scene description, detected objects, and extracted text (OCR)
+\State Store analysis results as JSON metadata attached to chat message
+\State Return formatted natural language response combining visual analysis with user query context
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Memory Management Algorithm}
-Memory management implements hybrid context handling:
-\begin{enumerate}
-    \item Retrieve recent 15 messages from database for immediate conversation context
-    \item Query Supermemory API with user query to find semantically relevant long-term memories
-    \item Combine recent messages, relevant memories, and conversation summary into structured context
-    \item After generating response, extract key facts and personal information for memory storage
-    \item Periodically summarize conversations exceeding 30 messages to maintain context window limits
-    \item Prune duplicate or outdated memories based on similarity scoring and timestamp
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Memory Management}
+\begin{algorithmic}[1]
+\State Retrieve recent 15 messages from database for immediate conversation context
+\State Query Supermemory API with user query to find semantically relevant long-term memories
+\State Combine recent messages, relevant memories, and conversation summary into structured context
+\State After generating response, extract key facts and personal information for memory storage
+\State Periodically summarize conversations exceeding 30 messages to maintain context window limits
+\State Prune duplicate or outdated memories based on similarity scoring and timestamp
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Google Services Connection Flow}
-OAuth 2.0 connection flow for Google services:
-\begin{enumerate}
-    \item User initiates connection by clicking "Connect" button for desired Google service (Gmail, Calendar, Drive, etc.)
-    \item Backend generates authorization URL with required scopes and state token for CSRF protection
-    \item User redirected to Google consent screen to grant permissions
-    \item After approval, Google redirects to callback URL with authorization code and state token
-    \item Backend validates state token and exchanges authorization code for access and refresh tokens
-    \item Tokens encrypted using AES-256 and stored in database linked to user account
-    \item Automatic token refresh implemented using refresh token when access token expires
-\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{OAuth 2.0 Connection Flow}
+\begin{algorithmic}[1]
+\State User initiates connection by clicking "Connect" button for desired Google service (Gmail, Calendar, Drive, etc.)
+\State Backend generates authorization URL with required scopes and state token for CSRF protection
+\State User redirected to Google consent screen to grant permissions
+\State After approval, Google redirects to callback URL with authorization code and state token
+\State Backend validates state token and exchanges authorization code for access and refresh tokens
+\State Tokens encrypted using AES-256 and stored in database linked to user account
+\State Automatic token refresh implemented using refresh token when access token expires
+\end{algorithmic}
+\end{algorithm}
 
 % ==================== CHAPTER 4: IMPLEMENTATION DETAILS ====================
 \chapter{Implementation Details}
@@ -910,11 +921,41 @@ The scalable architecture employing Redis Streams for asynchronous message proce
 The project provided valuable learning outcomes in modern software development practices. Practical experience with AI frameworks including Vercel AI SDK, LangChain patterns, and prompt engineering enhanced understanding of building intelligent agents. Full-stack development using TypeScript across frontend and backend demonstrated the benefits of type safety and modern tooling. Containerization with Docker and orchestration through Docker Compose illustrated deployment best practices for microservices architectures. Integration with multiple third-party APIs taught OAuth 2.0 flows, token management, and error handling for external services. The experience building a production-grade application emphasized the importance of scalability, reliability, security, and user experience in real-world systems.
 
 \section{Future Enhancement}
-Future enhancements can expand Kuma's capabilities and reach. Additional service integrations including Slack for team communication, Microsoft Office 365 for enterprise users, and Notion for knowledge management would broaden productivity use cases. Mobile applications using React Native for iOS and Android would enable on-the-go access with push notifications and offline capabilities. Fine-tuned models trained on user interaction patterns could improve response personalization and accuracy for domain-specific queries. Multi-user collaborative workspaces with shared agents would enable team-based AI assistance with role-based access control.
 
-A plugin architecture allowing community-developed agents and tools would foster ecosystem growth and customization. WebSocket-based real-time collaboration features could enable multiple users to interact with the same chat session simultaneously. Kubernetes deployment would provide enterprise-scale orchestration with auto-scaling, load balancing, and zero-downtime updates. On-device voice processing using edge models would reduce latency and enable offline voice interaction. Offline mode with local LLM support through Ollama integration would allow basic functionality without internet connectivity.
+Future enhancements can expand Kuma's capabilities and reach across multiple dimensions:
 
-Advanced analytics dashboards could provide usage insights, popular queries, and agent performance metrics. Biometric and multi-factor authentication options would enhance security for enterprise deployments. IoT device integration would enable smart home control through natural language commands. Video call integration with screen sharing analysis could provide meeting summaries and action item extraction. Browser extensions would offer contextual assistance while browsing, enabling quick lookups and content summarization. These enhancements would position Kuma as a comprehensive AI platform suitable for both personal and enterprise use cases.
+\begin{itemize}
+\item \textbf{Additional Service Integrations:} Integrate Slack for team communication, Microsoft Office 365 for enterprise users, and Notion for knowledge management to broaden productivity use cases.
+
+\item \textbf{Mobile Applications:} Develop native mobile applications using React Native for iOS and Android, enabling on-the-go access with push notifications and offline capabilities.
+
+\item \textbf{Fine-Tuned Models:} Train specialized models on user interaction patterns to improve response personalization and accuracy for domain-specific queries.
+
+\item \textbf{Multi-User Collaborative Workspaces:} Enable team-based AI assistance with shared agents and role-based access control for collaborative environments.
+
+\item \textbf{Plugin Architecture:} Implement a plugin system allowing community-developed agents and tools to foster ecosystem growth and customization.
+
+\item \textbf{Real-Time Collaboration:} Add WebSocket-based features enabling multiple users to interact with the same chat session simultaneously.
+
+\item \textbf{Kubernetes Deployment:} Provide enterprise-scale orchestration with auto-scaling, load balancing, and zero-downtime updates for production environments.
+
+\item \textbf{On-Device Voice Processing:} Implement edge models for voice processing to reduce latency and enable offline voice interaction.
+
+\item \textbf{Offline Mode:} Support local LLM integration through Ollama to allow basic functionality without internet connectivity.
+
+\item \textbf{Advanced Analytics Dashboards:} Provide usage insights, popular query analysis, and agent performance metrics for optimization.
+
+\item \textbf{Enhanced Security:} Add biometric and multi-factor authentication options for enterprise deployments with stricter security requirements.
+
+\item \textbf{IoT Device Integration:} Enable smart home control through natural language commands for seamless home automation.
+
+\item \textbf{Video Call Integration:} Implement screen sharing analysis to provide meeting summaries and automatic action item extraction.
+
+\item \textbf{Browser Extensions:} Develop extensions offering contextual assistance while browsing, enabling quick lookups and content summarization.
+
+\item \textbf{Enterprise Features:} Add audit logging, compliance reporting, and data residency options to position Kuma as a comprehensive AI platform suitable for both personal and enterprise use cases.
+\end{itemize}
+
 
 % ==================== BIBLIOGRAPHY ====================
 \addcontentsline{toc}{chapter}{Bibliography}

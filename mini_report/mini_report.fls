@@ -156,6 +156,14 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/tocloft/tocloft.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/tocloft/tocloft.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/float/float.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/float/float.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 INPUT /usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 INPUT ./mini_report.aux
@@ -254,26 +262,16 @@ INPUT ../images/Context Diagram (Level 0 DFD).excalidraw.png
 INPUT ../images/Context Diagram (Level 0 DFD).excalidraw.png
 INPUT ../images/Context Diagram (Level 0 DFD).excalidraw.png
 INPUT ../images/Context Diagram (Level 0 DFD).excalidraw.png
-INPUT ../images/Level 1 Data Flow Diagram.png
-INPUT ../images/Level 1 Data Flow Diagram.png
-INPUT ../images/Level 1 Data Flow Diagram.png
-INPUT ../images/Level 1 Data Flow Diagram.png
-INPUT ../images/Level 1 Data Flow Diagram.png
-INPUT ../images/Agent Processing.png
-INPUT ../images/Agent Processing.png
-INPUT ../images/Agent Processing.png
-INPUT ../images/Agent Processing.png
-INPUT ../images/Agent Processing.png
-INPUT ../images/Voice Processing.png
-INPUT ../images/Voice Processing.png
-INPUT ../images/Voice Processing.png
-INPUT ../images/Voice Processing.png
-INPUT ../images/Voice Processing.png
-INPUT ../images/Image Processing.png
-INPUT ../images/Image Processing.png
-INPUT ../images/Image Processing.png
-INPUT ../images/Image Processing.png
-INPUT ../images/Image Processing.png
+INPUT ../images/Level 1 Data Flow Diagram.excalidraw.png
+INPUT ../images/Level 1 Data Flow Diagram.excalidraw.png
+INPUT ../images/Level 1 Data Flow Diagram.excalidraw.png
+INPUT ../images/Level 1 Data Flow Diagram.excalidraw.png
+INPUT ../images/Level 1 Data Flow Diagram.excalidraw.png
+INPUT ../images/Level 2 DFD - Agent Processing Module.excalidraw.png
+INPUT ../images/Level 2 DFD - Agent Processing Module.excalidraw.png
+INPUT ../images/Level 2 DFD - Agent Processing Module.excalidraw.png
+INPUT ../images/Level 2 DFD - Agent Processing Module.excalidraw.png
+INPUT ../images/Level 2 DFD - Agent Processing Module.excalidraw.png
 INPUT ../images/screenshot_chat.png
 INPUT ../images/screenshot_chat.png
 INPUT ../images/screenshot_chat.png
