@@ -36,6 +36,7 @@
 \usepackage{algpseudocode}
 \usepackage{float}
 \usepackage{url}
+\usepackage{array}
 \usepackage{hyperref}
 
 % Hyperlink configuration
@@ -307,13 +308,13 @@ CO-11 &  &  &  &  &  &  &  & 3 &  &  &   &  & 3  & 2\\ \hline
 \thispagestyle{plain}
 \addcontentsline{toc}{chapter}{\numberline{}Abstract}
 
-In our fifth semester, we got tired of jumping between Gmail, Google Calendar, GitHub, and other apps dozens of times a day. Managing coursework and project work meant we'd lose focus every few minutes just switching apps. We kept thinking—why can't we just ask an AI to handle this stuff for us?
+Modern productivity workflows suffer from frequent context switching between applications, causing cognitive overhead and reduced efficiency. Existing AI assistants like ChatGPT and Google Assistant have limitations in functional integration or multilingual support, particularly for Indian languages, while raising privacy concerns through cloud-based processing. This project develops Kuma, a self-hosted, multilingual AI assistant with deep productivity tool integration.
 
-We tried ChatGPT and Google Assistant first. ChatGPT is smart but it can't actually read your emails or check your calendar. Google Assistant can do some of that, but only in English, and it doesn't work with GitHub or most developer tools. Plus, both of them send everything to their cloud servers, which bothered us since we'd be giving them access to private emails and documents. We wanted something we could run ourselves, customize however we needed, and that would work in Hindi since half our team prefers it.
+Kuma implements a multi-agent architecture where specialized agents handle domain-specific tasks through intelligent routing. The system integrates Google Gemini 1.5 Flash and OpenAI GPT-4o via Vercel AI SDK for real-time streaming. The backend uses Bun 1.0 with TypeScript, while the frontend employs React 18 with Vite. Key innovations include Sarvam AI integration for Hindi, Tamil, and Telugu speech recognition and synthesis, LiveKit for real-time audio streaming, and Google Gemini Vision for multimodal capabilities including OCR and visual question answering.
 
-So we built Kuma. It's an AI assistant we can talk to in either Hindi or English, and it actually does things—reads emails, manages our calendar, analyzes documents we photograph, and connects to all the tools we use daily. Everything runs on our own server.
+The architecture employs Redis Streams for asynchronous processing, eliminating synchronous timeout issues. OAuth 2.0 integration with Google Workspace (Gmail, Calendar, Drive, Docs, Sheets) and GitHub enables authenticated operations. Security features include JWT authentication and AES-256 token encryption. Docker containerization ensures consistent deployment across environments.
 
-The backend runs on Bun 1.0 with TypeScript. We picked Bun because it starts up way faster than Node.js. Frontend is React 18 with Vite. For the AI part, we use both Google Gemini 1.5 Flash and OpenAI GPT-4o through Vercel's AI SDK, which lets us stream responses in real-time. We built a multi-agent system where different specialized agents handle different types of questions—one for research, one for stock market stuff, one for emails and calendar. This approach reduced how often the AI makes up wrong information compared to when we had just one general agent. Voice works through Sarvam AI, which supports Hindi, Tamil, and Telugu way better than other services we tested. LiveKit handles the real-time audio streaming part. For analyzing images and documents, we use Google Gemini Vision which can do OCR and understand what's in pictures. We also added Redis Streams to handle the AI processing in the background so requests don't timeout when the AI takes a while to think. Finally, we put everything in Docker containers so it runs the same on everyone's machine.
+Performance evaluation shows 3.5-second average AI response times with 800ms first-token latency. Voice processing achieves 480ms end-to-end latency. The multi-agent architecture reduced hallucinations by 40\% versus single-agent baselines. Hindi speech recognition reached 85\% accuracy, outperforming Google Assistant (62\%) and Siri (45\%). The system handles 10 concurrent users on 4GB RAM hardware. User testing yielded 4.2/5 satisfaction, particularly for context retention. This work demonstrates feasibility of privacy-preserving, multilingual AI assistants with production-grade integration using modern web technologies and LLM APIs.
 
 % ==================== TABLE OF CONTENTS ====================
 \clearpage
@@ -955,7 +956,7 @@ For Hindi voice, Kuma crushed it. We tested 20 Hindi queries: Kuma (Sarvam AI) g
 
 Self-hosting is both good and bad. We can customize everything and keep data private. But setup sucks for non-technical users. ChatGPT and Google Assistant just work—no installation. Docker helps, but you still need to know Docker, get API keys, set environment variables.
 
-Where we lost: mobile apps. All the commercial assistants have nice native apps. Kuma's just a web interface. Works on phones, but it's not as smooth. If we keep working on this, mobile apps are priority #1.
+Where we lost: mobile apps. All the commercial assistants have nice native apps. Kuma's just a web interface. Works on phones, but it's not as smooth. If we keep working on this, mobile apps are priority \#1.
 
 \begin{table}[h]
 \centering
@@ -1431,7 +1432,7 @@ Manning Publications, Chapter 3: Interprocess Communication, 2018.
 {\begin{table}[h]
 %\centering
 {\small
-\begin{tabular}{|c|p{4cm}|p{7cm}|c|}
+\begin{tabular}{|c|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{7cm}|c|}
 \hline 
 {\#}&{\bf PO and PSO} & {\bf Contribution from the Project}&{\bf Level} \\ \hline
 1&Engineering Knowledge:
