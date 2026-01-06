@@ -115,8 +115,16 @@ export class MessageConsumer {
                     }
                 }
             } catch (error) {
-                console.error(`❌ Error in consume loop:`, error);
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                
+                // Check if this is a connection error
+                if (errorMessage.includes('not connected') || errorMessage.includes('Connection')) {
+                    console.error(`❌ Redis connection error in consume loop, waiting to reconnect...`);
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+                } else {
+                    console.error(`❌ Error in consume loop:`, error);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second for other errors
+                }
             }
         }
     }

@@ -92,6 +92,10 @@ class RedisClient {
 
         client.on('ready', () => {
             console.log(`✅ Redis ${clientName} client ready`);
+            // Ensure isConnected is set to true when client is ready
+            if (clientName === 'Main' && this.client) {
+                this.isConnected = true;
+            }
         });
 
         client.on('error', (error) => {
@@ -102,11 +106,13 @@ class RedisClient {
             console.log(`🔌 Redis ${clientName} client connection closed`);
             if (!this.isShuttingDown) {
                 this.isConnected = false;
+                console.log(`⚠️ Redis ${clientName} client will attempt to reconnect...`);
             }
         });
 
-        client.on('reconnecting', () => {
-            console.log(`🔄 Redis ${clientName} client reconnecting...`);
+        client.on('reconnecting', (delay) => {
+            console.log(`🔄 Redis ${clientName} client reconnecting in ${delay}ms...`);
+            this.isConnected = false;
         });
 
         client.on('end', () => {
@@ -118,10 +124,20 @@ class RedisClient {
      * Get main Redis client
      */
     public getClient(): Redis {
-        if (!this.client || !this.isConnected) {
-            throw new Error('Redis client not connected. Call connect() first.');
+        if (!this.client) {
+            throw new Error('Redis client not initialized. Call connect() first.');
+        }
+        if (!this.isConnected) {
+            throw new Error('Redis client not connected. Connection may be lost or reconnecting.');
         }
         return this.client;
+    }
+
+    /**
+     * Check if Redis is connected
+     */
+    public isClientConnected(): boolean {
+        return this.isConnected && this.client !== null;
     }
 
     /**

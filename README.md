@@ -759,9 +759,11 @@ nano .env  # Edit with production values
 ```bash
 # Build images
 docker compose build
+docker compose --profile with-worker build --parallel
 
 # Start services
 docker compose up -d
+ docker compose --profile with-worker up -d
 
 # With worker
 docker compose --profile with-worker up -d

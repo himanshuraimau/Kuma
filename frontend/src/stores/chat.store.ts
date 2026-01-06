@@ -264,6 +264,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // Load a specific chat with messages
     loadChat: async (chatId: string) => {
+        // Don't reload if we're currently sending/streaming to preserve optimistic updates
+        const { isSending, isStreaming } = get();
+        if (isSending || isStreaming) {
+            console.log('⏸️  Skipping loadChat because message is being sent/streamed');
+            return;
+        }
+
         set({ isLoading: true, error: null });
 
         try {

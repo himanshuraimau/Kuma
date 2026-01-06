@@ -65,20 +65,21 @@ export const ChatInterface = () => {
     useEffect(() => {
         if (chatIdFromUrl) {
             // URL has a chat ID - load that chat if different from current
-            if (chatIdFromUrl !== currentChatId) {
+            // IMPORTANT: Don't reload if we're currently sending/streaming to prevent losing optimistic updates
+            if (chatIdFromUrl !== currentChatId && !isSending && !isStreaming) {
                 console.log('[ChatInterface] Loading chat from URL:', chatIdFromUrl);
                 loadChat(chatIdFromUrl);
             }
         } else {
             // URL is /chat (no ID) - ensure we're in new chat mode
-            // Only call createNewChat if we actually have state to clear
-            if (currentChatId !== null || currentMessages.length > 0) {
+            // IMPORTANT: Don't clear messages if we're currently sending/streaming
+            if (!isSending && !isStreaming && (currentChatId !== null || currentMessages.length > 0)) {
                 console.log('[ChatInterface] Creating new chat');
                 createNewChat();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatIdFromUrl]); // Intentionally only depend on URL changes
+    }, [chatIdFromUrl, isSending, isStreaming]); // Include isSending and isStreaming to prevent reloading during message send
 
     // Navigate to chat URL after first message creates a new chat
     useEffect(() => {
