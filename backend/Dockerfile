@@ -1,73 +1,59 @@
 # ===================================
 # Kuma AI Backend - Dockerfile
 # ===================================
-# Multi-stage build for optimized production image
+# Multi-stage build following Bun best practices
 
-# ===================================
-# Stage 1: Dependencies
-# ===================================
-FROM oven/bun:1.1-alpine AS deps
+FROM oven/bun:1 AS base
+WORKDIR /usr/src/app
 
-WORKDIR /app
+# Install dependencies into temp directory
+# This will cache them and speed up future builds
+FROM base AS install
+RUN mkdir -p /temp/dev
+COPY package.json bun.lock /temp/dev/
+RUN cd /temp/dev && bun install
 
-# Copy package files
-COPY package.json bun.lock ./
+# Install with --production (exclude devDependencies)
+RUN mkdir -p /temp/prod
+COPY package.json /temp/prod/
+RUN cd /temp/prod && bun install --production
 
-# Install dependencies
-RUN bun install --frozen-lockfile --production=false
-
-# ===================================
-# Stage 2: Builder
-# ===================================
-FROM oven/bun:1.1-alpine AS builder
-
-WORKDIR /app
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy node_modules from temp directory
+# Then copy all (non-ignored) project files into the image
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 # Generate Prisma client
 RUN bunx prisma generate
 
-# Build TypeScript (if using tsc for build)
-# RUN bun run build
+# Set production environment
+ENV NODE_ENV=production
 
-# ===================================
-# Stage 3: Production
-# ===================================
-FROM oven/bun:1.1-alpine AS production
-
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S kuma -u 1001 -G nodejs
-
-# Copy necessary files
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/generated ./generated
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/index.ts ./
-COPY --from=builder /app/worker.ts ./
-COPY --from=builder /app/tsconfig.json ./
+# Copy production dependencies and source code into final image
+FROM base AS production
+COPY --from=install /temp/prod/node_modules node_modules
+COPY --from=prerelease /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prerelease /usr/src/app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=prerelease /usr/src/app/prisma ./prisma
+COPY --from=prerelease /usr/src/app/src ./src
+COPY --from=prerelease /usr/src/app/index.ts .
+COPY --from=prerelease /usr/src/app/tsconfig.json .
+COPY --from=prerelease /usr/src/app/package.json .
 
 # Create uploads directory
 RUN mkdir -p uploads/temp uploads/chats && \
-    chown -R kuma:nodejs uploads
+    chown -R bun:bun uploads
 
-# Switch to non-root user
-USER kuma
+# Run as non-root user
+USER bun
 
 # Expose port
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
+# No health check - will rely on container running status
+# Health checks require curl/wget which aren't in base image
 
-# Default command - run the server
-CMD ["bun", "run", "index.ts"]
+# Run the app
+ENTRYPOINT ["bun", "run", "index.ts"]
 

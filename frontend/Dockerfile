@@ -1,30 +1,20 @@
 # ===================================
 # Kuma AI Frontend - Dockerfile
 # ===================================
-# Multi-stage build for optimized production image
+# Multi-stage build following Bun best practices
 
-# ===================================
-# Stage 1: Dependencies
-# ===================================
-FROM oven/bun:1.1-alpine AS deps
+FROM oven/bun:1 AS base
+WORKDIR /usr/src/app
 
-WORKDIR /app
+# Install dependencies into temp directory
+FROM base AS install
+RUN mkdir -p /temp/dev
+COPY package.json bun.lock /temp/dev/
+RUN cd /temp/dev && bun install
 
-# Copy package files
-COPY package.json bun.lock ./
-
-# Install dependencies
-RUN bun install --frozen-lockfile
-
-# ===================================
-# Stage 2: Builder
-# ===================================
-FROM oven/bun:1.1-alpine AS builder
-
-WORKDIR /app
-
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
+# Copy node_modules and build the app
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 # Build arguments for environment variables
@@ -38,25 +28,23 @@ ENV VITE_LIVEKIT_URL=$VITE_LIVEKIT_URL
 # Build the application
 RUN bun run build
 
-# ===================================
-# Stage 3: Production (NGINX)
-# ===================================
+# Production stage with NGINX
 FROM nginx:alpine AS production
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built assets from prerelease
+COPY --from=prerelease /usr/src/app/dist /usr/share/nginx/html
 
-# Copy public assets
-COPY --from=builder /app/public /usr/share/nginx/html
+# Copy public assets if any
+COPY --from=prerelease /usr/src/app/public /usr/share/nginx/html
 
 # Expose port
 EXPOSE 80
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
 # Start nginx

@@ -9,3 +9,4 @@ mini_report/*.lot
 mini_report/*.synctex.gz
 
 mini_report/mini_report.pdf
+.env

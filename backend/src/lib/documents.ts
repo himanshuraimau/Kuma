@@ -2,10 +2,7 @@ import { generateText } from 'ai';
 import { openai } from './ai/client';
 import { prisma } from '../db/prisma';
 import fs from 'fs/promises';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+import { GoogleGenAI } from '@google/genai';
 
 export interface DocumentUploadResult {
   documentId: string;
@@ -34,7 +31,7 @@ export interface DocumentAttachment {
 }
 
 /**
- * Upload a PDF document and extract text for OpenAI processing
+ * Upload a PDF document and extract text using Gemini
  */
 export async function uploadDocument(
   userId: string,
@@ -48,20 +45,48 @@ export async function uploadDocument(
     const fileSize = stats.size;
 
     // Read PDF file
-    const dataBuffer = await fs.readFile(filePath);
+    const pdfBuffer = await fs.readFile(filePath);
     
-    // Extract text from PDF using pdf-parse
+    // Extract text from PDF using Gemini
     let extractedText = '';
     let pageCount = 0;
     let status: 'processing' | 'ready' | 'failed' = 'processing';
     
     try {
-      const pdfData = await pdfParse(dataBuffer);
-      extractedText = pdfData.text;
-      pageCount = pdfData.numpages;
+      // Initialize Gemini client
+      const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      
+      // Convert PDF to base64
+      const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+      
+      // Use Gemini to extract text from PDF
+      const contents = [
+        { text: 'Extract all text from this PDF document. Return only the extracted text content, nothing else. Preserve the structure and formatting where possible.' },
+        {
+          inlineData: {
+            mimeType: 'application/pdf',
+            data: pdfBase64
+          }
+        }
+      ];
+      
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: contents
+      });
+      
+      extractedText = response.text || '';
+      
+      // Estimate page count (Gemini doesn't provide this directly)
+      // Rough estimate: ~500 words per page
+      const wordCount = extractedText.split(/\s+/).length;
+      pageCount = Math.ceil(wordCount / 500);
+      
       status = 'ready';
+      
+      console.log(`✅ Extracted ${wordCount} words from PDF (estimated ${pageCount} pages)`);
     } catch (error) {
-      console.error('Failed to extract PDF text:', error);
+      console.error('Failed to extract PDF text with Gemini:', error);
       status = 'failed';
     }
 

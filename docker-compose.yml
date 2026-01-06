@@ -1,34 +1,10 @@
 # ===================================
 # Kuma AI - Docker Compose Configuration
 # ===================================
-# Complete stack: Frontend, Backend, Worker, PostgreSQL, Redis
-
-version: '3.8'
+# Complete production-ready stack with all services
+# Uses .env file for configuration - ensure it exists!
 
 services:
-  # ===================================
-  # PostgreSQL Database
-  # ===================================
-  postgres:
-    image: postgres:16-alpine
-    container_name: kuma-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-kuma}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kumapassword}
-      POSTGRES_DB: ${POSTGRES_DB:-kuma_db}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kuma} -d ${POSTGRES_DB:-kuma_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - kuma-network
-
   # ===================================
   # Redis (Message Queue & Cache)
   # ===================================
@@ -36,18 +12,24 @@ services:
     image: redis:7-alpine
     container_name: kuma-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6380}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
     networks:
       - kuma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ===================================
   # Backend API Server
@@ -56,26 +38,27 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: production
     container_name: kuma-backend
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
-      # Server
-      NODE_ENV: production
-      PORT: 3001
+      # Server Configuration
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${BACKEND_PORT:-3001}
       
-      # Database
-      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+      # Database (External Neon DB)
+      DATABASE_URL: ${DATABASE_URL}
       
       # Redis
       USE_REDIS_QUEUE: ${USE_REDIS_QUEUE:-false}
       REDIS_URL: redis://redis:6379
       
-      # JWT
+      # JWT Authentication
       JWT_SECRET: ${JWT_SECRET}
       
       # OpenAI
@@ -94,7 +77,7 @@ services:
       EXA_API_KEY: ${EXA_API_KEY}
       SARVAM_API_KEY: ${SARVAM_API_KEY}
       
-      # LiveKit
+      # LiveKit Configuration
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
       LIVEKIT_URL: ${LIVEKIT_URL}
@@ -102,16 +85,16 @@ services:
       # Frontend URL (for OAuth callbacks)
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
     volumes:
-      - backend_uploads:/app/uploads
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - backend_uploads:/usr/src/app/uploads
     networks:
       - kuma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ===================================
   # Backend Worker (Redis Queue Processor)
@@ -120,26 +103,42 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.worker
+      target: production
     container_name: kuma-worker
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
+      - redis
+      - backend
+    env_file:
+      - .env
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+      NODE_ENV: ${NODE_ENV:-production}
+      
+      # Database (External Neon DB)
+      DATABASE_URL: ${DATABASE_URL}
+      
+      # Redis
       REDIS_URL: redis://redis:6379
+      
+      # API Keys for worker tasks
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SUPERMEMORY_API_KEY: ${SUPERMEMORY_API_KEY}
       EXA_API_KEY: ${EXA_API_KEY}
+      SARVAM_API_KEY: ${SARVAM_API_KEY}
+      
+      # JWT (in case worker needs it)
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - backend_uploads:/usr/src/app/uploads
     profiles:
-      - with-worker  # Only start when using Redis queue
+      - with-worker  # Start with: docker compose --profile with-worker up
     networks:
       - kuma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ===================================
   # Frontend (NGINX + React SPA)
@@ -148,6 +147,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: production
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
         VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL}
@@ -156,35 +156,39 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - "${FRONTEND_PORT:-3000}:80"
     networks:
       - kuma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ===================================
-  # Prisma Studio (Development Only)
+  # Prisma Studio (Database Management UI)
   # ===================================
   prisma-studio:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: deps
     container_name: kuma-prisma-studio
-    depends_on:
-      postgres:
-        condition: service_healthy
+    restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-kuma}:${POSTGRES_PASSWORD:-kumapassword}@postgres:5432/${POSTGRES_DB:-kuma_db}
+      DATABASE_URL: ${DATABASE_URL}
     ports:
-      - "5555:5555"
+      - "${PRISMA_STUDIO_PORT:-5555}:5555"
     command: ["bunx", "prisma", "studio", "--port", "5555", "--browser", "none"]
     profiles:
-      - dev  # Only start in development
+      - dev  # Start with: docker compose --profile dev up
     networks:
       - kuma-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 # ===================================
 # Networks
@@ -192,15 +196,16 @@ services:
 networks:
   kuma-network:
     driver: bridge
+    name: kuma-network
 
 # ===================================
 # Volumes
 # ===================================
 volumes:
-  postgres_data:
-    driver: local
   redis_data:
     driver: local
+    name: kuma-redis-data
   backend_uploads:
     driver: local
+    name: kuma-backend-uploads
 
