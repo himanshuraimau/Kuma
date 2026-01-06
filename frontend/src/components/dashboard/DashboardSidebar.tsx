@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import {
     LayoutGrid,
-    ListChecks,
     FolderOpen,
     Brain,
     Plus,
@@ -27,7 +26,6 @@ import {
     LogOut,
     ChevronsUpDown,
     PanelLeft,
-    FileText
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChatStore } from '@/stores/chat.store';
@@ -50,8 +48,6 @@ export const DashboardSidebar = () => {
 
     const menuItems = [
         { icon: LayoutGrid, label: 'Apps', path: '/apps' },
-        { icon: ListChecks, label: 'Prompts', path: '/prompts' },
-        { icon: FileText, label: 'Documents', path: '/documents' },
         // { icon: FolderOpen, label: 'Drive', path: '/drive' },
         { icon: Brain, label: 'Memories', path: '/memories' },
     ];
