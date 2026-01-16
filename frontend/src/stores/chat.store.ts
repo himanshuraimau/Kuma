@@ -16,7 +16,7 @@ interface ChatState {
 
     // Actions
     sendMessage: (message: string, agentType?: string, images?: File[], documentIds?: string[]) => Promise<void>;
-    sendMessageStreaming: (message: string, agentType?: string, images?: File[], documentIds?: string[]) => Promise<void>;
+    sendMessageStreaming: (message: string, agentType?: string, images?: File[], documentIds?: string[], documentInfo?: Array<{ id: string; displayName: string }>) => Promise<void>;
     loadChats: () => Promise<void>;
     loadChat: (chatId: string) => Promise<void>;
     deleteChat: (chatId: string) => Promise<void>;
@@ -42,7 +42,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     pollingInterval: null,
 
     // Send a message with streaming
-    sendMessageStreaming: async (message: string, agentType = 'router', images?: File[], documentIds?: string[]) => {
+    sendMessageStreaming: async (message: string, agentType = 'router', images?: File[], documentIds?: string[], documentInfo?: Array<{ id: string; displayName: string }>) => {
         const { currentChatId } = get();
 
         set({ isSending: true, isStreaming: true, streamingContent: '', error: null });
@@ -59,12 +59,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
             size: file.size,
         }));
 
+        // Create temporary document attachments for display
+        const tempDocumentAttachments = documentInfo?.map(doc => ({
+            id: doc.id,
+            filename: '',
+            displayName: doc.displayName,
+            mimetype: 'application/pdf',
+            size: 0,
+        }));
+
         const tempUserMessage: Message = {
             id: tempUserMessageId,
             chatId: currentChatId || 'temp',
             role: 'user',
             content: message,
             imageAttachments: tempImageAttachments,
+            documentAttachments: tempDocumentAttachments,
             createdAt: new Date().toISOString(),
         };
 
@@ -362,33 +372,42 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // Refresh current chat to check for new messages
     refreshCurrentChat: async () => {
-        const { currentChatId, isSending } = get();
+        const { currentChatId, isSending, isStreaming } = get();
+        
+        // Only poll while we're actively waiting for a response
         if (!currentChatId || !isSending) return;
 
         try {
             const response = await chatApi.getChat(currentChatId);
             const newMessages = response.chat.messages || [];
-
-            // Check if we have a completed assistant response
             const currentMessages = get().currentMessages;
-            const lastCurrentMsg = currentMessages[currentMessages.length - 1];
+
+            // Check if we have a completed assistant response from the server
             const lastNewMsg = newMessages[newMessages.length - 1];
+            
+            // Only update if we received a new assistant message that we don't have yet
+            // This prevents wiping out optimistic updates before they're saved
+            if (lastNewMsg?.role === 'assistant' && lastNewMsg?.content) {
+                // Check if this message is already in our current messages
+                const hasMessage = currentMessages.some(m => 
+                    m.role === 'assistant' && 
+                    m.content === lastNewMsg.content &&
+                    m.content.length > 0
+                );
 
-            // If we got a new assistant message with content, update
-            if (newMessages.length > currentMessages.length ||
-                (lastNewMsg?.role === 'assistant' && lastNewMsg?.content &&
-                    (!lastCurrentMsg || lastCurrentMsg.content !== lastNewMsg.content))) {
+                // Only update if we don't have this message yet
+                if (!hasMessage && newMessages.length >= currentMessages.length) {
+                    console.log('🔄 Polling detected new message, updating UI');
+                    set({
+                        currentMessages: newMessages,
+                        isSending: false,
+                        isStreaming: false,
+                        streamingContent: '',
+                    });
 
-                console.log('🔄 Polling detected new message, updating UI');
-                set({
-                    currentMessages: newMessages,
-                    isSending: false,
-                    isStreaming: false,
-                    streamingContent: '',
-                });
-
-                // Stop polling once we get the response
-                get().stopPolling();
+                    // Stop polling once we get the response
+                    get().stopPolling();
+                }
             }
         } catch (error) {
             console.error('Failed to refresh chat:', error);

@@ -31,6 +31,15 @@ export interface ImageAttachment {
     size: number;
 }
 
+// Document attachment type
+export interface DocumentAttachment {
+    id: string;
+    filename: string;
+    displayName: string;
+    mimetype: string;
+    size: number;
+}
+
 // Chat types
 export interface Message {
     id: string;
@@ -39,6 +48,7 @@ export interface Message {
     content: string;
     toolCalls?: unknown;
     imageAttachments?: ImageAttachment[];
+    documentAttachments?: DocumentAttachment[];
     createdAt: string;
 }
 

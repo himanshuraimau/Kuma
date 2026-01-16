@@ -120,6 +120,7 @@ export const ChatInterface = () => {
             const message = inputValue.trim();
             const imagesToSend = [...selectedImages];
             const documentIdsToSend = selectedDocuments.map(d => d.id);
+            const documentInfoToSend = [...selectedDocuments];
 
             setInputValue('');
             setSelectedImages([]);
@@ -130,7 +131,7 @@ export const ChatInterface = () => {
             }
 
             try {
-                await sendMessageStreaming(message, undefined, imagesToSend, documentIdsToSend);
+                await sendMessageStreaming(message, undefined, imagesToSend, documentIdsToSend, documentInfoToSend);
             } catch (err) {
                 console.error('Failed to send message:', err);
                 // In case of an error, it's good practice to re-focus the input

@@ -112,8 +112,8 @@ export const processVoiceInput = async (req: Request, res: Response) => {
         res.set({
             'Content-Type': 'audio/wav',
             'Content-Length': audioBuffer.length,
-            'X-Transcript': Buffer.from(transcript).toString('base64'),
-            'X-AI-Response': Buffer.from(aiResponse).toString('base64'),
+            'X-Transcript': Buffer.from(transcript, 'utf-8').toString('base64'),
+            'X-AI-Response': Buffer.from(aiResponse, 'utf-8').toString('base64'),
             'X-Chat-Id': chat.id, // Include chatId for future messages
         });
         res.send(audioBuffer);

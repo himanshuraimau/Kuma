@@ -206,13 +206,30 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose 
             let userTranscript = '';
             let aiResponseText = '';
 
+            // Helper function to decode base64 with UTF-8 support
+            const decodeBase64UTF8 = (base64String: string): string => {
+                try {
+                    // Decode base64 to binary string
+                    const binaryString = atob(base64String);
+                    // Convert binary string to UTF-8
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    return new TextDecoder('utf-8').decode(bytes);
+                } catch (error) {
+                    console.error('Error decoding base64:', error);
+                    return '';
+                }
+            };
+
             if (transcriptHeader) {
-                userTranscript = atob(transcriptHeader); // Decode base64
+                userTranscript = decodeBase64UTF8(transcriptHeader);
                 console.log('✅ User said:', userTranscript);
             }
 
             if (aiResponseHeader) {
-                aiResponseText = atob(aiResponseHeader); // Decode base64
+                aiResponseText = decodeBase64UTF8(aiResponseHeader);
                 console.log('✅ AI response:', aiResponseText);
             }
 
@@ -451,7 +468,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose 
                         <div className="flex justify-end">
                             <div className="max-w-[80%] p-4 rounded-2xl bg-blue-600 text-white">
                                 <p className="text-sm font-medium mb-1">You said:</p>
-                                <p>{transcript}</p>
+                                <p className="unicode-text">{transcript}</p>
                             </div>
                         </div>
                     )}
@@ -460,7 +477,7 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose 
                         <div className="flex justify-start">
                             <div className="max-w-[80%] p-4 rounded-2xl bg-slate-700 text-white">
                                 <p className="text-sm font-medium mb-1 text-green-400">AI:</p>
-                                <p>{response}</p>
+                                <p className="unicode-text">{response}</p>
                             </div>
                         </div>
                     )}
